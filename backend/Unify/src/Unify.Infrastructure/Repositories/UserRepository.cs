@@ -10,6 +10,11 @@ internal sealed class UserRepository : Repository<User>, IUserRepository
     {
     }
 
+    public async Task<ICollection<User>> GetManyByIdAsync(ICollection<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        return await DbContext.Set<User>().Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken);
+    }
+
     public User? GetByEmail(string email, CancellationToken cancellationToken = default)
     {
         return DbContext.Set<User>().AsEnumerable()

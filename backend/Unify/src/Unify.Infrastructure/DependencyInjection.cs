@@ -10,13 +10,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Unify.Application.Abstractions.Files;
 using Unify.Domain.Abstractions;
+using Unify.Domain.Messages;
 using Unify.Domain.Users;
 using Unify.Infrastructure.Authentication;
 using Unify.Infrastructure.Authorization;
 using Unify.Infrastructure.Clock;
 using Unify.Infrastructure.Data;
 using Unify.Infrastructure.Email;
+using Unify.Infrastructure.FileUpload;
 using Unify.Infrastructure.Repositories;
 using AuthenticationOptions = Unify.Infrastructure.Authentication.AuthenticationOptions;
 using AuthenticationService = Unify.Infrastructure.Authentication.AuthenticationService;
@@ -36,6 +39,8 @@ public static class DependencyInjection
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 
         services.AddTransient<IEmailService, EmailService>();
+
+        services.AddTransient<IFileConversionService, FileConverter>();
 
         AddPersistence(services, configuration);
 
@@ -58,6 +63,8 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IUserRepository, UserRepository>();
+
+        services.AddScoped<IMessageRepository, MessageRepository>();
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
