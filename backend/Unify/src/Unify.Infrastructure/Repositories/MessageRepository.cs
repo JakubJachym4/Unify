@@ -11,6 +11,9 @@ internal sealed class MessageRepository : Repository<Message>, IMessageRepositor
 
     public async Task<ICollection<Message>> GetMultipleBySenderIdAsync(Guid senderId, CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<Message>().Where(m => m.SenderId == senderId).ToListAsync(cancellationToken);
+        return await DbContext.Set<Message>()
+            .Include(message => message.Recipients)
+            .Include(message => message.Attachments)
+            .Where(m => m.SenderId == senderId).ToListAsync(cancellationToken);
     }
 }

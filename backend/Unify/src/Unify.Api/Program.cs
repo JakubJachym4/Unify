@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Unify.Api.Extensions;
 using Unify.Application;
 using Unify.Infrastructure;
@@ -14,7 +15,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddSwaggerGen();
 
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 5000000;
+});
+
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {

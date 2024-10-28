@@ -20,8 +20,9 @@ public class MessagesController : ControllerBase
     }
 
     [HttpPost("send")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> SendMessage(
-        SendMessageRequest request,
+        [FromForm] SendMessageRequest request,
         CancellationToken cancellationToken)
     {
         var command = new SendMessageCommand(

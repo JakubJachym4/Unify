@@ -1,5 +1,7 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Http;
 using Unify.Application.Abstractions.Data;
+using Unify.Application.Abstractions.Files;
 using Unify.Application.Abstractions.Messaging;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
@@ -10,11 +12,13 @@ internal sealed class GetSentMessagesQueryHandler : IQueryHandler<GetSentMessage
 {
     private readonly ISqlConnectionFactory _sqlConnectionFactory;
     private readonly IMessageRepository _messageRepository;
+    private readonly IFileConversionService _fileConversionService;
 
-    public GetSentMessagesQueryHandler(IMessageRepository messageRepository, ISqlConnectionFactory sqlConnectionFactory)
+    public GetSentMessagesQueryHandler(IMessageRepository messageRepository, ISqlConnectionFactory sqlConnectionFactory, IFileConversionService fileConversionService)
     {
-        this._sqlConnectionFactory = sqlConnectionFactory;
-        this._messageRepository = messageRepository;
+        _sqlConnectionFactory = sqlConnectionFactory;
+        _fileConversionService = fileConversionService;
+        _messageRepository = messageRepository;
     }
 
     public async Task<Result<MessagesResponse>> Handle(GetSentMessagesQuery request, CancellationToken cancellationToken)
@@ -47,13 +51,28 @@ internal sealed class GetSentMessagesQueryHandler : IQueryHandler<GetSentMessage
         var messageResponses = new List<MessageResponse>();
         foreach (var message in messages)
         {
+            var files = new List<FileResponse>();
+
+            if (message.Attachments.Count > 0)
+            {
+                var convertedFilesResult = await _fileConversionService.ConvertToFileResponses(message.Attachments.ToList());
+                if (convertedFilesResult.Any(r => r.IsFailure))
+                {
+                    //TODO: create errors
+                    return Result.Failure<MessagesResponse>(new Error("Error", "Could not get files from the database."));
+                }
+                files.AddRange(convertedFilesResult.Select(r => r.Value));
+            }
+
             messageResponses.Add(
                 new MessageResponse(
                     message.Id,
                     message.SenderId,
                     message.Title.Value,
                     message.Content.Value,
-                    message.CreatedOn
+                    message.CreatedOn,
+                    message.Recipients.Select(r => r.Id).ToList(),
+                    files.ToList()
                     ));
         }
 
