@@ -1,0 +1,395 @@
+{
+	"info": {
+		"_postman_id": "7197e6fb-572f-4c24-928a-a39bb1a75bd8",
+		"name": "Unify",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22770289"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Log in User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"admin@admin.com\",\r\n    \"password\": \"12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/api/users/login",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"admin@admin.com\",\r\n    \"firstName\": \"admin\",\r\n    \"lastName\": \"LastNameOfAdmin\",\r\n    \"password\": \"12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/api/users/register",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logged In User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJnRi11WEI4b1lpM2tZc2NYbnpXMjE5SW5Fc19BMkNqM1pnSTJIR3lBRkY0In0.eyJleHAiOjE3MzAwNzAyODAsImlhdCI6MTczMDA2NjY4MCwianRpIjoiZWY1ZjQzYmUtMjEyMi00Y2M1LThkYTQtYzVlMTJjY2UzYTJkIiwiaXNzIjoiaHR0cDovL3VuaWZ5LWlkcDo4MDgwL3JlYWxtcy91bmlmeSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI4OGQ4MDJjNy1iNTU0LTRhOTYtOGIxZC00YzRhZDUyYjk3MTciLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ1bmlmeS1hdXRoLWNsaWVudCIsInNpZCI6IjkwMmFiY2EzLWViOWYtNDIwYy05ZWY3LTUyODVmNmUwMDg1ZSIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy11bmlmeSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNaWxhbiBKb3Zhbm92aWMiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtaWxhbkBtaWxhbmpvdmFub3ZpYy50ZWNoIiwiZ2l2ZW5fbmFtZSI6Ik1pbGFuIiwiZmFtaWx5X25hbWUiOiJKb3Zhbm92aWMiLCJlbWFpbCI6Im1pbGFuQG1pbGFuam92YW5vdmljLnRlY2gifQ.gtr7S_LEP4P8QUjpGYwf8809PmWedlRxumXTU_HokdI-b-oBF_ouI4_EZpdFkyYXmNtYI9qZ4guTEi5kfDAA-z_q5oUFZ9un7IhafX01xYliOkQ5Nw9Ik3Jd5r8Mncp1jIln6UHO-kVFoW0KS1yjbR786WSQ5NR9uMroYUgygoXwsnK5P5jOLUIkQ4UFIR8TKLWQkYsGNhMH89kCyxP1Js_-E7pYRTC9W4B_Qs-T-RHxCuT4BrAdBD8mLzDwAvGC1ftrPEmyN4cZulZTJ5U0x04i8nsNQG_p83jvM9Khhdcim6F64frsUllaKticxAlpA2vt-nehLLPPvz2A2AG_hQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/api/users/me",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Identity",
+			"item": [
+				{
+					"name": "Access Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "bookify-auth-client",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "3E3yvXaYppoYBF3Ir6DgtEzADKKzSurZ",
+									"type": "text"
+								},
+								{
+									"key": "scope",
+									"value": "openid",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "test@test.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "12345",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:18080/realms/bookify/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "18080",
+							"path": [
+								"realms",
+								"bookify",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Access Token Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "bookify-admin-client",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "UZDmbNxWmV4TlpaCRcju6pMRsyuV3er1",
+									"type": "text"
+								},
+								{
+									"key": "scope",
+									"value": "openid",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:18080/realms/bookify/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "18080",
+							"path": [
+								"realms",
+								"bookify",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:18080/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "18080",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Messages",
+			"item": [
+				{
+					"name": "Send Message",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJnRi11WEI4b1lpM2tZc2NYbnpXMjE5SW5Fc19BMkNqM1pnSTJIR3lBRkY0In0.eyJleHAiOjE3MzAxNDU5MzAsImlhdCI6MTczMDE0MjMzMCwianRpIjoiZDkzOTIwNTYtNGY0MS00ZWMwLWJiZjItZmU3ZGQ5MmYwZGQ4IiwiaXNzIjoiaHR0cDovL3VuaWZ5LWlkcDo4MDgwL3JlYWxtcy91bmlmeSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI4OGQ4MDJjNy1iNTU0LTRhOTYtOGIxZC00YzRhZDUyYjk3MTciLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ1bmlmeS1hdXRoLWNsaWVudCIsInNpZCI6IjdhMTM2MGUyLTU2OGUtNDA5ZS04NmEyLTE1YTAyMTlmMGIzZCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy11bmlmeSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNaWxhbiBKb3Zhbm92aWMiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtaWxhbkBtaWxhbmpvdmFub3ZpYy50ZWNoIiwiZ2l2ZW5fbmFtZSI6Ik1pbGFuIiwiZmFtaWx5X25hbWUiOiJKb3Zhbm92aWMiLCJlbWFpbCI6Im1pbGFuQG1pbGFuam92YW5vdmljLnRlY2gifQ.ggCIE6KHloQ3wautrfiiqOSjo1vP417chfsjezvspJ5PUogH9L8obJ5UjrbABFH3uzBycWQtGOoP5H5Xag53x-T-j5TJRDpaLyIMdHpIk294pawXnePkHNcW3yiUs_48PLgca0Y4Zgy1SVylN7NEaNB524A1tmdvs8itjgg5iOSJvG_iJDBzcuqP7nbsIDpjp8_eyZ8bTsT_jv-YpTxPBK8MTCRVG-NDnI_7OhJ-wyxLqepCNu21W3BaYSDUWm_-UA8lfEYdnQQr6ayGTTDTohXM6rVjwsvcMudxHvDZbTgQi429UyUB73YwDxQaaEQ-dxRXV2HTrNHfrKo9Ur5l5A",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{api_url}}/api/messages/send",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"api",
+								"messages",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Message With file",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJnRi11WEI4b1lpM2tZc2NYbnpXMjE5SW5Fc19BMkNqM1pnSTJIR3lBRkY0In0.eyJleHAiOjE3MzAxNTQyNjksImlhdCI6MTczMDE1MDY2OSwianRpIjoiYzI1YzhkYzgtYmVkNS00ZmFjLWExMDUtY2MyZWY0NTU2NzM2IiwiaXNzIjoiaHR0cDovL3VuaWZ5LWlkcDo4MDgwL3JlYWxtcy91bmlmeSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI4OGQ4MDJjNy1iNTU0LTRhOTYtOGIxZC00YzRhZDUyYjk3MTciLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ1bmlmeS1hdXRoLWNsaWVudCIsInNpZCI6Ijk4Nzg4MmQ0LWFhYmUtNGRiNS05MzBmLTc0MmZkNDdjMzk4ZCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy11bmlmeSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNaWxhbiBKb3Zhbm92aWMiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtaWxhbkBtaWxhbmpvdmFub3ZpYy50ZWNoIiwiZ2l2ZW5fbmFtZSI6Ik1pbGFuIiwiZmFtaWx5X25hbWUiOiJKb3Zhbm92aWMiLCJlbWFpbCI6Im1pbGFuQG1pbGFuam92YW5vdmljLnRlY2gifQ.AHK--cA8WFv-_dz3XMFFvh67kzYU-RPP7jzhBu04-2hparRbElc36-I8Nhe-gJKHIQiATAqFq3Yme4GavT2EKKlA5dlkUCt-l-QKbCuiOgegpUzvuuK9L9vXr3PiO4x0q-IjNjiLgpNDrddC8CmOI2Dq49cJVuFZZ2jYlsD3vDz7aZ8pKBZMfc6g9RdItY2Al9PR5hM-RsJfP8PgpCgQwVxhtJDIJLTiZO9tWa8KWr4iUUrbWozV5kAbDALIGx_ZSPM3Lgyac5TQbozANZFbxvyhrmJ5k7c87NgZoxQRdyikdt-F5Z-R8fs3NMyr5Z-1f8Q0zLnjQ9Vz5A1GES-Irw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "senderId",
+									"value": "0c1b7903-ffff-468a-bbd7-308ccc92d719",
+									"type": "text"
+								},
+								{
+									"key": "title",
+									"value": "message",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "some content",
+									"type": "text"
+								},
+								{
+									"key": "RecipientsIds",
+									"value": "20b37d68-17d4-4a15-bf55-5fdf381c0a23",
+									"type": "text"
+								},
+								{
+									"key": "Attachments",
+									"type": "file",
+									"src": "/C:/Users/jakub/OneDrive/Desktop/a.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_url}}/api/messages/send",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"api",
+								"messages",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sent Messages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJnRi11WEI4b1lpM2tZc2NYbnpXMjE5SW5Fc19BMkNqM1pnSTJIR3lBRkY0In0.eyJleHAiOjE3MzAxNTQyNjksImlhdCI6MTczMDE1MDY2OSwianRpIjoiYzI1YzhkYzgtYmVkNS00ZmFjLWExMDUtY2MyZWY0NTU2NzM2IiwiaXNzIjoiaHR0cDovL3VuaWZ5LWlkcDo4MDgwL3JlYWxtcy91bmlmeSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI4OGQ4MDJjNy1iNTU0LTRhOTYtOGIxZC00YzRhZDUyYjk3MTciLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ1bmlmeS1hdXRoLWNsaWVudCIsInNpZCI6Ijk4Nzg4MmQ0LWFhYmUtNGRiNS05MzBmLTc0MmZkNDdjMzk4ZCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy11bmlmeSIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNaWxhbiBKb3Zhbm92aWMiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtaWxhbkBtaWxhbmpvdmFub3ZpYy50ZWNoIiwiZ2l2ZW5fbmFtZSI6Ik1pbGFuIiwiZmFtaWx5X25hbWUiOiJKb3Zhbm92aWMiLCJlbWFpbCI6Im1pbGFuQG1pbGFuam92YW5vdmljLnRlY2gifQ.AHK--cA8WFv-_dz3XMFFvh67kzYU-RPP7jzhBu04-2hparRbElc36-I8Nhe-gJKHIQiATAqFq3Yme4GavT2EKKlA5dlkUCt-l-QKbCuiOgegpUzvuuK9L9vXr3PiO4x0q-IjNjiLgpNDrddC8CmOI2Dq49cJVuFZZ2jYlsD3vDz7aZ8pKBZMfc6g9RdItY2Al9PR5hM-RsJfP8PgpCgQwVxhtJDIJLTiZO9tWa8KWr4iUUrbWozV5kAbDALIGx_ZSPM3Lgyac5TQbozANZFbxvyhrmJ5k7c87NgZoxQRdyikdt-F5Z-R8fs3NMyr5Z-1f8Q0zLnjQ9Vz5A1GES-Irw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": \"0c1b7903-ffff-468a-bbd7-308ccc92d719\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/api/messages/get_sent",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"api",
+								"messages",
+								"get_sent"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{api_url}}/health",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "api_url",
+			"value": "http://localhost:5000/",
+			"type": "default"
+		}
+	]
+}
