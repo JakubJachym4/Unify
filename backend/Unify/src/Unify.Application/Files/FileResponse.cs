@@ -1,4 +1,4 @@
-namespace Unify.Application.Messages.GetSentMessages;
+namespace Unify.Application.Files;
 
 public sealed class FileResponse
 {
@@ -12,4 +12,6 @@ public sealed class FileResponse
     public string FileName { get; init; }
     public string ContentType { get; init; }
     public string Data { get; init; }
+
+
 }

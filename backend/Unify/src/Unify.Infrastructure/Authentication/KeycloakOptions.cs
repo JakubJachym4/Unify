@@ -6,6 +6,7 @@ public sealed class KeycloakOptions
 
     public string TokenUrl { get; init; } = string.Empty;
 
+    public string LogoutUrl { get; init; } = string.Empty;
     public string AdminClientId { get; init; } = string.Empty;
 
     public string AdminClientSecret { get; init; } = string.Empty;

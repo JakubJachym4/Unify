@@ -1,8 +1,11 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Http;
+using Unify.Application.Abstractions.Authentication;
 using Unify.Application.Abstractions.Data;
 using Unify.Application.Abstractions.Files;
 using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Files;
+using Unify.Application.Messages.Utils;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
 
@@ -13,11 +16,13 @@ internal sealed class GetSentMessagesQueryHandler : IQueryHandler<GetSentMessage
     private readonly ISqlConnectionFactory _sqlConnectionFactory;
     private readonly IMessageRepository _messageRepository;
     private readonly IFileConversionService _fileConversionService;
+    private readonly IUserContext _userContext;
 
-    public GetSentMessagesQueryHandler(IMessageRepository messageRepository, ISqlConnectionFactory sqlConnectionFactory, IFileConversionService fileConversionService)
+    public GetSentMessagesQueryHandler(IMessageRepository messageRepository, ISqlConnectionFactory sqlConnectionFactory, IFileConversionService fileConversionService, IUserContext userContext)
     {
         _sqlConnectionFactory = sqlConnectionFactory;
         _fileConversionService = fileConversionService;
+        _userContext = userContext;
         _messageRepository = messageRepository;
     }
 
@@ -46,39 +51,18 @@ internal sealed class GetSentMessagesQueryHandler : IQueryHandler<GetSentMessage
         //         request.UserId
         //     });
 
-        var messages = await _messageRepository.GetMultipleBySenderIdAsync(request.UserId, cancellationToken);
+        var messages = await _messageRepository.GetMultipleBySenderIdAsync(_userContext.UserId, cancellationToken);
 
-        var messageResponses = new List<MessageResponse>();
-        foreach (var message in messages)
+        var converter = new MessageConverter(_fileConversionService);
+        var messageResponsesResult = await converter.ConvertMessagesToResponses(messages);
+        if (messageResponsesResult.IsFailure)
         {
-            var files = new List<FileResponse>();
-
-            if (message.Attachments.Count > 0)
-            {
-                var convertedFilesResult = await _fileConversionService.ConvertToFileResponses(message.Attachments.ToList());
-                if (convertedFilesResult.Any(r => r.IsFailure))
-                {
-                    //TODO: create errors
-                    return Result.Failure<MessagesResponse>(new Error("Error", "Could not get files from the database."));
-                }
-                files.AddRange(convertedFilesResult.Select(r => r.Value));
-            }
-
-            messageResponses.Add(
-                new MessageResponse(
-                    message.Id,
-                    message.SenderId,
-                    message.Title.Value,
-                    message.Content.Value,
-                    message.CreatedOn,
-                    message.Recipients.Select(r => r.Id).ToList(),
-                    files.ToList()
-                    ));
+            return Result.Failure<MessagesResponse>(messageResponsesResult.Error);
         }
 
-
-        var response = new MessagesResponse(new List<MessageResponse>(messageResponses));
+        var response = new MessagesResponse(new List<MessageResponse>(messageResponsesResult.Value));
 
         return response;
     }
+
 }

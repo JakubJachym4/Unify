@@ -15,14 +15,15 @@ internal sealed class UserRepository : Repository<User>, IUserRepository
         return await DbContext.Set<User>().Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken);
     }
 
-    public User? GetByEmail(string email, CancellationToken cancellationToken = default)
+    public User? GetByEmailNoTracking(string email, CancellationToken cancellationToken = default)
     {
-        return DbContext.Set<User>().AsEnumerable()
+        return DbContext.Set<User>().AsNoTracking().AsEnumerable()
             .FirstOrDefault(user => user.Email.Value == email);
     }
 
     public override void Add(User user)
     {
+
         foreach (var role in user.Roles)
         {
             DbContext.Attach(role);

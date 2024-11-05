@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Unify.Domain.Messages;
+﻿using Unify.Application.Files;
 
-namespace Unify.Application.Messages.GetSentMessages;
+namespace Unify.Application.Messages;
 
 public sealed class MessagesResponse
 {

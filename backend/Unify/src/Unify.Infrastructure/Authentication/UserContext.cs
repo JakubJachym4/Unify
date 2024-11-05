@@ -25,4 +25,8 @@ internal sealed class UserContext : IUserContext
             .User
             .GetIdentityId() ??
         throw new ApplicationException("User context is unavailable");
+
+    public bool IsAuthenticated =>
+        _httpContextAccessor
+            .HttpContext == null;
 }

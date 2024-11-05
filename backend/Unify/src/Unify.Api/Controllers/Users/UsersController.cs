@@ -5,6 +5,7 @@ using Unify.Infrastructure.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Users.LogOutUser;
 
 namespace Unify.Api.Controllers.Users;
 
@@ -69,4 +70,22 @@ public class UsersController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    {
+        var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+        var command = new LogOutUserCommand(token);
+
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return Unauthorized(result.Error);
+        }
+
+        return Ok();
+    }
+
 }

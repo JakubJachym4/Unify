@@ -10,22 +10,31 @@ internal sealed class RegisterUserCommandHandler : ICommandHandler<RegisterUserC
     private readonly IAuthenticationService _authenticationService;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserContext _userContext;
+
 
     public RegisterUserCommandHandler(
         IAuthenticationService authenticationService,
         IUserRepository userRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork, IUserContext userContext)
     {
         _authenticationService = authenticationService;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _userContext = userContext;
     }
 
     public async Task<Result<Guid>> Handle(
         RegisterUserCommand request,
         CancellationToken cancellationToken)
     {
-        var foundUser = _userRepository.GetByEmail(request.Email, cancellationToken);
+        if (_userContext.IsAuthenticated)
+        {
+            return Result.Failure<Guid>(UserErrors.AlreadyLoggedIn);
+        }
+
+        var foundUser = _userRepository.GetByEmailNoTracking(request.Email, cancellationToken);
+
 
         if (foundUser != null)
         {

@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Unify.Application.Abstractions.Authentication;
 using Microsoft.Extensions.Options;
 using Unify.Domain.Abstractions;
@@ -52,6 +53,31 @@ internal sealed class JwtService : IJwtService
             }
 
             return authorizationToken.AccessToken;
+        }
+        catch (HttpRequestException)
+        {
+            return Result.Failure<string>(AuthenticationFailed);
+        }
+    }
+
+    public async Task<Result> LogoutAsync(string token, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var logoutRequestParameters = new KeyValuePair<string, string>[]
+            {
+                new("client_id", _keycloakOptions.AuthClientId),
+                new("client_secret", _keycloakOptions.AuthClientSecret),
+                new("access_token", token)
+            };
+
+            var authorizationRequestContent = new FormUrlEncodedContent(logoutRequestParameters);
+
+            var response = await _httpClient.PostAsync(_keycloakOptions.LogoutUrl, authorizationRequestContent, cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+
+            return Result.Success();
         }
         catch (HttpRequestException)
         {

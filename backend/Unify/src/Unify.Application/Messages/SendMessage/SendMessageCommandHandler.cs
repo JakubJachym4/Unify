@@ -1,6 +1,8 @@
-﻿using Unify.Application.Abstractions.Clock;
+﻿using Unify.Application.Abstractions.Authentication;
+using Unify.Application.Abstractions.Clock;
 using Unify.Application.Abstractions.Files;
 using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Messages.Utils;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
 using Unify.Domain.Users;
@@ -14,61 +16,39 @@ public sealed class SendMessageCommandHandler : ICommandHandler<SendMessageComma
     private readonly IFileConversionService _fileConversionService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMessageRepository _messageRepository;
+    private readonly IUserContext _userContext;
 
-    public SendMessageCommandHandler(IUnitOfWork unitOfWork, IUserRepository userRepository, IFileConversionService fileConversionService, IDateTimeProvider dateTimeProvider, IMessageRepository messageRepository)
+    public SendMessageCommandHandler(IUnitOfWork unitOfWork, IUserRepository userRepository, IFileConversionService fileConversionService, IDateTimeProvider dateTimeProvider, IMessageRepository messageRepository, IUserContext userContext)
     {
         _unitOfWork = unitOfWork;
         _userRepository = userRepository;
         _fileConversionService = fileConversionService;
         _dateTimeProvider = dateTimeProvider;
         _messageRepository = messageRepository;
+        _userContext = userContext;
     }
 
     public async Task<Result<Guid>> Handle(SendMessageCommand request, CancellationToken cancellationToken)
     {
-        //validate
-        var sender = await _userRepository.GetByIdAsync(request.SenderId, cancellationToken);
-        if (sender is null)
+
+        var validator = new MessageRequestValidator(_userRepository, _fileConversionService);
+
+        var userId = _userContext.UserId;
+
+        var result = await validator.ValidateAsync(userId, request.RecipientsIds, request.Attachments, cancellationToken);
+
+        if (result.IsFailure)
         {
-            return Result.Failure<Guid>(MessageErrors.SenderNotFound);
+            return Result.Failure<Guid>(result.Error);
         }
-
-        var recipients = await _userRepository.GetManyByIdAsync(request.RecipientsIds, cancellationToken);
-        if (recipients.Count == 0)
-        {
-            return Result.Failure<Guid>(MessageErrors.RecipientNotFound);
-        }
-
-
-        var attachments = new List<Attachment>();
-
-        if (request.Attachments != null && request.Attachments.Any())
-        {
-            var recipientsNotFound = recipients.Where(r => request.RecipientsIds.Contains(r.Id) == false).ToList();;
-            if (recipientsNotFound.Any())
-            {
-                return Result.Failure(MessageErrors.RecipientNotFound, recipientsNotFound.First().Id);
-            }
-
-            var attachmentResults = await _fileConversionService.ConvertToAttachments(request.Attachments);
-            if (attachmentResults.Any(result => result.IsFailure))
-            {
-                var firstError = attachmentResults.First(result => result.IsFailure);
-                return Result.Failure<Guid>(firstError.Error);
-            }
-
-            attachments = attachmentResults.Select(a => a.Value).ToList();
-        }
-
-
 
         //create and persist
 
-        var message = Message.Send(sender,
+        var message = Message.Send(result.Value.Sender,
             new Title(request.Title),
             new TextContent(request.Content),
-            recipients.ToList(),
-            attachments,
+            result.Value.Recipients,
+            result.Value.Attachments,
             _dateTimeProvider.UtcNow);
 
         _messageRepository.Add(message);

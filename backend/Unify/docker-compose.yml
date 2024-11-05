@@ -9,7 +9,7 @@ services:
       context: .
       dockerfile: src/Unify.Api/Dockerfile
     volumes:
-      - C:/Users/jakub/.aspnet/https/aspnetapp.pfx:/https/aspnetapp.pfx
+      - C:\Users\jjm3\Desktop\certificate.pfx:/https/aspnetapp.pfx
     environment:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
@@ -29,7 +29,7 @@ services:
     volumes:
       - ./.containers/database:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - 5433:5432
 
   unify-idp:
     image: quay.io/keycloak/keycloak:latest
