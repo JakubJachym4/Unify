@@ -30,6 +30,6 @@ public sealed class MessageResponse
     public string Title { get; init; }
     public string Content { get; init; }
     public DateTime CreatedOn { get; init; }
-    public ICollection<Guid> RecipientsIds { get; init; } = new List<Guid>();
-    public ICollection<FileResponse> Attachments { get; init; } = new List<FileResponse>();
+    public ICollection<Guid> RecipientsIds { get; init; }
+    public ICollection<FileResponse> Attachments { get; init; }
 }
