@@ -22,7 +22,8 @@ internal sealed class GetLastMessagesByDateQueryHandler : IQueryHandler<GetLastM
 
     public async Task<Result<MessagesResponse>> Handle(GetLastMessagesByDateQuery request, CancellationToken cancellationToken)
     {
-        var messages = await _messageRepository.GetLastMultipleBySenderAndDateAsync(_userContext.UserId, request.Date, cancellationToken);
+        var messages = await _messageRepository
+            .GetLastMultipleByDateAsync(_userContext.UserId, DateOnly.FromDateTime(request.Date), cancellationToken);
 
         var converter = new MessageConverter(_fileConversionService);
         var messageResponsesResult = await converter.ConvertMessagesToResponses(messages);

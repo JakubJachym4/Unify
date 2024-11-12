@@ -22,7 +22,7 @@ internal sealed class GetLastMessagesByNumberQueryHandler : IQueryHandler<GetLas
 
     public async Task<Result<MessagesResponse>> Handle(GetLastMessagesByNumberQuery request, CancellationToken cancellationToken)
     {
-        var messages = await _messageRepository.GetLastMultipleBySenderAndNumberAsync(_userContext.UserId, request.NumberOfMessages, cancellationToken);
+        var messages = await _messageRepository.GetLastMultipleByNumberAsync(_userContext.UserId, request.NumberOfMessages, cancellationToken);
 
         var converter = new MessageConverter(_fileConversionService);
         var messageResponsesResult = await converter.ConvertMessagesToResponses(messages);

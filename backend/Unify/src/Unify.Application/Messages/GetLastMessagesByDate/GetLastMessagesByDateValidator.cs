@@ -7,6 +7,6 @@ public class GetLastMessagesByDateValidator : AbstractValidator<GetLastMessagesB
 {
     public GetLastMessagesByDateValidator(IDateTimeProvider dateTimeProvider)
     {
-        RuleFor(q => q.Date).NotEmpty().LessThan(dateTimeProvider.UtcNowDateOnly);
+        RuleFor(q => q.Date).NotEmpty().LessThan(dateTimeProvider.UtcNow);
     }
 }
