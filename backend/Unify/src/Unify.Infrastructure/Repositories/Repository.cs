@@ -19,7 +19,7 @@ where T : Entity
     {
         return await DbContext
             .Set<T>()
-            .FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
     public virtual void Add(T entity)

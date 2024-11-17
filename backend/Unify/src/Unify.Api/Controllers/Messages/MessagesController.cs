@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unify.Application.Messages;
+using Unify.Application.Messages.ForwardMessage;
 using Unify.Application.Messages.GetLastMessagesByDate;
 using Unify.Application.Messages.GetLastMessagesByNumber;
 using Unify.Application.Messages.GetSentMessages;
@@ -109,4 +110,23 @@ public class MessagesController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    [HttpPost("forward")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ForwardMessage([FromForm] ForwardMessageRequest request, CancellationToken cancellationToken)
+    {
+        var command = new ForwardMessageCommand(
+            request.OriginalMessageId,
+            request.NewRecipientsIds);
+
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
 }

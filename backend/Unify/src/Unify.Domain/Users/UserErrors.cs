@@ -4,10 +4,10 @@ namespace Unify.Domain.Users;
 
 public static class UserErrors
 {
-    public static Error NotFound(Guid id) =>
+    public static Error NotFound(Guid? id) =>
         Error.Create("User.NotFound",
             "The user with the specified identifier was not found. Id: {0}",
-            id);
+            id ?? Guid.Empty);
 
     public static Error InvalidCredentials = new(
         "User.InvalidCredentials",
