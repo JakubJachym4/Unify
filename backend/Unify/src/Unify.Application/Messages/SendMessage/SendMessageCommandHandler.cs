@@ -5,6 +5,7 @@ using Unify.Application.Abstractions.Messaging;
 using Unify.Application.Messages.Utils;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
+using Unify.Domain.Shared;
 using Unify.Domain.Users;
 
 namespace Unify.Application.Messages.SendMessage;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unify.Domain.Messages;
+using Unify.Domain.OnlineResources;
 
 namespace Unify.Infrastructure.Configurations;
 

@@ -3,6 +3,7 @@ using Unify.Application.Files;
 using Unify.Application.Messages.GetSentMessages;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
+using Unify.Domain.OnlineResources;
 
 namespace Unify.Application.Abstractions.Files;
 

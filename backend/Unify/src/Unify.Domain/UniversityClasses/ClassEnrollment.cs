@@ -1,7 +1,9 @@
 ﻿using Unify.Domain.Abstractions;
+using Unify.Domain.Shared;
+using Unify.Domain.UniversityCore;
 using Unify.Domain.Users;
 
-namespace Unify.Domain.FieldsOfStudy;
+namespace Unify.Domain.UniversityClasses;
 
 public sealed class ClassEnrollment : Entity
 {

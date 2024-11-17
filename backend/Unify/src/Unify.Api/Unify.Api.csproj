@@ -26,4 +26,10 @@
     <ProjectReference Include="..\Unify.Infrastructure\Unify.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Admin\" />
+    <Folder Include="Controllers\Lecturer\" />
+    <Folder Include="Controllers\Student\" />
+  </ItemGroup>
+
 </Project>

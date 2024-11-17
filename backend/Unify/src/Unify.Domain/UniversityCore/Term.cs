@@ -1,4 +1,4 @@
-﻿namespace Unify.Domain.FieldsOfStudy;
+﻿namespace Unify.Domain.UniversityCore;
 
 public enum Term
 {

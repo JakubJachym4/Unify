@@ -1,5 +1,4 @@
-﻿using Unify.Domain.Bookings;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Unify.Application.Abstractions.Behaviors;
 

@@ -1,6 +1,6 @@
 ﻿using Unify.Domain.Abstractions;
 
-namespace Unify.Domain.FieldsOfStudy;
+namespace Unify.Domain.UniversityCore;
 
 public sealed class Location : Entity
 {

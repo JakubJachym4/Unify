@@ -1,4 +1,4 @@
-﻿namespace Unify.Domain.Messages;
+﻿namespace Unify.Domain.Shared;
 
 public record Title(string Value)
 {

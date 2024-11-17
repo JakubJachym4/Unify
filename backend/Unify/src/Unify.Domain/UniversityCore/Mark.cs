@@ -1,6 +1,7 @@
 ﻿using Unify.Domain.Abstractions;
+using Unify.Domain.Shared;
 
-namespace Unify.Domain.FieldsOfStudy;
+namespace Unify.Domain.UniversityCore;
 
 public sealed class Mark : Entity
 {

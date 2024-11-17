@@ -1,6 +1,6 @@
 ﻿using Unify.Domain.Abstractions;
 
-namespace Unify.Domain.Messages;
+namespace Unify.Domain.OnlineResources;
 
 public sealed class Attachment : Entity
 {

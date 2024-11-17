@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Unify.Application.Abstractions.Files;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
+using Unify.Domain.OnlineResources;
 using Unify.Domain.Users;
 
 namespace Unify.Application.Messages.Utils;

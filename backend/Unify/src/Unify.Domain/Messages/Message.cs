@@ -1,5 +1,7 @@
 ﻿using Unify.Domain.Abstractions;
 using Unify.Domain.Messages.Events;
+using Unify.Domain.OnlineResources;
+using Unify.Domain.Shared;
 using Unify.Domain.Users;
 
 namespace Unify.Domain.Messages;
@@ -21,7 +23,7 @@ public sealed class Message : Entity
 
 
     private readonly List<Attachment> _attachments = new();
-    private List<User> _recipients = new();
+    private readonly List<User> _recipients = new();
 
     public Title Title { get; private set; }
     public Guid SenderId { get; private set; }

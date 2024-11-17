@@ -1,4 +1,4 @@
-﻿namespace Unify.Domain.Bookings;
+﻿namespace Unify.Domain.Shared;
 
 public record DateRange
 {
