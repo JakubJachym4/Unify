@@ -15,10 +15,10 @@ public sealed class HomeworkSubmission : Entity
     public HomeworkAssigment HomeworkAssigment { get; private set; }
     public User Student { get; private set; }
     public DateTime SubmittedOn { get; private set; }
-    private readonly List<string> _files = new();
-    public IReadOnlyCollection<string> Files => _files;
+    private readonly List<Attachment> _files = new();
+    public IReadOnlyCollection<Attachment> Files => _files;
     
-    public void AddFile(string file) => _files.Add(file);
-    public void AddFiles(IEnumerable<string> files) => _files.AddRange(files);
-    public void RemoveFile(string file) => _files.Remove(file);
+    public void AddFile(Attachment file) => _files.Add(file);
+    public void AddFiles(IEnumerable<Attachment> files) => _files.AddRange(files);
+    public void RemoveFile(Attachment file) => _files.Remove(file);
 }

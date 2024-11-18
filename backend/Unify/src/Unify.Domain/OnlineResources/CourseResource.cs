@@ -6,7 +6,8 @@ namespace Unify.Domain.OnlineResources;
 
 public sealed class CourseResource : OnlineResource
 {
-    public CourseResource(Title title, string description, Course course) : base(Guid.NewGuid(), title, description)
+    private CourseResource() { }
+    public CourseResource(Title title, Description description, Course course) : base(Guid.NewGuid(), title, description)
     {
         Course = course;
     }

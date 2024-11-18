@@ -7,6 +7,7 @@ namespace Unify.Domain.UniversityClasses;
 
 public sealed class OfferingSession : ClassSession
 {
+    private OfferingSession(){}
     public OfferingSession(ClassOffering offering, Title title, DateTime scheduledDate, TimeSpan duration, User lecturer, Location location)
         : base(Guid.NewGuid(), title, ClassType.Lecture, scheduledDate, duration, lecturer, location)
     {

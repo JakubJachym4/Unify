@@ -9,7 +9,7 @@ public sealed class OfferingResource : OnlineResource
 {
     public ClassOffering ClassOffering { get; private set; }
 
-    public OfferingResource(ClassOffering classOffering, Title title, string description) : base(Guid.NewGuid(), title, description)
+    public OfferingResource(ClassOffering classOffering, Title title, Description description) : base(Guid.NewGuid(), title, description)
     {
         ClassOffering = classOffering;
     }

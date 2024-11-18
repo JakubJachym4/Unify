@@ -5,25 +5,25 @@ namespace Unify.Domain.UniversityCore;
 
 public sealed class Mark : Entity
 {
-    private Mark(Description criteria, Score score, Score maxScore) : base(Guid.NewGuid())
+    private Mark(Score score, Score maxScore, Description? criteria = null) : base(Guid.NewGuid())
     {
         Criteria = criteria;
         Score = score;
         MaxScore = maxScore;
     }
-    public Description Criteria  { get; private set; }
+    public Description? Criteria  { get; private set; }
     public Score Score { get; private set; }
     public Score MaxScore { get; private set; }
 
 
-    public static Mark Create(Description criteria, Score score, Score maxScore)
+    public static Mark Create(Score score, Score maxScore, Description? criteria = null)
     {
         if (score.Value > maxScore.Value || score.Value < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(score), $"Score must be between 0 and {maxScore.Value}.");
         }
 
-        return new Mark(criteria, score, maxScore);
+        return new Mark(score, maxScore, criteria);
     }
 
 }

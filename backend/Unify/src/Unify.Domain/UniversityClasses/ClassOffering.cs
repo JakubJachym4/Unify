@@ -1,5 +1,6 @@
 ﻿using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
+using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.Users;
 
@@ -12,6 +13,7 @@ public sealed class ClassOffering : Entity
     public IReadOnlyCollection<ClassEnrollment> Enrollments => _enrollments;
     public IReadOnlyCollection<Message> Messages => _messages;
 
+    public Name Name { get; private set; }
     public Course Course { get; private set; }
     public DateOnly StartDate { get; private set; }
     public DateOnly EndDate { get; private set; }
@@ -20,8 +22,9 @@ public sealed class ClassOffering : Entity
 
     public int MaxStudentsCount { get; private set; }
 
-    public ClassOffering(Course course, DateOnly startDate, DateOnly endDate, User lecturer, int maxStudentsCount, StudentGroup? boundGroup = null) : base(Guid.NewGuid())
+    public ClassOffering(Name name, Course course, DateOnly startDate, DateOnly endDate, User lecturer, int maxStudentsCount, StudentGroup? boundGroup = null) : base(Guid.NewGuid())
     {
+        Name = name;
         Course = course;
         StartDate = startDate;
         EndDate = endDate;

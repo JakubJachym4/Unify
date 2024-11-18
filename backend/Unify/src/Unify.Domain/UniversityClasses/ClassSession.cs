@@ -8,7 +8,9 @@ namespace Unify.Domain.UniversityClasses;
 
 public abstract class ClassSession : Entity
 {
-    public ClassSession(Guid id, Title title, ClassType classType, DateTime scheduledDate, TimeSpan duration, User lecturer, Location location) : base(id)
+    protected ClassSession(){}
+
+    protected ClassSession(Guid id, Title title, ClassType classType, DateTime scheduledDate, TimeSpan duration, User lecturer, Location location) : base(id)
     {
         Title = title;
         ClassType = classType;
@@ -17,6 +19,7 @@ public abstract class ClassSession : Entity
         Lecturer = lecturer;
         Location = location;
     }
+
 
     public Title Title { get; private set; }
     public ClassType ClassType { get; private set; }

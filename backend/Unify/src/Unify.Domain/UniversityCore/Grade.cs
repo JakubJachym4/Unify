@@ -9,6 +9,8 @@ public sealed class Grade : Entity
     public Score? Score { get; private set; }
     public DateTime? DateAwarded { get; private set; }
 
+    private Grade() { }
+
     public Grade(Description description, Score? score = null, DateTime? dateAwarded = null) : base(Guid.NewGuid())
     {
         Description = description;
@@ -16,7 +18,7 @@ public sealed class Grade : Entity
     }
 
     private readonly List<Mark> _marks = new();
-    public IReadOnlyCollection<Mark> Makrs { get; private set; }
+    public IReadOnlyCollection<Mark> Marks => _marks;
 
     public void AddMark(Mark mark)
     {

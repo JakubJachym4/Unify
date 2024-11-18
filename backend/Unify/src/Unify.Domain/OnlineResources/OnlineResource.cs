@@ -6,14 +6,15 @@ namespace Unify.Domain.OnlineResources;
 
 public abstract class OnlineResource : Entity
 {
-    protected OnlineResource(Guid id, Title title, string description) : base(id)
+    protected OnlineResource(){}
+    protected OnlineResource(Guid id, Title title, Description description) : base(id)
     {
         Title = title;
         Description = description;
     }
 
     public Title Title { get; private set; }
-    public string Description { get; private set; }
+    public Description Description { get; private set; }
 
 
     private List<Attachment> _files = new();
