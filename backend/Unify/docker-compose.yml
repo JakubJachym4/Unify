@@ -29,7 +29,7 @@ services:
     volumes:
       - ./.containers/database:/var/lib/postgresql/data
     ports:
-      - 5433:5432
+      - 5432:5432
 
   unify-idp:
     image: quay.io/keycloak/keycloak:latest

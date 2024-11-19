@@ -14,6 +14,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddSwaggerGen();
+builder.Services.AddRequestValidators();
 
 builder.Services.Configure<FormOptions>(options =>
 {
