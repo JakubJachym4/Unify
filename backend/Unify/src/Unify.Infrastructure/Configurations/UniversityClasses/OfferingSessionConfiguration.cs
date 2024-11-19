@@ -10,9 +10,9 @@ internal sealed class OfferingSessionConfiguration : ClassSessionConfiguration<O
     {
         builder.ToTable("offering_sessions");
 
-        builder.HasOne(os => os.ClassOffering)
+        builder.HasOne<ClassOffering>()
             .WithMany()
-            .HasForeignKey("class_offering_id");
+            .HasForeignKey(os => os.ClassOfferingId);
 
         base.Configure(builder);
     }

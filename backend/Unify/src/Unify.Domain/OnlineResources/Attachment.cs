@@ -4,6 +4,7 @@ namespace Unify.Domain.OnlineResources;
 
 public sealed class Attachment : Entity
 {
+    private Attachment() { }
     public Attachment(string fileName, byte[] data)
     {
         FileName = fileName;

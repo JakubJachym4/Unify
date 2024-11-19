@@ -30,22 +30,19 @@ internal sealed class ClassOfferingConfiguration : IEntityTypeConfiguration<Clas
 
         builder.HasOne<Course>()
             .WithMany()
-            .HasForeignKey(co => co.Course);
+            .HasForeignKey(co => co.CourseId);
 
         builder.HasOne<User>()
             .WithMany()
-            .HasForeignKey(co => co.Lecturer);
+            .HasForeignKey(co => co.LecturerId);
 
         builder.HasOne<StudentGroup>()
             .WithMany()
-            .HasForeignKey(co => co.BoundGroup);
+            .HasForeignKey(co => co.BoundGroupId);
 
         builder.HasMany(co => co.Enrollments)
             .WithOne()
-            .HasForeignKey(ce => ce.ClassOffering);
+            .HasForeignKey(ce => ce.ClassOfferingId);
 
-        builder.HasMany(co => co.Messages)
-            .WithOne()
-            .HasForeignKey("class_offering_id");
     }
 }

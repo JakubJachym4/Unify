@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unify.Domain.UniversityClasses;
+using Unify.Domain.UniversityCore;
 using Unify.Domain.Users;
 
 namespace Unify.Infrastructure.Configurations.UniversityClasses;
@@ -17,14 +18,14 @@ internal sealed class ClassEnrollmentConfiguration : IEntityTypeConfiguration<Cl
 
         builder.HasOne<User>()
             .WithMany()
-            .HasForeignKey(ce => ce.Student);
+            .HasForeignKey(ce => ce.StudentId);
 
-        builder.HasMany(ce => ce.Grades)
+        builder.HasMany<Grade>()
             .WithOne()
-            .HasForeignKey("class_enrollment_id");
+            .HasForeignKey(grade => grade.ClassEnrollmentId);
 
         builder.HasOne<ClassOffering>()
             .WithMany()
-            .HasForeignKey(ce => ce.ClassOffering);
+            .HasForeignKey(ce => ce.ClassOfferingId);
     }
 }

@@ -30,10 +30,10 @@ internal abstract class ClassSessionConfiguration<T> : IEntityTypeConfiguration<
 
         builder.HasOne<User>()
             .WithMany()
-            .HasForeignKey(cs => cs.Lecturer);
+            .HasForeignKey(cs => cs.LecturerId);
 
         builder.HasOne<Location>()
             .WithMany()
-            .HasForeignKey(cs => cs.Location);
+            .HasForeignKey(cs => cs.LocationId);
     }
 }

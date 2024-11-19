@@ -22,7 +22,7 @@ internal sealed class MarkConfiguration : IEntityTypeConfiguration<Mark>
 
         builder.Property(m => m.Criteria)
             .HasMaxLength(400)
-            .HasConversion(d => d.Value, value => new Description(value));;
+            .HasConversion(d => d == null ? "" : d.Value, value => new Description(value));;
 
     }
 }

@@ -3,46 +3,63 @@ using Unify.Domain.Messages;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.Users;
+using Guid = System.Guid;
 
 namespace Unify.Domain.UniversityClasses;
 
 public sealed class ClassOffering : Entity
 {
     private readonly List<ClassEnrollment> _enrollments = new();
-    private readonly List<Message> _messages = new();
     public IReadOnlyCollection<ClassEnrollment> Enrollments => _enrollments;
-    public IReadOnlyCollection<Message> Messages => _messages;
+
 
     public Name Name { get; private set; }
-    public Course Course { get; private set; }
+    public Guid CourseId { get; private set; }
     public DateOnly StartDate { get; private set; }
     public DateOnly EndDate { get; private set; }
-    public User Lecturer { get; private set; }
-    public StudentGroup? BoundGroup { get; private set; }
+    public Guid LecturerId { get; private set; }
+    public Guid? BoundGroupId { get; private set; }
 
     public int MaxStudentsCount { get; private set; }
 
-    public ClassOffering(Name name, Course course, DateOnly startDate, DateOnly endDate, User lecturer, int maxStudentsCount, StudentGroup? boundGroup = null) : base(Guid.NewGuid())
+
+    private ClassOffering() {}
+
+    private ClassOffering(Guid id, Name name, Guid courseId, DateOnly startDate, DateOnly endDate, Guid lecturerId, Guid? boundGroupId, int maxStudentsCount) : base(id)
     {
         Name = name;
-        Course = course;
+        CourseId = courseId;
         StartDate = startDate;
         EndDate = endDate;
-        Lecturer = lecturer;
+        LecturerId = lecturerId;
+        BoundGroupId = boundGroupId;
         MaxStudentsCount = maxStudentsCount;
-        BoundGroup = boundGroup;
+    }
+
+    public static ClassOffering Create(Name name, Course course, DateOnly startDate, DateOnly endDate, User lecturer, StudentGroup? studentGroup,
+        int maxStudentsCount)
+    {
+        return new ClassOffering(
+            Guid.NewGuid(),
+            name,
+            course.Id,
+            startDate,
+            endDate,
+            lecturer.Id,
+            studentGroup?.Id,
+            maxStudentsCount);
     }
 
     public void SetMaxStudentsCount(int maxStudentsCount) => MaxStudentsCount = maxStudentsCount;
 
     public Result Enroll(User student, DateTime enrollmentDate, StudentGroup? boundGroup = null)
     {
-        if (BoundGroup != null && BoundGroup.Id != boundGroup?.Id)
+        if (BoundGroupId != null && BoundGroupId != boundGroup?.Id)
         {
             return Result.Failure(ClassOfferingErrors.InvalidGroup());
         }
 
-        if (_enrollments.Any(e => e.Student.Id == student.Id))
+        if (_enrollments.Any(e => e.StudentId == student.Id))
         {
             return Result.Failure(ClassOfferingErrors.AlreadyEnrolled(student.Id));
         }

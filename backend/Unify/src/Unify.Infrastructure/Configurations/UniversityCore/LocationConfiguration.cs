@@ -33,6 +33,6 @@ internal sealed class LocationConfiguration : IEntityTypeConfiguration<Location>
 
         builder.HasOne<Faculty>()
             .WithMany()
-            .HasForeignKey(l => l.Faculty);
+            .HasForeignKey(l => l.FacultyId);
     }
 }

@@ -8,7 +8,7 @@ public sealed class Location : Entity
     public string? Street { get; private set; }
     public short? Floor { get; private set; }
     public string? DoorNumber { get; private set; }
-    public Faculty? Faculty { get; private set; }
+    public Guid? FacultyId { get; private set; }
     
     public bool Online { get; private set; }
     public string? MeetingUrl { get; private set; }
@@ -26,7 +26,7 @@ public sealed class Location : Entity
         Street = street;
         Floor = floor;
         DoorNumber = doorNumber;
-        Faculty = faculty;
+        FacultyId = faculty.Id;
     }
 
 

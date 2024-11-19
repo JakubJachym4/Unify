@@ -13,7 +13,7 @@ internal sealed class OfferingResourceConfiguration : OnlineResourceConfiguratio
 
         builder.HasOne<ClassOffering>()
             .WithMany()
-            .HasForeignKey(or => or.ClassOffering);
+            .HasForeignKey(or => or.ClassOfferingId);
 
         base.Configure(builder);
     }

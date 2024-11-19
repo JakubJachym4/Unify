@@ -1,5 +1,6 @@
-﻿namespace Unify.Domain.Shared;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public record TextContent(string Value)
-{
-}
+namespace Unify.Domain.Shared;
+
+[NotMapped]
+public record TextContent(string Value);

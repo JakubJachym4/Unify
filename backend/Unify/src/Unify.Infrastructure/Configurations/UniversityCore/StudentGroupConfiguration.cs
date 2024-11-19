@@ -22,7 +22,8 @@ internal sealed class StudentGroupConfiguration : IEntityTypeConfiguration<Stude
             .HasConversion(sy => sy.StartingYear, value => new StudyYear(value));
 
         builder.Property(sg => sg.Semester)
-            .IsRequired();
+            .IsRequired()
+            .HasConversion(semester => semester.Value, value => new Semester(value));
 
         builder.Property(sg => sg.Term)
             .IsRequired();
@@ -32,14 +33,14 @@ internal sealed class StudentGroupConfiguration : IEntityTypeConfiguration<Stude
 
         builder.HasOne<Specialization>()
             .WithMany()
-            .HasForeignKey(sg => sg.Specialization);
+            .HasForeignKey(sg => sg.SpecializationId);
 
         builder.HasMany(sg => sg.Members)
-            .WithOne()
-            .HasForeignKey("student_group_id");
+            .WithMany()
+            .UsingEntity<StudentGroupsUsers>();
 
         builder.HasMany(sg => sg.ClassEnrollments)
             .WithOne()
-            .HasForeignKey("student_group_id");
+            .HasForeignKey(ce => ce.StudentGroupId);
     }
 }

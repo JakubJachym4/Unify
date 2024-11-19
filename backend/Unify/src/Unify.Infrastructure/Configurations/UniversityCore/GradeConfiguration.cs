@@ -21,6 +21,6 @@ internal sealed class GradeConfiguration : IEntityTypeConfiguration<Grade>
 
         builder.HasMany(g => g.Marks)
             .WithOne()
-            .HasForeignKey("grade_id");
+            .HasForeignKey(mark => mark.GradeId);
     }
 }

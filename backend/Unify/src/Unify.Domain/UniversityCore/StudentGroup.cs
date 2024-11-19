@@ -11,7 +11,7 @@ public sealed class StudentGroup : Entity
     private readonly List<ClassEnrollment> _classEnrollments = new();
 
     public Name Name { get; private set; }
-    public Specialization Specialization { get; private set; }
+    public Guid SpecializationId { get; private set; }
     public StudyYear StudyYear { get; private set; }
     public Semester Semester { get; private set; }
     public Term Term { get; private set; }
@@ -20,13 +20,13 @@ public sealed class StudentGroup : Entity
     public void SetGroupSize(int size) => MaxGroupSize = size;
     public void ChangeTerm()
     {
-        if (this.Term == Term.Summer)
+        if (Term == Term.Summer)
         {
-            this.Term = Term.Winter;
+            Term = Term.Winter;
         }
         else
         {
-            this.Term = Term.Summer;
+            Term = Term.Summer;
         }
     }
 

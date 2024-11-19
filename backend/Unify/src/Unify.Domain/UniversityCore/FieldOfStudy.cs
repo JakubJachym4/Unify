@@ -5,10 +5,14 @@ namespace Unify.Domain.UniversityCore;
 
 public sealed class FieldOfStudy : Entity
 {
+    public FieldOfStudy(Guid id, Name name, Description description, Guid facultyId) : base(id)
+    {
+        Name = name;
+        Description = description;
+        FacultyId = facultyId;
+    }
+
     public Name Name { get; private set; }
     public Description Description { get; private set; }
-    public Faculty Faculty { get; private set; }
-
-    private readonly List<Specialization> _specializations = new();
-    public IReadOnlyCollection<Specialization> Specializations => _specializations;
+    public Guid FacultyId { get; private set; }
 }

@@ -10,7 +10,7 @@ public sealed class InformationMessage : Entity
 {
     private InformationMessage() { }
 
-    public InformationMessage(Guid messageId, Guid senderId, Title title, TextContent content, DateTime expirationDate, DateTime createdOn, InformationSeverityLevel severityLevel) : base(messageId)
+    private InformationMessage(Guid messageId, Guid senderId, Title title, TextContent content, DateTime expirationDate, DateTime createdOn, InformationSeverityLevel severityLevel) : base(messageId)
     {
         SenderId = senderId;
         Title = title;

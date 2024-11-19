@@ -6,13 +6,11 @@ using Unify.Domain.UniversityClasses;
 
 namespace Unify.Infrastructure.Configurations.OnlineResources;
 
-internal sealed class HomeworkAssigmentConfiguration : IEntityTypeConfiguration<HomeworkAssigment>
+internal sealed class HomeworkAssigmentConfiguration : HomeworkBaseEntityConfiguration<HomeworkAssigment>
 {
     public void Configure(EntityTypeBuilder<HomeworkAssigment> builder)
     {
-        builder.ToTable("homework_assigments");
-
-        builder.HasKey(ha => ha.Id);
+        builder.ToTable("homework_assignments");
 
         builder.Property(ha => ha.Title)
             .IsRequired()
@@ -30,22 +28,12 @@ internal sealed class HomeworkAssigmentConfiguration : IEntityTypeConfiguration<
         builder.Property(ha => ha.Locked)
             .IsRequired();
 
-        builder.Property(ha => ha.Mark);
-
-        builder.Property(ha => ha.Feedback)
-            .HasMaxLength(200)
-            .HasConversion(feedback => feedback == null ? "" : feedback.Value, value => new TextContent(value));
-
-        builder.HasMany(ha => ha.Files)
-            .WithOne()
-            .HasForeignKey("homework_assigment_id");
-
         builder.HasMany(ha => ha.Submissions)
             .WithOne()
-            .HasForeignKey(hs => hs.HomeworkAssigment);
+            .HasForeignKey(hs => hs.HomeworkAssigmentId);
 
         builder.HasOne<ClassOffering>()
             .WithMany()
-            .HasForeignKey(ha => ha.ClassOffering);
+            .HasForeignKey(ha => ha.ClassOfferingId);
     }
 }

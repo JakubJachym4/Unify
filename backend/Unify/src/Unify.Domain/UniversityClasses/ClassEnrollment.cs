@@ -2,22 +2,22 @@
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.Users;
+using Guid = System.Guid;
 
 namespace Unify.Domain.UniversityClasses;
 
 public sealed class ClassEnrollment : Entity
 {
-    public ClassOffering ClassOffering { get; private set; }
-    public User Student { get; private set; }
+    public Guid ClassOfferingId { get; private set; }
+    public Guid StudentId { get; private set; }
+    public Guid StudentGroupId { get; private set; }
     public DateTime EnrollmentOn { get; private set; }
 
-    private readonly List<Grade> _grades = new();
-    public IReadOnlyCollection<Grade> Grades => _grades;
 
-    private ClassEnrollment(Guid id, ClassOffering classOffering, User student, DateTime enrollmentOn) : base(id)
+    private ClassEnrollment(Guid id, Guid classOfferingId, Guid studentId, DateTime enrollmentOn) : base(id)
     {
-        ClassOffering = classOffering;
-        Student = student;
+        ClassOfferingId = classOfferingId;
+        StudentId = studentId;
         EnrollmentOn = enrollmentOn;
     }
 
@@ -25,18 +25,18 @@ public sealed class ClassEnrollment : Entity
     {
         return new ClassEnrollment(
             Guid.NewGuid(),
-            classOffering,
-            student,
+            classOffering.Id,
+            student.Id,
             enrollmentOn);
     }
 
-    public void AddGrade(Description description)
+    public Grade AddGrade(Description description)
     {
-        _grades.Add(new Grade(description));
+        return Grade.Create(this, description);
     }
 
-    public void AddGrade(Description description, Score score, DateTime dateAwarded)
+    public Grade AddGrade(Description description, Score score, DateTime dateAwarded)
     {
-        _grades.Add(new Grade(description, score, dateAwarded));
+        return Grade.Create(this, description, score, dateAwarded);
     }
 }

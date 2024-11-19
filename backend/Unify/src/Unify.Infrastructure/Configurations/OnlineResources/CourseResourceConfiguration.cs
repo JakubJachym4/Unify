@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unify.Domain.OnlineResources;
 using Unify.Domain.UniversityCore;
+using Guid = System.Guid;
 
 namespace Unify.Infrastructure.Configurations.OnlineResources;
 
@@ -11,11 +12,9 @@ internal sealed class CourseResourceConfiguration : OnlineResourceConfiguration<
     {
         builder.ToTable("course_resources");
 
-        builder.HasOne(cr => cr.Course)
+        builder.HasOne<Course>()
             .WithMany()
-            .HasForeignKey("course_id");
-
-        builder.Property<Guid>("course_id").IsRequired();
+            .HasForeignKey(cr => cr.CourseId);
 
         base.Configure(builder);
     }

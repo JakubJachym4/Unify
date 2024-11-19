@@ -1,5 +1,8 @@
-﻿namespace Unify.Domain.UniversityCore;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
+namespace Unify.Domain.UniversityCore;
+
+[NotMapped]
 public sealed record Score
 {
     public decimal Value { get; init; }

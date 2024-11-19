@@ -13,7 +13,7 @@ internal sealed class LectureConfiguration : ClassSessionConfiguration<Lecture>
 
         builder.HasOne<Course>()
             .WithMany()
-            .HasForeignKey(l => l.Course);
+            .HasForeignKey(l => l.CourseId);
 
         base.Configure(builder);
 

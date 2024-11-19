@@ -24,11 +24,11 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         builder.HasOne<Specialization>()
             .WithMany()
-            .HasForeignKey(c => c.Specialization);
+            .HasForeignKey(c => c.SpecializationId);
 
         builder.HasMany(c => c.Classes)
             .WithOne()
-            .HasForeignKey(co => co.Course);
+            .HasForeignKey(co => co.CourseId);
 
     }
 }

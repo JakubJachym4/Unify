@@ -23,11 +23,7 @@ internal sealed class FieldOfStudyConfiguration : IEntityTypeConfiguration<Field
             .HasConversion(fos => fos.Value, value => new Description(value));
 
         builder.HasOne<Faculty>()
-            .WithOne()
-            .HasForeignKey<FieldOfStudy>(fos => fos.Faculty);
-
-        builder.HasMany(fos => fos.Specializations)
-            .WithOne()
-            .HasForeignKey(s => s.FieldOfStudy);
+            .WithMany()
+            .HasForeignKey(fos => fos.FacultyId);
     }
 }
