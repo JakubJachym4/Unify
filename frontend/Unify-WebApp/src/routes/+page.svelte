@@ -1,2 +1,13 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+    import { user } from '$lib/stores/user';
+    import '../app.css';
+</script>
+
+
+<div class="container mt-5">
+    <h1>Welcome to the University App</h1>
+    <p>
+        {#if $user}You are logged in as {$user.name}.
+        {:else}Please log in to access the application.
+        {/if}</p>
+</div>

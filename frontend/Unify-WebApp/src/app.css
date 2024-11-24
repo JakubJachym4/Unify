@@ -1,3 +1,8 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities'
+/* Import Bootstrap CSS */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Add custom styles (if needed) */
+body {
+	font-family: Arial, sans-serif;
+	background-color: #f8f9fa;
+}
