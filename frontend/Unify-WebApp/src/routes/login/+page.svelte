@@ -1,4 +1,6 @@
 <script lang="ts">
+	 		
+
 	import { goto } from '$app/navigation';
 	import { user } from '$lib/stores/user';
 
@@ -12,7 +14,11 @@
 			goto('/'); // Redirect to the homepage
 		} else {
 			error = 'Invalid email or password.';
+			console.log(error)
+			console.log("test")
 		}
+		console.log(error)
+		console.log("test 2")
 	};
 </script>
 

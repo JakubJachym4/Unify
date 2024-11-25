@@ -1,4 +1,7 @@
 <script lang="ts">
+    		
+    import 'bootstrap/dist/css/bootstrap.min.css';
+
     import { user } from '$lib/stores/user';
     import '../app.css';
 </script>
