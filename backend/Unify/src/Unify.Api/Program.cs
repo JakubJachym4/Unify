@@ -4,7 +4,16 @@ using Unify.Application;
 using Unify.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -23,6 +32,7 @@ builder.Services.Configure<FormOptions>(options =>
 
 var app = builder.Build();
 
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {

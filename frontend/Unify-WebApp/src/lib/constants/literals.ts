@@ -1,0 +1,1 @@
+export let unifyLogo: string = 'Unify';
