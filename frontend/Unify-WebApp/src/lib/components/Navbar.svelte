@@ -2,8 +2,9 @@
   import { goto } from '$app/navigation';
   import { user } from '$lib/stores/user';
   import { unifyLogo } from '$lib/constants/literals';
+	import { universityInformation } from '$lib/stores/university';
 
-  export let universityName: string = '';
+  $: universityName = $universityInformation?.name ?? '';
 
   const logout = () => {
     document.cookie = 'user=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
@@ -20,9 +21,9 @@
     </a>
 
     <!-- University Name -->
-    <!-- <span class="navbar-text text-center mx-auto fs-4 fw-semibold">
+    <span class="navbar-text text-center mx-auto fs-4 fw-semibold">
       {universityName}
-    </span> -->
+    </span> 
 
     <!-- Logout Button -->
     {#if $user}

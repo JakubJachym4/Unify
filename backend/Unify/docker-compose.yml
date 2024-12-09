@@ -16,7 +16,7 @@ services:
     depends_on:
       - unify-db
     ports:
-      - 5001:443
+      - "5001:443"
 
 
   unify-db:
@@ -29,7 +29,7 @@ services:
     volumes:
       - ./.containers/database:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
 
   unify-idp:
     image: quay.io/keycloak/keycloak:latest
@@ -42,4 +42,16 @@ services:
       - ./.containers/identity:/opt/keycloak/data
       - ./.files/unify-realm-export.json:/opt/keycloak/data/import/realm.json
     ports:
-      - 18080:8080
+      - "18080:8080"
+
+
+  unify-seq:
+    image: datalust/seq:latest
+    container_name: Unify.Seq
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - ./.containers/seq:/data
+    ports:
+      - "5341:5341"
+      - "8081:80"

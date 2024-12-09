@@ -1,15 +1,16 @@
 <script lang="ts">
-    import 'bootstrap/dist/css/bootstrap.min.css';
-    import Navbar from '$lib/components/Navbar.svelte';
-    import Footer from '$lib/components/Footer.svelte';
+  import 'bootstrap/dist/css/bootstrap.min.css';
+  import Navbar from '$lib/components/Navbar.svelte';
+  import Footer from '$lib/components/Footer.svelte';
+	import { onMount } from 'svelte';
+  import { Load } from '$lib/start';
 
-
-    let universityName = 'Unify University'
-
+  
+  onMount(async () => Load())
 </script>
 
 <div class="d-flex flex-column min-vh-100">
-<Navbar {universityName} />
+<Navbar />
 <main class="flex-grow-1">
   <slot />
 </main>

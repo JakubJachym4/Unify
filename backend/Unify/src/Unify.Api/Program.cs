@@ -1,9 +1,15 @@
 using Microsoft.AspNetCore.Http.Features;
+using Serilog;
 using Unify.Api.Extensions;
 using Unify.Application;
+using Unify.Domain.About;
 using Unify.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -30,6 +36,9 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 5000000;
 });
 
+builder.Services.Configure<UniversityInformation>(
+    builder.Configuration.GetSection("UniversityInformation"));
+
 var app = builder.Build();
 
 app.UseCors("AllowFrontend");
@@ -42,10 +51,14 @@ if (app.Environment.IsDevelopment())
     app.ApplyMigrations();
 
     // REMARK: Uncomment if you want to seed initial data.
-    // app.SeedData();
+    app.SeedData();
 }
 
 app.UseHttpsRedirection();
+
+app.UseRequestContextLogging();
+
+app.UseSerilogRequestLogging();
 
 app.UseCustomExceptionHandler();
 

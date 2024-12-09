@@ -11,7 +11,7 @@ interface RegisterUserRequest {
 export interface UserResponse{
     id: string
     email: string,
-    firsName: string,
+    firstName: string,
     lastName: string,
 }
 
@@ -30,7 +30,7 @@ export const logInUser = async (data: LogInUserRequest) => {
     } catch (error) {
         const apiError = error as ApiRequestError;
         if (apiError.response.status === 401) {
-            throw new Error('Wrong email or password');
+            throw new Error(apiError.details);
         }
         throw error;
     }
@@ -41,5 +41,5 @@ export const logOutUser = async (token: string) => {
 };
 
 export const getUserData = async (token: string) => {
-    return api('GET', '/users/me', null, token)
+    return await api<UserResponse>('GET', '/users/me', null, token);
 }

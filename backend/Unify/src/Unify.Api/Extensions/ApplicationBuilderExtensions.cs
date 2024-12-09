@@ -26,4 +26,9 @@ public static class ApplicationBuilderExtensions
     {
         services.AddValidatorsFromAssemblyContaining<RegisterUserCommandValidator>();
     }
+
+    public static IApplicationBuilder UseRequestContextLogging(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<RequestContextLoggingMiddleware>();
+    }
 }

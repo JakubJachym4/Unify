@@ -1,11 +1,14 @@
 import type { ApiRequestError } from './apiError';
 
-export const api = async (
+export const api: {
+    (method: string, endpoint: string, data?: any, token?: string | null) : Promise<any>;
+    <T>(method: string, endpoint: string, data?: any, token?: string | null): Promise<T>;
+} = async <T>(
     method: string,
     endpoint: string,
     data: any = null,
     token: string | null = null
-) => {
+): Promise<T> => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
@@ -21,10 +24,14 @@ export const api = async (
     });
 
     if (!res.ok) {
+        const errorData = await res.json();
         const error: ApiRequestError = new Error('API call failed') as ApiRequestError;
         error.response = res;
+        error.code = errorData.code;
+        error.details = errorData.details;
         throw error;
     }
 
-    return res.json();
+    const responseData: T = await res.json();
+    return responseData;
 };
