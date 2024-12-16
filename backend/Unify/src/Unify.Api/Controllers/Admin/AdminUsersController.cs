@@ -1,0 +1,50 @@
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Users.AddRole;
+using Unify.Application.Users.DeleteRole;
+
+
+namespace Unify.Api.Controllers.Admin
+{
+    [Route("api/admin/users")]
+    [ApiController]
+    [Authorize(Roles = "Admin")]
+    public class AdminUsersController : ControllerBase
+    {
+        private readonly ISender _sender;
+
+        public AdminUsersController(ISender sender)
+        {
+            _sender = sender;
+        }
+
+        [HttpPost("add-role")]
+        public async Task<IActionResult> AddRole([FromBody] AddRoleRequest request, CancellationToken cancellationToken)
+        {
+            var command = new AddRoleCommand(request.UserId, request.Role);
+            var result = await _sender.Send(command, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("delete-role")]
+        public async Task<IActionResult> DeleteRole([FromBody] DeleteRoleRequest request, CancellationToken cancellationToken)
+        {
+            var command = new DeleteRoleCommand(request.UserId, request.Role);
+            var result = await _sender.Send(command, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok();
+        }
+    }
+}

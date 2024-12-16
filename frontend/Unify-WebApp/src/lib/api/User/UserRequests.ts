@@ -13,6 +13,7 @@ export interface UserResponse{
     email: string,
     firstName: string,
     lastName: string,
+    roles: string[]
 }
 
 export const registerUser = async (data: RegisterUserRequest) => {
@@ -37,7 +38,7 @@ export const logInUser = async (data: LogInUserRequest) => {
 };
 
 export const logOutUser = async (token: string) => {
-    return api('POST', '/users/logout', null, token);
+    return await api('POST', '/users/logout', null, token);
 };
 
 export const getUserData = async (token: string) => {

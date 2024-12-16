@@ -32,6 +32,13 @@ export const api: {
         throw error;
     }
 
-    const responseData: T = await res.json();
-    return responseData;
-};
+
+
+
+    try{
+        const responseData: T = await res.json();
+        return responseData;
+    }catch(Error){}
+    
+    return null as T;
+}

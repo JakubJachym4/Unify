@@ -1,6 +1,8 @@
 ﻿using Bogus;
 using Unify.Application.Abstractions.Data;
 using Dapper;
+using Unify.Domain.Abstractions;
+using Unify.Domain.Users;
 
 namespace Unify.Api.Extensions;
 

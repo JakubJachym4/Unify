@@ -40,6 +40,16 @@ public sealed class User : Entity
         return user;
     }
 
+    public void AddRole(Role role)
+    {
+        if (_roles.Any(x => x.Id == role.Id))
+        {
+            return;
+        }
+
+        _roles.Add(role);
+    }
+
     public void SetIdentityId(string identityId)
     {
         IdentityId = identityId;

@@ -17,5 +17,8 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
             .UsingEntity<RolePermission>();
 
         builder.HasData(Role.Registered);
+        builder.HasData(Role.Administrator);
+        builder.HasData(Role.Student);
+        builder.HasData(Role.Lecturer);
     }
 }

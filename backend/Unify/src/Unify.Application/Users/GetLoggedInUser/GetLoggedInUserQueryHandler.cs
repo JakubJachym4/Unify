@@ -11,7 +11,6 @@ internal sealed class GetLoggedInUserQueryHandler
 {
     private readonly ISqlConnectionFactory _sqlConnectionFactory;
     private readonly IUserContext _userContext;
-
     public GetLoggedInUserQueryHandler(
         ISqlConnectionFactory sqlConnectionFactory,
         IUserContext userContext)
@@ -36,12 +35,30 @@ internal sealed class GetLoggedInUserQueryHandler
             WHERE identity_id = @IdentityId
             """;
 
-        var user = await connection.QuerySingleAsync<UserResponse>(
+        var user = await connection.QuerySingleAsync<UserResponse?>(
             sql,
             new
             {
                 _userContext.IdentityId
             });
+
+        if(user == null)
+        {
+            return Result.Failure<UserResponse>(Error.NullValue);
+        }
+
+        const string rolesSql = """
+                                SELECT r.name AS RoleName
+                                FROM roles r
+                                INNER JOIN role_user ru ON r.id = ru.roles_id
+                                WHERE ru.users_id = @UserId
+                                """;
+
+        var roles = await connection.QueryAsync<string>(
+            rolesSql,
+            new { UserId = user.Id });
+
+        user.Roles = roles.ToList();
 
         return user;
     }

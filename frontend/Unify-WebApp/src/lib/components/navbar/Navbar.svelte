@@ -3,12 +3,20 @@
   import { user } from '$lib/stores/user';
   import { unifyLogo } from '$lib/constants/literals';
 	import { universityInformation } from '$lib/stores/university';
+	import { logOutUser } from '$lib/api/User/UserRequests';
 
   $: universityName = $universityInformation?.name ?? '';
 
-  const logout = () => {
-    document.cookie = 'user=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  const logout = async () => {
+    const token = localStorage.getItem('token');
+    if (token){
+      await logOutUser(token); 
+      localStorage.removeItem('token');
+    }
+    
+    document.cookie = 'user=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict;';
     user.set(null);
+    
     goto('/login');
   };
 </script>
@@ -27,7 +35,7 @@
 
     <!-- Logout Button -->
     {#if $user}
-      <div class="ms-auto">
+      <div class="me-3">
         <button class="btn btn-outline-danger btn-md" on:click={logout}>Logout</button>
       </div>
     {/if}
@@ -45,10 +53,6 @@
 
   .display-4 {
     font-size: 2.5rem; /* Larger font size for the logo */
-  }
-
-  .btn-lg {
-    padding: 0.5rem 1rem; /* Matches the logo height for alignment */
   }
 
   .navbar {

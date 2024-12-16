@@ -9,6 +9,10 @@ public static class UserErrors
             "The user with the specified identifier was not found. Id: {0}",
             id ?? Guid.Empty);
 
+    public static Error RoleNotFound = new(
+        "User.RoleNotFound",
+        "The specified role does not exist");
+
     public static Error InvalidCredentials = new(
         "User.InvalidCredentials",
         "The provided credentials were invalid");

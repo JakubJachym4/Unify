@@ -4,7 +4,8 @@ export interface User {
     id: string;
     email: string;
     firstName: string;
-    lastName: string,
+    lastName: string;
+    roles: string[];
 }
 
 export const user = writable<User | null>(null);

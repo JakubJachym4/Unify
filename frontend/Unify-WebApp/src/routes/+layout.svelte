@@ -1,7 +1,7 @@
 <script lang="ts">
   import 'bootstrap/dist/css/bootstrap.min.css';
-  import Navbar from '$lib/components/Navbar.svelte';
-  import Footer from '$lib/components/Footer.svelte';
+  import Navbar from '$lib/components/navbar/Navbar.svelte';
+  import Footer from '$lib/components/footer/Footer.svelte';
 	import { onMount } from 'svelte';
   import { Load } from '$lib/start';
 
