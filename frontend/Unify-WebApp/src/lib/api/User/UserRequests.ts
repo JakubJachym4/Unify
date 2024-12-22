@@ -44,3 +44,7 @@ export const logOutUser = async (token: string) => {
 export const getUserData = async (token: string) => {
     return await api<UserResponse>('GET', '/users/me', null, token);
 }
+
+export const getAllUsers = async (token: string) => {
+    return await api<UserResponse[]>('GET', '/users/users', null, token);
+}

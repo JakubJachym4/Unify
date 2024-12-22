@@ -9,7 +9,7 @@ namespace Unify.Api.Controllers.Admin
 {
     [Route("api/admin/users")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator")]
     public class AdminUsersController : ControllerBase
     {
         private readonly ISender _sender;

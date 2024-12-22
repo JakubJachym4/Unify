@@ -9,15 +9,18 @@ public class AddRoleCommandHandler : ICommandHandler<AddRoleCommand>
 {
     private readonly ISqlConnectionFactory _sqlConnectionFactory;
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public AddRoleCommandHandler(ISqlConnectionFactory sqlConnectionFactory)
+    public AddRoleCommandHandler(ISqlConnectionFactory sqlConnectionFactory, IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _sqlConnectionFactory = sqlConnectionFactory;
+        _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> Handle(AddRoleCommand request, CancellationToken cancellationToken)
     {
-        if(Role.All.Any(role => role.Name != request.Role)){
+        if(Role.All.Any(role => role.Name == request.Role) == false){
         {
             return Result.Failure(UserErrors.RoleNotFound);
         }}
@@ -35,6 +38,8 @@ public class AddRoleCommandHandler : ICommandHandler<AddRoleCommand>
 
         user.AddRole(Role.GetByName(request.Role));
 
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

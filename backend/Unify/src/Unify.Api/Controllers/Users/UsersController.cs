@@ -5,6 +5,7 @@ using Unify.Infrastructure.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Users.GetAllUsers;
 using Unify.Application.Users.LogOutUser;
 
 namespace Unify.Api.Controllers.Users;
@@ -86,6 +87,22 @@ public class UsersController : ControllerBase
         }
 
         return Ok();
+    }
+
+    [Authorize(Roles = "Registered")]
+    [HttpGet("users")]
+    public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
+    {
+        var query = new GetAllUsersQuery();
+
+        var result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
 }

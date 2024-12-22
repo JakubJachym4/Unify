@@ -15,10 +15,26 @@ internal sealed class UserRepository : Repository<User>, IUserRepository
         return await DbContext.Set<User>().Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken);
     }
 
+    public async Task<ICollection<User>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await DbContext.Set<User>().ToListAsync(cancellationToken);
+    }
+
     public User? GetByEmailNoTracking(string email, CancellationToken cancellationToken = default)
     {
         return DbContext.Set<User>().AsNoTracking().AsEnumerable()
             .FirstOrDefault(user => user.Email.Value == email);
+    }
+
+    public async void Update(User user)
+    {
+        foreach (var role in user.Roles)
+        {
+            DbContext.Attach(role);
+        }
+
+        DbContext.Set<User>().Update(user);
+        await DbContext.SaveChangesAsync();
     }
 
     public override void Add(User user)

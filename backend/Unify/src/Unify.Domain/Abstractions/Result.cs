@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Unify.Domain.Users;
 
 namespace Unify.Domain.Abstractions;
 

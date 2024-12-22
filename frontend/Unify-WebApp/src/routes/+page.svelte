@@ -1,5 +1,17 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
   import { user } from '$lib/stores/user';
+	import { redirect } from '@sveltejs/kit';
+
+  const redirectToAdmin = () => {
+    if (browser){
+      goto('/admin');
+    }
+    else {
+      redirect(302, '/admin');
+    }
+  }
 </script>
 
 <div class="container d-flex align-self-stretch align-items-center justify-content-around">
@@ -13,7 +25,7 @@
           Your user ID is <span class="fw-bold">{$user.id}</span> please contact the university administration to activate your account.
         </h1>
       {:else}
-        Please <a href="/login" class="text-primary">log in</a> to access the application.
+        {redirectToAdmin()}
       {/if}
     </div>
   </div>
