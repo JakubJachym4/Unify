@@ -9,28 +9,19 @@ interface AddRoleRequest {
     role: string;
 }
 
-interface DeleteRoleRequest {
+interface RemoveRoleRequest {
     userId: string;
     role: string;
 }
 
 // Add these functions
 export const addUserRole = async (data: AddRoleRequest, token: string) => {
-    try {
         await api('POST', '/admin/users/add-role', data, token);
         return true;
-    } catch (error) {
-        const apiError = error as ApiRequestError;
-        throw new Error(apiError.details || 'Failed to add role');
-    }
 };
 
-export const deleteUserRole = async (data: DeleteRoleRequest, token: string) => {
-    try {
-        await api('POST', '/admin/users/delete-role', data, token);
+export const removeUserRole = async (data: RemoveRoleRequest, token: string) => {
+        await api('POST', '/admin/users/remove-role', data, token);
         return true;
-    } catch (error) {
-        const apiError = error as ApiRequestError;
-        throw new Error(apiError.details || 'Failed to delete role');
-    }
+
 };

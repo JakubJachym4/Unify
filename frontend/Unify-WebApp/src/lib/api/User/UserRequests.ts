@@ -1,5 +1,4 @@
 import { api } from '../api'
-import type { ApiRequestError } from '../apiError';
 
 interface RegisterUserRequest {
     email: string;
@@ -13,7 +12,8 @@ export interface UserResponse{
     email: string,
     firstName: string,
     lastName: string,
-    roles: string[]
+    roles: string[],
+    profileImage: string
 }
 
 export const registerUser = async (data: RegisterUserRequest) => {
@@ -26,15 +26,7 @@ interface LogInUserRequest {
 }
 
 export const logInUser = async (data: LogInUserRequest) => {
-    try {
-        return await api('POST', '/users/login', data);
-    } catch (error) {
-        const apiError = error as ApiRequestError;
-        if (apiError.response.status === 401) {
-            throw new Error(apiError.details);
-        }
-        throw error;
-    }
+    return await api('POST', '/users/login', data);
 };
 
 export const logOutUser = async (token: string) => {

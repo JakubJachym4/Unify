@@ -6,6 +6,7 @@ public interface IUserRepository
     Task<ICollection<User>> GetManyByIdAsync(ICollection<Guid> ids, CancellationToken cancellationToken = default);
     Task<ICollection<User>> GetAllAsync(CancellationToken cancellationToken = default);
     User? GetByEmailNoTracking(string email, CancellationToken cancellationToken = default);
+    Task<bool> AddRole(User user, Role role, CancellationToken cancellationToken = default);
 
     void Update(User user);
 

@@ -15,15 +15,17 @@ public sealed class Role
         Name = name;
     }
 
-    public static Role GetByName(string name)
+    public static Role? GetByName(string name)
     {
-        return All.FirstOrDefault(role => role.Name == name)!;
+        return All.FirstOrDefault(role => role.Name == name);
     }
 
     public int Id { get; init; }
 
     public string Name { get; init; }
 
+
+    //TODO: remove ROLE.USER_ID from entity
     public ICollection<User> Users { get; init; } = new List<User>();
 
     public ICollection<Permission> Permissions { get; init; } = new List<Permission>();

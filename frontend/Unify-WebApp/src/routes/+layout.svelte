@@ -6,7 +6,7 @@
   import { Load } from '$lib/start';
 
   
-  onMount(async () => Load())
+  onMount(async () => await Load())
 </script>
 
 <div class="d-flex flex-column min-vh-100">

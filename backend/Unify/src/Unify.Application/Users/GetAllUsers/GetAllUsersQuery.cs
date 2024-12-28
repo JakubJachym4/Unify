@@ -4,4 +4,4 @@ using Unify.Domain.Users;
 
 namespace Unify.Application.Users.GetAllUsers;
 
-public record GetAllUsersQuery : IQuery<List<User>>;
+public record GetAllUsersQuery : IQuery<List<UsersResponse>>;

@@ -60,8 +60,8 @@ public class MessagesController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpGet("get_last_by_date")]
-    public async Task<IActionResult> GetMessages(GetLastMessagesByDateRequest request, CancellationToken cancellationToken)
+    [HttpGet($"get_last_by_date")]
+    public async Task<IActionResult> GetMessages([FromQuery] GetLastMessagesByDateRequest request, CancellationToken cancellationToken)
     {
         var query = new GetLastMessagesByDateQuery(request.Date);
 

@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unify.Application.Users.AddRole;
-using Unify.Application.Users.DeleteRole;
+using Unify.Application.Users.RemoveRole;
 
 
 namespace Unify.Api.Controllers.Admin
@@ -33,10 +33,10 @@ namespace Unify.Api.Controllers.Admin
             return Ok();
         }
 
-        [HttpPost("delete-role")]
-        public async Task<IActionResult> DeleteRole([FromBody] DeleteRoleRequest request, CancellationToken cancellationToken)
+        [HttpPost("remove-role")]
+        public async Task<IActionResult> RemoveRole([FromBody] DeleteRoleRequest request, CancellationToken cancellationToken)
         {
-            var command = new DeleteRoleCommand(request.UserId, request.Role);
+            var command = new RemoveRoleCommand(request.UserId, request.Role);
             var result = await _sender.Send(command, cancellationToken);
 
             if (result.IsFailure)

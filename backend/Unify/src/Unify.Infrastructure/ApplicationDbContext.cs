@@ -28,6 +28,8 @@ public sealed class ApplicationDbContext : DbContext, IUnitOfWork
         {
             var result = await base.SaveChangesAsync(cancellationToken);
 
+            ChangeTracker.Clear();
+
             await PublishDomainEventsAsync();
 
             return result;

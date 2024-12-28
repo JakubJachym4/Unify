@@ -50,6 +50,16 @@ public sealed class User : Entity
         _roles.Add(role);
     }
 
+    public void RemoveRole(Role role)
+    {
+        if (_roles.Any(x => x.Id == role.Id) == false)
+        {
+            return;
+        }
+
+        _roles.Remove(_roles.Single(r => r.Id == role.Id));
+    }
+
     public void SetIdentityId(string identityId)
     {
         IdentityId = identityId;

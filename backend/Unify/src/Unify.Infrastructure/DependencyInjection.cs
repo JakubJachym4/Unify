@@ -61,7 +61,8 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
-        });
+            options.EnableSensitiveDataLogging();
+        }, ServiceLifetime.Scoped);
 
         services.AddScoped<IUserRepository, UserRepository>();
 

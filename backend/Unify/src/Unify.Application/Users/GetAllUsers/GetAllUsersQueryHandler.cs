@@ -7,7 +7,7 @@ using Unify.Domain.Users;
 
 namespace Unify.Application.Users.GetAllUsers;
 
-public sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, List<User>>
+public sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, List<UsersResponse>>
 {
     private readonly ISqlConnectionFactory _sqlConnectionFactory;
     private readonly IUserRepository _userRepository;
@@ -18,14 +18,17 @@ public sealed class GetAllUsersQueryHandler : IQueryHandler<GetAllUsersQuery, Li
         _userRepository = userRepository;
     }
 
-    public async Task<Result<List<User>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<UsersResponse>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
     {
         var users = await _userRepository.GetAllAsync(cancellationToken);
         if(!users.Any())
         {
-            return Result.Failure<List<User>>(Error.NullValue);
+            return Result.Failure<List<UsersResponse>>(Error.NullValue);
         }
 
-        return Result.Success(users.ToList());
+
+
+        return Result.Success(users.Select(u =>
+            new UsersResponse(u.Id.ToString(), u.FirstName.Value, u.LastName.Value, u.Email.Value, u.Roles.Select(r => r.Name).ToList())).ToList());
     }
 }
