@@ -6,10 +6,12 @@
     import MessageDetails from './MessageDetails.svelte';
 	import { get } from 'svelte/store';
 	import { globalUsers } from '$lib/stores/globalUsers';
+    import MessageThread from './MessageThread.svelte';
 
     export let message: MessageResponse;
     let showDetails = false;
     let sender: UserResponse | null = null;
+    let showThread = false;
 
     const getDaysAgo = (date: Date) => {
         const now = new Date();
@@ -26,7 +28,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="message-card" on:click={() => showDetails = true}>
+<div class="message-card" on:click={() => showThread = message.respondingToId ? true : showDetails = true}>
     <div class="row g-0">
         <div class="image-container">
             {#if sender?.profileImage}
@@ -59,11 +61,19 @@
     </div>
 </div>
 
-<MessageDetails 
-    {message} 
-    show={showDetails} 
-    onClose={() => showDetails = false}
-/>
+{#if message.respondingToId}
+    <MessageThread 
+        initialMessage={message}
+        show={showThread}
+        onClose={() => showThread = false}
+    />
+{:else}
+    <MessageDetails 
+        {message} 
+        show={showDetails} 
+        onClose={() => showDetails = false}
+    />
+{/if}
 
 <style>
     .message-card {

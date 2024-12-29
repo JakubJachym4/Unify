@@ -8,6 +8,8 @@ export type MessageResponse ={
     createdOn: Date;
     recipientsIds: string[];
     attachments: Attachment[];
+    respondingToId: string | null;
+    forwardingToId: string | null;
 }
 
 export type Attachment = {
@@ -23,6 +25,19 @@ export interface SendMessageRequest{
     content: string;
     recipientsIds: string[];
     attachments: FileAttachment[];
+}
+
+export interface ReplyToMessageRequest{
+    title: string;
+    content: string;
+    recipientsIds: string[];
+    attachments: FileAttachment[];
+    respondingToId: string;
+}
+
+export interface ForwardMessageRequest{
+    originalMessageId: string;
+    newRecipientsIds: string[];
 }
 
 export const getAllSendMessages = async (token: string): Promise<MessageResponse[]> => {
@@ -49,3 +64,30 @@ export const sendMessage = async (data: SendMessageRequest, token: string): Prom
     const response = await api<string>('POST', '/messages/send', formData, token, true);
     return response;
 };
+
+export const replyToMessage = async (data: ReplyToMessageRequest, token: string): Promise<string> => {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('content', data.content);
+    data.recipientsIds.forEach(id => {
+        formData.append('recipientsIds', id);
+    });
+    formData.append('respondingToId', data.respondingToId);
+    data.attachments.forEach(file => {
+        formData.append('attachments', file);
+    });
+
+    const response = await api<string>('POST', '/messages/reply', formData, token, true);
+    return response;
+};
+
+export const forwardMessage = async (data: ForwardMessageRequest, token: string): Promise<string> => {
+    const formData = new FormData();
+    formData.append('originalMessageId', data.originalMessageId);
+    data.newRecipientsIds.forEach(id => {
+        formData.append('newRecipientsIds', id);
+    });
+
+    const response = await api<string>('POST', '/messages/forward', formData, token, true);
+    return response;
+}

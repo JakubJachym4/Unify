@@ -1,17 +1,25 @@
 <script lang="ts">
+	import MessageDetails from './MessageDetails.svelte';
 	import { globalUsers } from './../../stores/globalUsers';
     import type { MessageResponse, Attachment } from '$lib/api/Messages/MessagesRequests';
     import { getUserData } from '$lib/api/User/UserRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { onMount, onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
+    import NewMessage from './NewMessage.svelte';
+	import { messages } from '$lib/stores/messages';
 
     export let message: MessageResponse;
     export let show = false;
     export let onClose: () => void;
+    export let hideReplyButton = false;
+    export let modalLevel = 1;
 
     let sender: UserResponse | null = null;
     let recipientNames: string[] = [];
+    let showReplyForm = false;
+    let showRespondingMessage = false;
+    let respondingMessage: MessageResponse | null = null;
 
     const getDaysAgo = (date: Date) => {
         const now = new Date();
@@ -45,7 +53,7 @@
         }
     };
 
-    onMount(() => {
+    onMount(async () => {
         window.addEventListener('keydown', handleKeydown);
 
         const users = get(globalUsers);
@@ -56,6 +64,11 @@
             .map(id => users.find(u => u.id === id))
             .filter((u): u is UserResponse => u !== undefined)
             .map(u => `${u.firstName} ${u.lastName}`);
+
+        if (message.respondingToId) {
+            const allMessages = get(messages).messages;
+            respondingMessage = allMessages.find(m => m.messageId === message.respondingToId) || null;
+        }
     });
 
     onDestroy(() => {
@@ -68,12 +81,23 @@
 </script>
 
 {#if show}
-<div class="modal show d-block" tabindex="-1">
+<div class="modal show d-block" tabindex="-1" style="z-index: {1050 + modalLevel}">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title mb-0">{message.title}</h5>
+                    {#if message.respondingToId && respondingMessage}
+                        <small class="text-muted">
+                            In response to: <span 
+                                class="responding-to-link"
+                                role="button"
+                                on:click={() => showRespondingMessage = true}
+                              >
+                                {respondingMessage.title}
+                              </span>
+                        </small>
+                    {/if}
                     <small class="text-muted">{getDaysAgo(message.createdOn)} days ago</small>
                 </div>
                 <button type="button" class="btn-close" on:click={onClose}></button>
@@ -129,12 +153,40 @@
                 {/if}
             </div>
             <div class="modal-footer">
+                {#if !hideReplyButton}
+                    <button 
+                        type="button" 
+                        class="btn btn-primary"
+                        on:click={() => showReplyForm = true}
+                    >
+                        Reply
+                    </button>
+                {/if}
                 <button type="button" class="btn btn-secondary" on:click={onClose}>Close</button>
             </div>
         </div>
     </div>
 </div>
-<div class="modal-backdrop show"></div>
+<div class="modal-backdrop show" style="z-index: {1040 + modalLevel}"></div>
+{/if}
+
+{#if showReplyForm}
+    <NewMessage 
+        show={true}
+        onClose={() => showReplyForm = false}
+        respondingToId={message.messageId}
+        modalLevel={modalLevel + 1}
+    />
+{/if}
+
+{#if showRespondingMessage && respondingMessage}
+    <MessageDetails 
+        message={respondingMessage}
+        show={true}
+        onClose={() => showRespondingMessage = false}
+        modalLevel={modalLevel + 1}
+        hideReplyButton={true}
+    />
 {/if}
 
 <style>
@@ -225,5 +277,15 @@
 
     .modal-title {
         font-size: 1.25rem;
+    }
+
+    .responding-to-link {
+        color: var(--bs-primary);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .responding-to-link:hover {
+        color: var(--bs-primary-dark);
     }
 </style>

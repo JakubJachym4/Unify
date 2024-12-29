@@ -41,7 +41,9 @@ internal sealed class MessageConverter
                     message.Content.Value,
                     message.CreatedOn,
                     message.Recipients.Select(r => r.Id).ToList(),
-                    files.ToList()
+                    files.ToList(),
+                    message.RespondingToMessageId,
+                    message.ForwardedFromMessageId
                 ));
         }
         return messageResponses;

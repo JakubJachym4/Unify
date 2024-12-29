@@ -95,7 +95,7 @@ public class MessagesController : ControllerBase
     public async Task<IActionResult> ReplyToMessage([FromForm] ReplyToMessageRequest request, CancellationToken cancellationToken)
     {
         var command = new ReplyToMessageCommand(
-            request.MessageId,
+            request.RespondingToId,
             request.Title,
             request.Content,
             request.RecipientsIds,

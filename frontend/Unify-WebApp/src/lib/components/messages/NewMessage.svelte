@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { sendMessage, type SendMessageRequest } from './../../api/Messages/MessagesRequests';
+	import { replyToMessage, sendMessage, type MessageResponse, type ReplyToMessageRequest, type SendMessageRequest } from './../../api/Messages/MessagesRequests';
     import { onMount, onDestroy } from 'svelte';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { getUserData } from '$lib/api/User/UserRequests';
@@ -9,11 +9,14 @@
     import { get } from 'svelte/store';
 	import { browser } from '$app/environment';
     import { messages } from '$lib/stores/messages';
+    import MessageDetails from './MessageDetails.svelte';
 
     export let show = false;
     export let onClose: () => void;
+    export let modalLevel = 1;
 
     let title = '';
+    export let respondingToId: string | null = null;
     let content = '';
     let recipientsIds: string[] = [];
     let attachments: File[] = [];
@@ -26,12 +29,24 @@
 
     let fileInput: HTMLInputElement;
 
+    let showRespondingMessage = false;
+    let respondingMessage: MessageResponse | null = null;
+
     $: filteredUsers = availableUsers.filter(user => 
         !recipientsIds.includes(user.id) &&
         (user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
          user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
          user.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    $: {
+        if (respondingToId) {
+            const allMessages = get(messages).messages;
+            respondingMessage = allMessages.find(m => m.messageId === respondingToId) || null;
+                recipientsIds.push(respondingMessage?.senderId || '');
+        
+        }
+    }
 
     const handleKeydown = (event: KeyboardEvent) => {
         if (event.key === 'Escape' && show) {
@@ -66,14 +81,25 @@
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
             
-            const request: SendMessageRequest = {
-                title,
-                content,
-                recipientsIds,
-                attachments
-            };
-            
-            await sendMessage(request, token);
+            if (respondingToId) {
+                // Use replyToMessage instead of sendMessage
+                const request: ReplyToMessageRequest = {
+                    title,
+                    content,
+                    recipientsIds,
+                    attachments,
+                    respondingToId
+                };
+                await replyToMessage(request, token);
+            } else {
+                const request: SendMessageRequest = {
+                    title,
+                    content,
+                    recipientsIds,
+                    attachments
+                };
+                await sendMessage(request, token);
+            }
             
             // Refresh messages list
             const lastWeek = new Date(); 
@@ -118,15 +144,28 @@
 </script>
 
 {#if show}
-<div class="modal show d-block" tabindex="-1">
+<div class="modal show d-block" tabindex="-1" style="z-index: {1050 + modalLevel}">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">New Message</h5>
+                <h5 class="modal-title">{respondingToId ? 'Reply to Message' : 'New Message'}</h5>
                 <!-- svelte-ignore a11y_consider_explicit_label -->
                 <button type="button" class="btn-close" on:click={onClose}></button>
             </div>
             <div class="modal-body">
+                {#if respondingMessage}
+                    <div class="responding-to-container mb-3">
+                        <h6 class="mb-2">Responding to:</h6>
+                        <div 
+                            class="responding-to-preview"
+                            role="button"
+                            on:click={() => showRespondingMessage = true}
+                        >
+                            <h6>{respondingMessage.title}</h6>
+                            <p class="text-muted mb-0">{respondingMessage.content.substring(0, 100)}...</p>
+                        </div>
+                    </div>
+                {/if}
                 <form on:submit|preventDefault={handleSubmit}>
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
@@ -229,6 +268,16 @@
 <div class="modal-backdrop show"></div>
 {/if}
 
+{#if showRespondingMessage && respondingMessage}
+    <MessageDetails 
+        message={respondingMessage}
+        show={true}
+        onClose={() => showRespondingMessage = false}
+        modalLevel={modalLevel + 1}
+        hideReplyButton={true}
+    />
+{/if}
+
 <style>
     .modal-backdrop {
         background-color: rgba(0,0,0,0.5);
@@ -305,5 +354,22 @@
         padding: 0.5rem;
         background-color: #f8f9fa;
         border-radius: 0.375rem;
+    }
+
+    .responding-to-container {
+        border-left: 4px solid var(--bs-primary);
+        padding-left: 1rem;
+    }
+
+    .responding-to-preview {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .responding-to-preview:hover {
+        background-color: #e9ecef;
     }
 </style>

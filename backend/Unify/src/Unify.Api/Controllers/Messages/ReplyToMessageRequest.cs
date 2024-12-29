@@ -2,7 +2,7 @@ namespace Unify.Api.Controllers.Messages;
 
 public sealed record ReplyToMessageRequest
 (
-    Guid MessageId,
+    Guid RespondingToId,
     string Title,
     string Content,
     ICollection<Guid> RecipientsIds,
