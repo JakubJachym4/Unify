@@ -1,14 +1,17 @@
 <script lang="ts">
-    import type { MessageResponse, FileResponse } from '$lib/api/Messages/MessagesRequests';
+	import { globalUsers } from './../../stores/globalUsers';
+    import type { MessageResponse, Attachment } from '$lib/api/Messages/MessagesRequests';
     import { getUserData } from '$lib/api/User/UserRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
+	import { get } from 'svelte/store';
 
     export let message: MessageResponse;
     export let show = false;
     export let onClose: () => void;
 
     let sender: UserResponse | null = null;
+    let recipientNames: string[] = [];
 
     const getDaysAgo = (date: Date) => {
         const now = new Date();
@@ -16,7 +19,7 @@
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
 
-    const downloadFile = (file: FileResponse) => {
+    const downloadFile = (file: Attachment) => {
         const byteCharacters = atob(file.data);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -32,16 +35,36 @@
         window.URL.revokeObjectURL(link.href);
     };
 
-    const isImage = (file: FileResponse) => {
+    const isImage = (file: Attachment) => {
         return file.contentType.startsWith('image/');
     };
 
-    onMount(async () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            sender = await getUserData(token);
+    const handleKeydown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape' && show) {
+            onClose();
         }
+    };
+
+    onMount(() => {
+        window.addEventListener('keydown', handleKeydown);
+
+        const users = get(globalUsers);
+        sender = users.find(u => u.id === message.senderId) || null;
+        
+        // Get recipient names from globalUsers store
+        recipientNames = message.recipientsIds
+            .map(id => users.find(u => u.id === id))
+            .filter((u): u is UserResponse => u !== undefined)
+            .map(u => `${u.firstName} ${u.lastName}`);
     });
+
+    onDestroy(() => {
+        window.removeEventListener('keydown', handleKeydown);
+    });
+
+    $: displayedRecipients = recipientNames.slice(0, 10).join(', ');
+    $: remainingCount = Math.max(0, recipientNames.length - 10);
+    $: allRecipients = recipientNames.join(', ');
 </script>
 
 {#if show}
@@ -49,14 +72,29 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{message.title}</h5>
+                <div>
+                    <h5 class="modal-title mb-0">{message.title}</h5>
+                    <small class="text-muted">{getDaysAgo(message.createdOn)} days ago</small>
+                </div>
                 <button type="button" class="btn-close" on:click={onClose}></button>
             </div>
             <div class="modal-body">
-                <div class="sender-info mb-3">
-                    <p>From: {sender?.firstName} {sender?.lastName}</p>
-                    <p><small class="text-muted">{getDaysAgo(message.createdOn)} days ago</small></p>
+                <div class="message-header mb-1">
+                    <p class="mb-2">From: {sender?.firstName} {sender?.lastName}</p>
+                    <div class="recipients-container">
+                        <p class="mb-0">
+                            To: <span class="recipients" title={allRecipients}>
+                                {displayedRecipients}
+                                {#if remainingCount > 0}
+                                    <span class="text-muted">
+                                        and {remainingCount} more
+                                    </span>
+                                {/if}
+                            </span>
+                        </p>
+                    </div>
                 </div>
+                <hr class="message-divider"/>
                 <div class="message-content mb-4">
                     <p>{message.content}</p>
                 </div>
@@ -126,7 +164,7 @@
 
     .attachment-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
         margin-top: 1rem;
     }
@@ -139,12 +177,15 @@
         border: 1px solid #dee2e6;
         border-radius: 0.375rem;
         width: 100%;
+        min-height: 200px;
+        justify-content: space-between;
     }
 
     .filename-container {
         width: 100%;
         text-align: center;
         margin: 0.5rem 0;
+        flex-grow: 1;
     }
 
     .filename {
@@ -157,8 +198,32 @@
 
     .attachment-preview {
         max-width: 100%;
-        max-height: 200px;
+        max-height: 150px;
         object-fit: contain;
         margin-bottom: 0.5rem;
+    }
+
+    .recipients-container {
+        position: relative;
+    }
+
+    .recipients {
+        cursor: help;
+    }
+
+    .recipients:hover {
+        text-decoration: underline dotted;
+    }
+
+    .message-header {
+    }
+
+    .message-divider {
+        margin: 1rem 0;
+        border-top: 1px solid var(--bs-border-color);
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
     }
 </style>

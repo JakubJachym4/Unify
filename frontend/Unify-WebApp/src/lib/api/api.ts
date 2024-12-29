@@ -1,26 +1,30 @@
 import type { ApiRequestError } from './apiError';
 
 export const api: {
-    (method: string, endpoint: string, data?: any, token?: string | null) : Promise<any>;
-    <T>(method: string, endpoint: string, data?: any, token?: string | null): Promise<T>;
+    (method: string, endpoint: string, data?: any, token?: string | null, isMultipart?: boolean) : Promise<any>;
+    <T>(method: string, endpoint: string, data?: any, token?: string | null, isMultipart?: boolean): Promise<T>;
 } = async <T>(
     method: string,
     endpoint: string,
     data: any = null,
-    token: string | null = null
+    token: string | null = null,
+    isMultipart: boolean = false
 ): Promise<T> => {
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
+
+    if (!isMultipart) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
+
     endpoint = "https://localhost:5001/api" + endpoint;
     const res = await fetch(endpoint, {
         method,
         headers,
-        body: data ? JSON.stringify(data) : null,
+        body: isMultipart ? data : (data ? JSON.stringify(data) : null),
     });
 
     if (!res.ok) {
@@ -31,9 +35,6 @@ export const api: {
         error.details = errorData.details;
         throw error;
     }
-
-
-
 
     try{
         const responseData: T = await res.json();

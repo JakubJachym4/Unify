@@ -21,4 +21,12 @@ public static class MessageErrors
             "The message with the specified identifier was not found. Id: {0}",
             id);
 
+    public static Error WrongExpirationDate =>
+        Error.Create("Message.WrongExpirationDate",
+            "Expiration date cannot be in the past.");
+
+    public static Error IncorrectSeverity =>
+        Error.Create("Message.IncorrectSeverity",
+            "Incorrect severity level.");
+
 }

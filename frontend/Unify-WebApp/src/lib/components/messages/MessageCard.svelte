@@ -4,11 +4,12 @@
     import { getUserData } from '$lib/api/User/UserRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import MessageDetails from './MessageDetails.svelte';
+	import { get } from 'svelte/store';
+	import { globalUsers } from '$lib/stores/globalUsers';
 
     export let message: MessageResponse;
     let showDetails = false;
     let sender: UserResponse | null = null;
-    console.log(message)
 
     const getDaysAgo = (date: Date) => {
         const now = new Date();
@@ -18,10 +19,7 @@
     };
 
     onMount(async () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            sender = await getUserData(token);
-        }
+        sender = get(globalUsers).find(u => u.id === message.senderId) || null;
     });
     
 </script>
