@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { replyToMessage, sendMessage, type MessageResponse, type ReplyToMessageRequest, type SendMessageRequest } from './../../api/Messages/MessagesRequests';
+	import { replyToMessage, sendMessage, type MessageResponse, type ReplyToMessageRequest, type SendMessageRequest, forwardMessage, SeverityLevel, type SendNotificationRequest, sendNotification } from './../../api/Messages/MessagesRequests';
     import { onMount, onDestroy } from 'svelte';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { getUserData } from '$lib/api/User/UserRequests';
@@ -10,6 +10,10 @@
 	import { browser } from '$app/environment';
     import { messages } from '$lib/stores/messages';
     import MessageDetails from './MessageDetails.svelte';
+    import ForwardMessage from './ForwardMessage.svelte';
+    import { user } from '$lib/stores/user';
+	import { isActionFailure } from '@sveltejs/kit';
+	import { goto } from '$app/navigation';
 
     export let show = false;
     export let onClose: () => void;
@@ -28,9 +32,24 @@
     let showDropdown = false;
 
     let fileInput: HTMLInputElement;
+    let dropdownRef: HTMLDivElement;
 
     let showRespondingMessage = false;
     let respondingMessage: MessageResponse | null = null;
+
+    let showForwardDropdown = false;
+    let forwardingMessageId: string | null = null;
+    let showForwardForm = false;
+
+    let forwardRecipients: string[] = [];
+    let showForwardDialog = false;
+
+    let isNotification = false;
+    let severityLevel: SeverityLevel = SeverityLevel.Information;
+    let expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 7); // Default 7 days
+
+    $: canSendNotification = $user?.roles.includes('Student') && !respondingToId;
 
     $: filteredUsers = availableUsers.filter(user => 
         !recipientsIds.includes(user.id) &&
@@ -43,7 +62,9 @@
         if (respondingToId) {
             const allMessages = get(messages).messages;
             respondingMessage = allMessages.find(m => m.messageId === respondingToId) || null;
+            if (!recipientsIds.includes(respondingMessage?.senderId || '')){
                 recipientsIds.push(respondingMessage?.senderId || '');
+            }
         
         }
     }
@@ -68,6 +89,39 @@
         }
     };
 
+    const handleMessageSent = async (messageId: string) => {
+        forwardingMessageId = messageId;
+        showForwardForm = true;
+    };
+
+    const handleForward = async () => {
+        if (!forwardingMessageId || forwardRecipients.length === 0) {
+            error = 'Please select recipients for forwarding';
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+            
+            await forwardMessage({
+                originalMessageId: forwardingMessageId,
+                newRecipientsIds: forwardRecipients
+            }, token);
+
+            // Refresh messages and close
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
+            await messages.refresh(date);
+            
+            showForwardDropdown = false;
+            onClose();
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    };
+
     const handleSubmit = async () => {
         if (!title || !content || recipientsIds.length === 0) {
             error = 'Please fill all required fields';
@@ -81,8 +135,19 @@
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
             
-            if (respondingToId) {
-                // Use replyToMessage instead of sendMessage
+            let messageId;
+            if (isNotification) {
+                const request: SendNotificationRequest = {
+                    title,
+                    content,
+                    recipientsIds,
+                    attachments,
+                    severity: severityLevel.toString(),
+                    expirationDate
+                };
+                console.log(request)
+                messageId = await sendNotification(request, token);
+            } else if (respondingToId) {
                 const request: ReplyToMessageRequest = {
                     title,
                     content,
@@ -90,7 +155,7 @@
                     attachments,
                     respondingToId
                 };
-                await replyToMessage(request, token);
+                messageId = await replyToMessage(request, token);
             } else {
                 const request: SendMessageRequest = {
                     title,
@@ -98,17 +163,21 @@
                     recipientsIds,
                     attachments
                 };
-                await sendMessage(request, token);
+                messageId = await sendMessage(request, token);
             }
             
-            // Refresh messages list
-            const lastWeek = new Date(); 
+            if (forwardRecipients.length > 0) {
+                await forwardMessage({
+                    originalMessageId: messageId,
+                    newRecipientsIds: forwardRecipients
+                }, token);
+            }
+
+            const lastWeek = new Date();
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
             await messages.refresh(date);
-            
-            // Dispatch success event
-            dispatchEvent(new CustomEvent('messageSent'));
+            goto('/')
             onClose();
         } catch (err) {
             error = (err as ApiRequestError).details;
@@ -117,18 +186,30 @@
         }
     };
 
+    const handleClickOutside = (event: MouseEvent) => {
+        if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
+            showDropdown = false;
+        }
+    };
+
+    const handleForwardRecipientsSelected = (event: CustomEvent<string[]>) => {
+        forwardRecipients = event.detail;
+        showForwardDialog = false;
+    };
+
     onMount(() => {
         if(browser){
             window.addEventListener('keydown', handleKeydown);
             const users = get(globalUsers);
             availableUsers = users;
+            document.addEventListener('click', handleClickOutside);
         }
-
     });
 
     onDestroy(() => {
         if(browser){
             window.removeEventListener('keydown', handleKeydown);
+            document.removeEventListener('click', handleClickOutside);
         }
     });
 
@@ -137,7 +218,9 @@
     };
 
     const addRecipient = (user: UserResponse) => {
-        recipientsIds = [...recipientsIds, user.id];
+        if (!recipientsIds.includes(user.id)) {
+            recipientsIds = [...recipientsIds, user.id];
+        }
         searchTerm = '';
         showDropdown = false;
     };
@@ -171,6 +254,47 @@
                         <label for="title" class="form-label">Title</label>
                         <input type="text" class="form-control" id="title" bind:value={title} required>
                     </div>
+                    {#if canSendNotification}
+                        <div class="mb-3 form-check">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input" 
+                                id="isNotification"
+                                bind:checked={isNotification}
+                            >
+                            <label class="form-check-label" for="isNotification">
+                                Send as Notification
+                            </label>
+                        </div>
+
+                        {#if isNotification}
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="severityLevel" class="form-label">Severity Level</label>
+                                    <select 
+                                        class="form-select" 
+                                        id="severityLevel"
+                                        bind:value={severityLevel}
+                                    >
+                                        <option value={SeverityLevel.Critical}>Critical</option>
+                                        <option value={SeverityLevel.Important}>Important</option>
+                                        <option value={SeverityLevel.Information}>Information</option>
+                                        <option value={SeverityLevel.Notification}>Notification</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label for="expirationDate" class="form-label">Expires On</label>
+                                    <input 
+                                        type="date" 
+                                        class="form-control" 
+                                        id="expirationDate"
+                                        bind:value={expirationDate}
+                                        min={new Date().toISOString().split('T')[0]}
+                                    >
+                                </div>
+                            </div>
+                        {/if}
+                    {/if}
                     <div class="mb-3 recipients-container">
                         <label for="recipients" class="form-label">Recipients</label>
                         <div class="selected-recipients mb-2">
@@ -188,7 +312,7 @@
                                 {/each}
                             {/each}
                         </div>
-                        <div class="position-relative">
+                        <div class="dropdown position-relative" bind:this={dropdownRef}>
                             <input 
                                 type="text" 
                                 class="form-control" 
@@ -197,21 +321,38 @@
                                 on:focus={() => showDropdown = true}
                             >
                             {#if showDropdown && filteredUsers.length > 0}
-                                <div class="recipients-dropdown">
+                                <div class="dropdown-menu show">
                                     {#each filteredUsers as user}
-                                        <!-- svelte-ignore a11y_click_events_have_key_events -->
-                                        <!-- svelte-ignore a11y_no_static_element_interactions -->
-                                        <div 
-                                            class="recipient-option"
+                                        <button
+                                            class="dropdown-item"
                                             on:click={() => addRecipient(user)}
                                         >
-                                            {user.firstName} {user.lastName} ({user.email})
-                                        </div>
+                                            {user.firstName} {user.lastName}
+                                        </button>
                                     {/each}
                                 </div>
                             {/if}
                         </div>
                     </div>
+                    {#if forwardRecipients.length > 0}
+                        <div class="mb-3">
+                            <label class="form-label">Forward Recipients</label>
+                            <div class="selected-recipients mb-2">
+                                {#each forwardRecipients as recipientId}
+                                    {#each availableUsers.filter(u => u.id === recipientId) as user}
+                                        <span class="badge bg-success me-2 mb-2">
+                                            {user.firstName} {user.lastName}
+                                            <button 
+                                                type="button" 
+                                                class="btn-close btn-close-white ms-2"
+                                                on:click={() => forwardRecipients = forwardRecipients.filter(id => id !== user.id)}
+                                            ></button>
+                                        </span>
+                                    {/each}
+                                {/each}
+                            </div>
+                        </div>
+                    {/if}
                     <div class="mb-3">
                         <label for="content" class="form-label">Message</label>
                         <textarea class="form-control" id="content" rows="5" bind:value={content} required></textarea>
@@ -249,6 +390,11 @@
                 </form>
             </div>
             <div class="modal-footer">
+                {#if !isNotification}
+                    <button type="button" class="btn btn-secondary" on:click={() => showForwardDialog = true}>
+                        Add Forward Recipients
+                    </button>
+                {/if}
                 <button type="button" class="btn btn-secondary" on:click={onClose}>Cancel</button>
                 <button 
                     type="submit" 
@@ -259,7 +405,7 @@
                     {#if submitting}
                         <span class="spinner-border spinner-border-sm me-2"></span>
                     {/if}
-                    Send Message
+                    {isNotification ? 'Send Notification' : 'Send Message'}
                 </button>
             </div>
         </div>
@@ -268,6 +414,7 @@
 <div class="modal-backdrop show"></div>
 {/if}
 
+
 {#if showRespondingMessage && respondingMessage}
     <MessageDetails 
         message={respondingMessage}
@@ -275,6 +422,16 @@
         onClose={() => showRespondingMessage = false}
         modalLevel={modalLevel + 1}
         hideReplyButton={true}
+    />
+{/if}
+
+{#if showForwardDialog}
+    <ForwardMessage 
+        show={true}
+        onClose={() => showForwardDialog = false}
+        modalLevel={modalLevel + 1}
+        shouldDispatch={true}
+        on:recipientsSelected={handleForwardRecipientsSelected}
     />
 {/if}
 

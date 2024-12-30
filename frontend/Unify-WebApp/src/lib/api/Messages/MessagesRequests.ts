@@ -1,5 +1,23 @@
 import { api } from "../api";
 
+export const enum SeverityLevel {
+    Critical = 0,
+    Important = 1,
+    Information = 2,
+    Notification = 3
+}
+
+export const getSeverityColor = (severity: string | null): string => {
+    if (!severity) return '';
+    switch (severity) {
+        case 'Critical': return 'var(--bs-danger)';
+        case 'Important': return 'var(--bs-warning)';
+        case 'Information': return 'var(--bs-info)';
+        case 'Notification': return 'var(--bs-primary)';
+        default: return '';
+    }
+}
+
 export type MessageResponse ={
     messageId: string;
     senderId: string;
@@ -9,7 +27,9 @@ export type MessageResponse ={
     recipientsIds: string[];
     attachments: Attachment[];
     respondingToId: string | null;
-    forwardingToId: string | null;
+    forwardedFromId: string | null;
+    expirationDate: Date | null;
+    informationSeverityLevel: string | null;
 }
 
 export type Attachment = {
@@ -26,6 +46,17 @@ export interface SendMessageRequest{
     recipientsIds: string[];
     attachments: FileAttachment[];
 }
+
+export interface SendNotificationRequest{
+    title: string;
+    content: string;
+    recipientsIds: string[];
+    attachments: FileAttachment[];
+    severity: string;
+    expirationDate: Date;
+}
+
+
 
 export interface ReplyToMessageRequest{
     title: string;
@@ -50,6 +81,11 @@ export const getLastMessagesByDate = async (data: string, token: string): Promis
     return response;
 };
 
+export const getNonExpiredNotifications = async (token: string): Promise<MessageResponse[]> => {
+    const response = await api<MessageResponse[]>('GET', '/notifications', null, token);
+    return response;
+}
+
 export const sendMessage = async (data: SendMessageRequest, token: string): Promise<string> => {
     const formData = new FormData();
     formData.append('title', data.title);
@@ -64,6 +100,30 @@ export const sendMessage = async (data: SendMessageRequest, token: string): Prom
     const response = await api<string>('POST', '/messages/send', formData, token, true);
     return response;
 };
+
+export const sendNotification = async (data: SendNotificationRequest, token: string): Promise<string> => {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('content', data.content);
+    console.log(data.recipientsIds)
+    data.recipientsIds.forEach(id => {
+        formData.append('recipientsIds', id);
+    });
+    console.log(formData)
+    data.attachments.forEach(file => {
+        formData.append('attachments', file);
+    });
+
+    console.log(data.severity)
+    formData.append('severity', data.severity);
+    console.log(data.expirationDate.toString())
+    formData.append('expirationDate', data.expirationDate.toString());
+    console.log(formData)
+
+    const response = await api<string>('POST', '/notifications/send', formData, token, true);
+    console.log(response)
+    return response;
+}
 
 export const replyToMessage = async (data: ReplyToMessageRequest, token: string): Promise<string> => {
     const formData = new FormData();

@@ -1,13 +1,14 @@
 <script lang="ts">
 	import MessageDetails from './MessageDetails.svelte';
 	import { globalUsers } from './../../stores/globalUsers';
-    import type { MessageResponse, Attachment } from '$lib/api/Messages/MessagesRequests';
+    import { type MessageResponse, type Attachment, getSeverityColor } from '$lib/api/Messages/MessagesRequests';
     import { getUserData } from '$lib/api/User/UserRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { onMount, onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
     import NewMessage from './NewMessage.svelte';
 	import { messages } from '$lib/stores/messages';
+	import ForwardMessage from './ForwardMessage.svelte';
 
     export let message: MessageResponse;
     export let show = false;
@@ -19,7 +20,10 @@
     let recipientNames: string[] = [];
     let showReplyForm = false;
     let showRespondingMessage = false;
+    let showForwardedMessage = false;
     let respondingMessage: MessageResponse | null = null;
+    let showForwardForm = false;
+    let forwardedMessage: MessageResponse | null = null;
 
     const getDaysAgo = (date: Date) => {
         const now = new Date();
@@ -69,6 +73,11 @@
             const allMessages = get(messages).messages;
             respondingMessage = allMessages.find(m => m.messageId === message.respondingToId) || null;
         }
+
+        if (message.forwardedFromId) {
+            const allMessages = get(messages).messages;
+            forwardedMessage = allMessages.find(m => m.messageId === message.forwardedFromId) || null;
+        }
     });
 
     onDestroy(() => {
@@ -78,14 +87,25 @@
     $: displayedRecipients = recipientNames.slice(0, 10).join(', ');
     $: remainingCount = Math.max(0, recipientNames.length - 10);
     $: allRecipients = recipientNames.join(', ');
+    $: isNotification = !!message.informationSeverityLevel;
+    $: severityColor = message.informationSeverityLevel ? 
+        getSeverityColor(message.informationSeverityLevel) : 
+        'transparent';
 </script>
 
 {#if show}
 <div class="modal show d-block" tabindex="-1" style="z-index: {1050 + modalLevel}">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content">
+        <div class="modal-content" style="border-left: 4px solid {severityColor}">
             <div class="modal-header">
                 <div>
+                    {#if isNotification}
+                        <div class="severity-info mb-2">
+                            <span class="severity-badge" style="color: {severityColor}">
+                                {message.informationSeverityLevel}
+                            </span>
+                        </div>
+                    {/if}
                     <h5 class="modal-title mb-0">{message.title}</h5>
                     {#if message.respondingToId && respondingMessage}
                         <small class="text-muted">
@@ -98,7 +118,20 @@
                               </span>
                         </small>
                     {/if}
+                    {#if message.forwardedFromId && forwardedMessage}
+                        <small class="text-muted d-block">
+                            Forwarded from: <span class="responding-to-link" role="button"
+                            on:click={() => showForwardedMessage = true}>
+                                {forwardedMessage.title}
+                            </span>
+                        </small>
+                    {/if}
                     <small class="text-muted">{getDaysAgo(message.createdOn)} days ago</small>
+                    {#if isNotification && message.expirationDate}
+                        <small class="text-muted d-block">
+                            Expires: {new Date(message.expirationDate).toLocaleDateString()}
+                        </small>
+                    {/if}
                 </div>
                 <button type="button" class="btn-close" on:click={onClose}></button>
             </div>
@@ -118,8 +151,7 @@
                         </p>
                     </div>
                 </div>
-                <hr class="message-divider"/>
-                <div class="message-content mb-4">
+                <div class="message-content mb-4 mt-2 pt-2">
                     <p>{message.content}</p>
                 </div>
                 {#if message.attachments && message.attachments.length > 0}
@@ -153,13 +185,22 @@
                 {/if}
             </div>
             <div class="modal-footer">
-                {#if !hideReplyButton}
+                {#if !isNotification}
+                    {#if !hideReplyButton}
+                        <button 
+                            type="button" 
+                            class="btn btn-primary me-2"
+                            on:click={() => showReplyForm = true}
+                        >
+                            Reply
+                        </button>
+                    {/if}
                     <button 
                         type="button" 
-                        class="btn btn-primary"
-                        on:click={() => showReplyForm = true}
+                        class="btn btn-primary me-2"
+                        on:click={() => showForwardForm = true}
                     >
-                        Reply
+                        Forward
                     </button>
                 {/if}
                 <button type="button" class="btn btn-secondary" on:click={onClose}>Close</button>
@@ -179,13 +220,33 @@
     />
 {/if}
 
+{#if showForwardForm}
+    <ForwardMessage
+        show={true}
+        onClose={() =>{showForwardForm = false; onClose()}}
+        modalLevel={modalLevel + 1}
+        messageId={message.messageId}
+    />
+{/if}
+
 {#if showRespondingMessage && respondingMessage}
     <MessageDetails 
         message={respondingMessage}
         show={true}
         onClose={() => showRespondingMessage = false}
         modalLevel={modalLevel + 1}
-        hideReplyButton={true}
+        hideReplyButton={false}
+    />
+{/if}
+
+{#if showForwardedMessage && forwardedMessage}
+<!-- TODO: fix issue with MessageCards having wrong data after forward -->
+    <MessageDetails 
+        message={forwardedMessage}
+        show={true}
+        onClose={() => showForwardedMessage = false}
+        modalLevel={modalLevel + 1}
+        hideReplyButton={false}
     />
 {/if}
 
@@ -212,6 +273,14 @@
     .modal-content {
         max-height: 90vh;
         overflow-y: auto;
+        border-left-width: 4px;
+        border-left-style: solid;
+    
+        }
+
+    .message-content {
+        border-top: var(--bs-modal-footer-border-width) solid var(--bs-modal-footer-border-color);
+    
     }
 
     .attachment-grid {
@@ -287,5 +356,13 @@
 
     .responding-to-link:hover {
         color: var(--bs-primary-dark);
+    }
+
+    .severity-info {
+        font-weight: 600;
+    }
+
+    .severity-badge {
+        font-size: 1.1rem;
     }
 </style>

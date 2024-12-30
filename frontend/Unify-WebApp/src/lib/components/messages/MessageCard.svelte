@@ -1,17 +1,24 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import type { MessageResponse } from '$lib/api/Messages/MessagesRequests';
-    import { getUserData } from '$lib/api/User/UserRequests';
+    import { getSeverityColor, type MessageResponse, type SeverityLevel } from '$lib/api/Messages/MessagesRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import MessageDetails from './MessageDetails.svelte';
 	import { get } from 'svelte/store';
 	import { globalUsers } from '$lib/stores/globalUsers';
-    import MessageThread from './MessageThread.svelte';
+	import { messages } from '$lib/stores/messages';
 
     export let message: MessageResponse;
     let showDetails = false;
     let sender: UserResponse | null = null;
-    let showThread = false;
+    let forwardedFrom: UserResponse | null = null;
+
+    $: borderColor = message.informationSeverityLevel ?
+        getSeverityColor(message.informationSeverityLevel) : 'transparent'
+
+    $: isNotification = !!message.informationSeverityLevel;
+    $: severityColor = message.informationSeverityLevel ? 
+        getSeverityColor(message.informationSeverityLevel) : 
+        'transparent';
 
     const getDaysAgo = (date: Date) => {
         const now = new Date();
@@ -22,13 +29,27 @@
 
     onMount(async () => {
         sender = get(globalUsers).find(u => u.id === message.senderId) || null;
+        if (message.forwardedFromId) {
+            const allMessages = get(messages).messages;
+            const forwardedMessage = allMessages.find(m => m.messageId === message.forwardedFromId);
+            if (forwardedMessage) {
+                forwardedFrom = get(globalUsers).find(u => u.id === forwardedMessage.senderId) || null;
+            }
+        }
     });
+
+    const handleClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        showDetails = true;
+    }
+
     
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="message-card" on:click={() => showThread = message.respondingToId ? true : showDetails = true}>
+<div class="message-card" on:click={handleClick}
+    style="border-color: {severityColor}">
     <div class="row g-0">
         <div class="image-container">
             {#if sender?.profileImage}
@@ -45,10 +66,21 @@
         </div>
         <div class="content-container">
             <div class="card-body">
-                <h5 class="card-title">{message.title}</h5>
-                <p class="card-text">
+                <div class="d-flex">
+                    {#if isNotification}
+                    <h5 class="card-title" style="color: {severityColor}">
+                        {message.informationSeverityLevel}:&nbsp
+                    </h5>
+                    {/if}
+                    <h5 class="card-title">{message.title}</h5>
+                </div>
+                <p class="card-text mb-0">
                     <small class="text-muted">
-                        Sent by {sender?.firstName} {sender?.lastName}
+                        {#if message.forwardedFromId && forwardedFrom}
+                            Forwarded from {forwardedFrom.firstName} {forwardedFrom.lastName}
+                        {:else}  
+                            Sent by {sender?.firstName} {sender?.lastName}
+                        {/if}
                     </small>
                 </p>
                 <p class="card-text">
@@ -60,24 +92,16 @@
         </div>
     </div>
 </div>
-
-{#if message.respondingToId}
-    <MessageThread 
-        initialMessage={message}
-        show={showThread}
-        onClose={() => showThread = false}
-    />
-{:else}
     <MessageDetails 
         {message} 
         show={showDetails} 
         onClose={() => showDetails = false}
     />
-{/if}
+
 
 <style>
     .message-card {
-        border: 3px solid transparent;
+        border: 4px solid transparent;
         border-radius: var(--bs-border-radius);
         transition: all 0.2s ease-in-out;
         margin-bottom: 0.5rem;
@@ -87,9 +111,9 @@
     }
 
     .message-card:hover {
-        border-color: var(--bs-primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 6px 8px rgba(0,0,0,0.1);
+        background-color: #99a5b4;
     }
 
     .image-container {
@@ -108,11 +132,16 @@
     .content-container {
         flex: 1;
         padding-left: 0.5rem;
-        padding-top: 0.5rem;
+        /* padding-top: 0.5rem; */
     }
 
     .row {
         display: flex;
         margin: 0;
+    }
+
+    .severity-label {
+        font-weight: 600;
+        font-size: 0.9rem;
     }
 </style>

@@ -4,6 +4,7 @@
     import MessagesList from './MessagesList.svelte';
     import NewMessage from './NewMessage.svelte';
     import { messages } from '$lib/stores/messages';
+	import { get } from 'svelte/store';
 
     export let fixed = false;
     let messagesList: MessageResponse[] = [];
@@ -17,6 +18,7 @@
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
             await messages.refresh(date);
+            messagesList = get(messages).messages;
             loading = false;
         } catch (err) {
             error = (err as Error).message;
@@ -24,13 +26,17 @@
         }
     };
 
+    $: {
+        $messages;  // Subscribe to store changes
+        if (!loading) {
+            messagesList = $messages;
+            console.log(messagesList);
+        }
+    }
+
     onMount(() => {
-        const unsubscribe = messages.subscribe(value => {
-            messagesList = value
-        });
         loadMessages();
-        console.log(messagesList);
-        return unsubscribe;
+        return () => {};
     });
 </script>
 

@@ -33,6 +33,7 @@ builder.Services.AddRequestValidators();
 
 builder.Services.Configure<FormOptions>(options =>
 {
+    //TODO: change limit of file size, needs checking
     options.MultipartBodyLengthLimit = 5000000;
 });
 
@@ -40,6 +41,8 @@ builder.Services.Configure<UniversityInformation>(
     builder.Configuration.GetSection("UniversityInformation"));
 
 var app = builder.Build();
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 app.UseCors("AllowFrontend");
 
