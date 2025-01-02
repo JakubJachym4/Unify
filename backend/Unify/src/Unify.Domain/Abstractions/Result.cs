@@ -34,6 +34,7 @@ public class Result
     public static Result<TValue> Success<TValue>(TValue value) => new(value, true, Error.None);
 
     public static Result<TValue> Failure<TValue>(Error error) => new(default, false, error);
+    public static Result<TValue> Failure<TValue>(string code, string message) => new(default, false, Error.Create(code, message));
     public static Result<TValue> Failure<TValue>(Error error, TValue value) => new(value, false, error);
 
     public static Result<TValue> Create<TValue>(TValue? value) =>

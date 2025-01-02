@@ -3,7 +3,7 @@ using Unify.Domain.Abstractions;
 
 namespace Unify.Infrastructure.Repositories;
 
-internal abstract class Repository<T>
+public abstract class Repository<T>
 where T : Entity
 {
     protected readonly ApplicationDbContext DbContext;
@@ -22,8 +22,26 @@ where T : Entity
             .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
+    public virtual async Task<T?> GetByIdAsyncNoTracking(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await DbContext
+            .Set<T>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+    }
+
+    public virtual async Task<List<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await DbContext.Set<T>().ToListAsync(cancellationToken);
+    }
+
     public virtual void Add(T entity)
     {
         DbContext.Add(entity);
+    }
+
+    public virtual void Delete(T entity)
+    {
+        DbContext.Set<T>().Remove(entity);
     }
 }

@@ -14,6 +14,7 @@ using Unify.Application.Abstractions.Files;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
 using Unify.Domain.Messages.InformationMessages;
+using Unify.Domain.UniversityCore.Abstractions;
 using Unify.Domain.Users;
 using Unify.Infrastructure.Authentication;
 using Unify.Infrastructure.Authorization;
@@ -69,6 +70,10 @@ public static class DependencyInjection
         services.AddScoped<IMessageRepository, MessageRepository>();
 
         services.AddScoped<IInformationMessageRepository, InformationMessageRepository>();
+
+        services.AddScoped<IFieldOfStudyRepository, FieldOfStudyRepository>();
+
+        services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 

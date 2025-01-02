@@ -647,7 +647,7 @@ namespace Unify.Infrastructure.Migrations
                     b.ToTable("faculties", (string)null);
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.FieldOfStudy", b =>
+            modelBuilder.Entity("Unify.Domain.UniversityCore.FieldsOfStudy", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1320,7 +1320,7 @@ namespace Unify.Infrastructure.Migrations
                         .HasConstraintName("fk_courses_specialization_specialization_id");
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.FieldOfStudy", b =>
+            modelBuilder.Entity("Unify.Domain.UniversityCore.FieldsOfStudy", b =>
                 {
                     b.HasOne("Unify.Domain.UniversityCore.Faculty", null)
                         .WithMany()
@@ -1360,7 +1360,7 @@ namespace Unify.Infrastructure.Migrations
 
             modelBuilder.Entity("Unify.Domain.UniversityCore.Specialization", b =>
                 {
-                    b.HasOne("Unify.Domain.UniversityCore.FieldOfStudy", null)
+                    b.HasOne("Unify.Domain.UniversityCore.FieldsOfStudy", null)
                         .WithMany()
                         .HasForeignKey("FieldOfStudyId")
                         .OnDelete(DeleteBehavior.Cascade)

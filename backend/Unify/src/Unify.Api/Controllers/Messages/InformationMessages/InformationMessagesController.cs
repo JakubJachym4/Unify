@@ -21,7 +21,7 @@ public class InformationMessagesController : ControllerBase
 
     [HttpPost("send")]
     //TODO: remove student from here
-    [Authorize(Roles = "Administrator,Lecturer,Student")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> SendMessage([FromForm] SendInformationMessageRequest request,
         CancellationToken cancellationToken)

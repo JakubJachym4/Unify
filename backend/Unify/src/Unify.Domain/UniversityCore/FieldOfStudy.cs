@@ -15,4 +15,10 @@ public sealed class FieldOfStudy : Entity
     public Name Name { get; private set; }
     public Description Description { get; private set; }
     public Guid FacultyId { get; private set; }
+
+    public void Update(Name name, Description description)
+    {
+        Name = name;
+        Description = description;
+    }
 }
