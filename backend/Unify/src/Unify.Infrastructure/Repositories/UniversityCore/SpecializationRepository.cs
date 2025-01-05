@@ -3,7 +3,7 @@ using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.UniversityCore.Abstractions;
 
-namespace Unify.Infrastructure.Repositories;
+namespace Unify.Infrastructure.Repositories.UniversityCore;
 
 public class SpecializationRepository : Repository<Specialization>, ISpecializationRepository
 {

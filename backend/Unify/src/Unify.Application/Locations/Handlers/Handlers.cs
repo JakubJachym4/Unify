@@ -1,0 +1,147 @@
+using MediatR;
+using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Locations.Commands;
+using Unify.Domain.Abstractions;
+using Unify.Domain.UniversityCore;
+using Unify.Domain.UniversityCore.Abstractions;
+
+namespace Unify.Application.Locations.Handlers;
+
+internal sealed class AddLocationCommandHandler : ICommandHandler<AddLocationCommand, Guid>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILocationRepository _repository;
+    private readonly IFacultyRepository _facultyRepository;
+
+    public AddLocationCommandHandler(IUnitOfWork unitOfWork, ILocationRepository repository, IFacultyRepository facultyRepository)
+    {
+        _unitOfWork = unitOfWork;
+        _repository = repository;
+        _facultyRepository = facultyRepository;
+    }
+
+    public async Task<Result<Guid>> Handle(AddLocationCommand request, CancellationToken cancellationToken)
+    {
+        var faculty = await _facultyRepository.GetByIdAsync(request.FacultyId, cancellationToken);
+        if (faculty is null)
+        {
+            return Result.Failure<Guid>("Location.NotFound", "Location not found.");
+        }
+
+        var location = Location.Add(request.Building, request.Street, request.Floor, request.DoorNumber, faculty);
+        _repository.Add(location);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(location.Id);
+    }
+}
+
+internal sealed class AddOnlineLocationCommandHandler : ICommandHandler<AddOnlineLocationCommand, Guid>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILocationRepository _repository;
+
+    public AddOnlineLocationCommandHandler(IUnitOfWork unitOfWork, ILocationRepository repository)
+    {
+        _unitOfWork = unitOfWork;
+        _repository = repository;
+    }
+
+    public async Task<Result<Guid>> Handle(AddOnlineLocationCommand request, CancellationToken cancellationToken)
+    {
+        var location = Location.AddOnline(request.MeetingUrl);
+        _repository.Add(location);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(location.Id);
+    }
+}
+
+internal sealed class UpdateLocationCommandHandler : ICommandHandler<UpdateLocationCommand>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILocationRepository _repository;
+
+    public UpdateLocationCommandHandler(IUnitOfWork unitOfWork, ILocationRepository repository)
+    {
+        _unitOfWork = unitOfWork;
+        _repository = repository;
+    }
+
+    public async Task<Result> Handle(UpdateLocationCommand request, CancellationToken cancellationToken)
+    {
+        var location = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        if (location is null)
+        {
+            return Result.Failure("Location.NotFound", "Location not found.");
+        }
+
+        location.Update(request.Building, request.Street, request.Floor, request.DoorNumber);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
+internal sealed class UpdateOnlineLocationCommandHandler : ICommandHandler<UpdateOnlineLocationCommand>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILocationRepository _repository;
+
+    public UpdateOnlineLocationCommandHandler(IUnitOfWork unitOfWork, ILocationRepository repository)
+    {
+        _unitOfWork = unitOfWork;
+        _repository = repository;
+    }
+
+    public async Task<Result> Handle(UpdateOnlineLocationCommand request, CancellationToken cancellationToken)
+    {
+        var location = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        if (location is null)
+        {
+            return Result.Failure("Location.NotFound", "Location not found.");
+        }
+
+        location.UpdateOnline(request.MeetingUrl);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
+internal sealed class DeleteLocationCommandHandler : ICommandHandler<DeleteLocationCommand>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILocationRepository _repository;
+
+    public DeleteLocationCommandHandler(IUnitOfWork unitOfWork, ILocationRepository repository)
+    {
+        _unitOfWork = unitOfWork;
+        _repository = repository;
+    }
+
+    public async Task<Result> Handle(DeleteLocationCommand request, CancellationToken cancellationToken)
+    {
+        var location = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        if (location is null)
+        {
+            return Result.Failure("Location.NotFound", "Location not found.");
+        }
+
+        _repository.Delete(location);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
+internal sealed class ListLocationsQueryHandler : IRequestHandler<ListLocationsQuery, Result<List<Location>>>
+{
+    private readonly ILocationRepository _repository;
+
+    public ListLocationsQueryHandler(ILocationRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<Result<List<Location>>> Handle(ListLocationsQuery request, CancellationToken cancellationToken)
+    {
+        var locations = await _repository.GetAllAsync(cancellationToken);
+        return Result.Success(locations.ToList());
+    }
+}

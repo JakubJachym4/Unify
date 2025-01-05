@@ -39,4 +39,17 @@ public sealed class Location : Entity
     {
         return new Location(building, street, floor, doorNumber, faculty);
     }
+
+    public void Update(string building, string street, short floor, string doorNumber)
+    {
+        Building = building;
+        Street = street;
+        Floor = floor;
+        DoorNumber = doorNumber;
+    }
+
+    public void UpdateOnline(string meetingUrl)
+    {
+        MeetingUrl = meetingUrl;
+    }
 }
