@@ -14,6 +14,7 @@ using Unify.Application.Abstractions.Files;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
 using Unify.Domain.Messages.InformationMessages;
+using Unify.Domain.UniversityClasses.Abstractions;
 using Unify.Domain.UniversityCore.Abstractions;
 using Unify.Domain.Users;
 using Unify.Infrastructure.Authentication;
@@ -23,6 +24,7 @@ using Unify.Infrastructure.Data;
 using Unify.Infrastructure.Email;
 using Unify.Infrastructure.FileUpload;
 using Unify.Infrastructure.Repositories;
+using Unify.Infrastructure.Repositories.UniversityClasses;
 using Unify.Infrastructure.Repositories.UniversityCore;
 using AuthenticationOptions = Unify.Infrastructure.Authentication.AuthenticationOptions;
 using AuthenticationService = Unify.Infrastructure.Authentication.AuthenticationService;
@@ -79,6 +81,10 @@ public static class DependencyInjection
         services.AddScoped<IFacultyRepository, FacultyRepository>();
 
         services.AddScoped<ILocationRepository, LocationRepository>();
+
+        services.AddScoped<ICourseRepository, CourseRepository>();
+
+        services.AddScoped<IClassOfferingRepository, ClassOfferingRepository>();
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 

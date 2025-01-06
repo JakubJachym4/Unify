@@ -1,9 +1,8 @@
 <script lang="ts">
-    import UserManagement from '$lib/components/admin/UserManagement.svelte';
     import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
     
     let showMessages = true;
-    let activeComponent = 'users';
+    let activeComponent = 'dashboard';
 
     const toggleMessages = () => {
         showMessages = !showMessages;
@@ -14,18 +13,18 @@
     };
 </script>
 
-<div class="admin-container">
-    <nav class="admin-nav bg-light border-bottom mb-4">
+<div class="lecturer-container">
+    <nav class="lecturer-nav bg-light border-bottom mb-4">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center py-3">
                 <div class="nav-buttons">
                     <button 
-                        class="btn {activeComponent === 'users' ? 'btn-primary' : 'btn-outline-primary'} me-2"
-                        on:click={() => setActiveComponent('users')}
+                        class="btn {activeComponent === 'dashboard' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('dashboard')}
                     >
-                        User Management
+                        Dashboard
                     </button>
-                    <!-- Add more management buttons here -->
+                    <!-- Add more lecturer-specific buttons here -->
                 </div>
                 <button 
                     class="btn {showMessages ? 'btn-primary' : 'btn-outline-primary'}"
@@ -39,10 +38,12 @@
 
     <div class="content-container">
         <div class="main-content {showMessages ? 'with-messages' : ''}">
-            {#if activeComponent === 'users'}
-                <UserManagement />
+            {#if activeComponent === 'dashboard'}
+                <div class="p-3">
+                    <h2>Lecturer Dashboard</h2>
+                    <!-- Add lecturer dashboard content here -->
+                </div>
             {/if}
-            <!-- Add more components here -->
         </div>
         
         {#if showMessages}
@@ -54,12 +55,12 @@
 </div>
 
 <style>
-    .admin-container {
+    .lecturer-container {
         height: calc(100vh - 56px);
         overflow: hidden;
     }
 
-    .admin-nav {
+    .lecturer-nav {
         position: sticky;
         top: 0;
         z-index: 1020;

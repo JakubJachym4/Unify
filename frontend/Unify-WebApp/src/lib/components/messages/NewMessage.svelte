@@ -49,7 +49,8 @@
     let expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7); // Default 7 days
 
-    $: canSendNotification = $user?.roles.includes('Student') && !respondingToId;
+    $: canSendNotification = ($user?.roles.includes('Lecturer') ||
+    $user?.roles.includes('Admin')) && !respondingToId;
 
     $: filteredUsers = availableUsers.filter(user => 
         !recipientsIds.includes(user.id) &&

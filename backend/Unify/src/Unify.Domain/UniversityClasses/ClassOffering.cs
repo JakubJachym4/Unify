@@ -50,6 +50,14 @@ public sealed class ClassOffering : Entity
             maxStudentsCount);
     }
 
+    public void Update(Name name, DateOnly startDate, DateOnly endDate, int maxStudentsCount)
+    {
+        Name = name;
+        StartDate = startDate;
+        EndDate = endDate;
+        MaxStudentsCount = maxStudentsCount;
+    }
+
     public void SetMaxStudentsCount(int maxStudentsCount) => MaxStudentsCount = maxStudentsCount;
 
     public Result Enroll(User student, DateTime enrollmentDate, StudentGroup? boundGroup = null)

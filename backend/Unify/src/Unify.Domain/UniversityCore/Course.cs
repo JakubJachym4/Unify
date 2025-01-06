@@ -29,4 +29,11 @@ public sealed class Course : Entity
     }
 
     public void AddClass(ClassOffering offering) => _classes.Add(offering);
+
+    public void Update(Name name, Description description, Guid specializationId)
+    {
+        Name = name;
+        Description = description;
+        SpecializationId = specializationId;
+    }
 }

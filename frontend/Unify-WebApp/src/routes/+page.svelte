@@ -11,6 +11,9 @@
         <h1 class="text-center">
           {#if $user && $user.roles.includes('Administrator')}
             {goto('/admin')}
+
+          {:else if $user && $user.roles.includes('Lecturer')}
+            {goto('/lecturer')}
           {:else if $user && $user.roles.includes('Student')}
             {goto('/student')}
           {:else if $user}

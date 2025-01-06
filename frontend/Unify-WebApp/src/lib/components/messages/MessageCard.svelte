@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { forwardMessage } from './../../api/Messages/MessagesRequests.ts';
     import { onMount } from 'svelte';
     import { getSeverityColor, type MessageResponse, type SeverityLevel } from '$lib/api/Messages/MessagesRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
@@ -96,6 +97,7 @@
         {message} 
         show={showDetails} 
         onClose={() => showDetails = false}
+        hideReplyButton={message.forwardedFromId != null}
     />
 
 
