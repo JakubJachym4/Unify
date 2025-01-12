@@ -6,7 +6,7 @@
     import MessageDetails from './MessageDetails.svelte';
 	import { get } from 'svelte/store';
 	import { globalUsers } from '$lib/stores/globalUsers';
-	import { messages } from '$lib/stores/messages';
+	import { messagesStore } from '$lib/stores/messages';
 
     export let message: MessageResponse;
     let showDetails = false;
@@ -31,7 +31,7 @@
     onMount(async () => {
         sender = get(globalUsers).find(u => u.id === message.senderId) || null;
         if (message.forwardedFromId) {
-            const allMessages = get(messages).messages;
+            const allMessages = get(messagesStore).messages;
             const forwardedMessage = allMessages.find(m => m.messageId === message.forwardedFromId);
             if (forwardedMessage) {
                 forwardedFrom = get(globalUsers).find(u => u.id === forwardedMessage.senderId) || null;

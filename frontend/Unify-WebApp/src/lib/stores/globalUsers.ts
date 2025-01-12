@@ -5,7 +5,6 @@ import { getAllUsers } from '$lib/api/User/UserRequests';
 const STORAGE_KEY = 'globalUsers';
 
 function createGlobalUsersStore() {
-    // Get initial data from localStorage if available
     const storedUsers = typeof localStorage !== 'undefined' 
         ? JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') 
         : [];

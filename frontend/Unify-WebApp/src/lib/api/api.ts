@@ -33,6 +33,14 @@ export const api: {
         error.response = res;
         error.code = errorData.code;
         error.details = errorData.details;
+
+        if(!error.details){
+            try{
+                error.details = errorData.errors[0].errorMessage;
+            }
+            catch(Error){}
+        }
+
         throw error;
     }
 

@@ -55,7 +55,7 @@ public class FacultyController : ControllerBase
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> DeleteFaculty(Guid id, CancellationToken cancellationToken)
     {
-        var command = new DeleteFieldOfStudyCommand(id);
+        var command = new DeleteFacultyCommand(id);
         var result = await _sender.Send(command, cancellationToken);
         if (result.IsFailure)
         {

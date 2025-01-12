@@ -1,5 +1,6 @@
 using Unify.Application.Abstractions.Messaging;
 using Unify.Domain.Abstractions;
+using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.UniversityCore.Abstractions;
 
@@ -25,7 +26,7 @@ internal sealed class AddFieldOfStudyCommandHandler : ICommandHandler<AddFieldOf
             return Result.Failure<Guid>("FieldOfStudy.AlreadyExists", "Field of Study already exists.");
         }
 
-        var fieldOfStudy = new FieldOfStudy(Guid.NewGuid(), request.Name, request.Description, request.FacultyId);
+        var fieldOfStudy = new FieldOfStudy(Guid.NewGuid(), new Name(request.Name), new Description(request.Description), request.FacultyId);
 
         _repository.Add(fieldOfStudy);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -52,7 +53,7 @@ internal sealed class UpdateFieldOfStudyCommandHandler : ICommandHandler<UpdateF
             return Result.Failure(Error.NullValue);
         }
 
-        fieldOfStudy.Update(request.Name, request.Description);
+        fieldOfStudy.Update(new Name(request.Name), new Description(request.Description));
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

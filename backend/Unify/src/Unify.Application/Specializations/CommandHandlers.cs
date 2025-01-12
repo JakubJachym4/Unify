@@ -1,5 +1,6 @@
 using Unify.Application.Abstractions.Messaging;
 using Unify.Domain.Abstractions;
+using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.UniversityCore.Abstractions;
 
@@ -19,7 +20,7 @@ internal sealed class AddSpecializationCommandHandler : ICommandHandler<AddSpeci
 
     public async Task<Result<Guid>> Handle(AddSpecializationCommand request, CancellationToken cancellationToken)
     {
-        var specialization = new Specialization(Guid.NewGuid(), request.Name, request.Description, request.FieldOfStudyId);
+        var specialization = new Specialization(Guid.NewGuid(), new Name(request.Name), new Description(request.Description), request.FieldOfStudyId);
         _repository.Add(specialization);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success(specialization.Id);
@@ -45,7 +46,7 @@ internal sealed class UpdateSpecializationCommandHandler : ICommandHandler<Updat
             return Result.Failure<Result>("Specialization.NotFound","Specialization not found.");
         }
 
-        specialization.Update(request.Name, request.Description);
+        specialization.Update(new Name(request.Name), new Description(request.Description));
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

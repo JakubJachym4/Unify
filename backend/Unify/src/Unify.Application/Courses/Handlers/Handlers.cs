@@ -86,7 +86,7 @@ internal sealed class DeleteCourseCommandHandler : ICommandHandler<DeleteCourseC
     }
 }
 
-internal sealed class ListCoursesQueryHandler : IRequestHandler<ListCoursesQuery, Result<List<Course>>>
+internal sealed class ListCoursesQueryHandler : IRequestHandler<ListCoursesQuery, Result<List<CourseResult>>>
 {
     private readonly ICourseRepository _repository;
 
@@ -95,9 +95,15 @@ internal sealed class ListCoursesQueryHandler : IRequestHandler<ListCoursesQuery
         _repository = repository;
     }
 
-    public async Task<Result<List<Course>>> Handle(ListCoursesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<CourseResult>>> Handle(ListCoursesQuery request, CancellationToken cancellationToken)
     {
         var courses = await _repository.GetAllAsync(cancellationToken);
-        return Result.Success(courses.ToList());
+        return Result.Success(
+            courses.Select(c =>
+                new CourseResult(c.Id, c.Name.Value, c.Description.Value, c.SpecializationId, ClassOfferingResponse.FromClassOfferingList(c.Classes.ToList()))
+            ).ToList()
+            );
     }
 }
+
+public record CourseResult(Guid Id, string Name, string Description, Guid SpecializationId, List<ClassOfferingResponse> ClassOfferingResponses);

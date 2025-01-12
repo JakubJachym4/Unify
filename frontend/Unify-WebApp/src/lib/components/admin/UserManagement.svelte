@@ -8,6 +8,7 @@
     let users: UserResponse[] = [];
     let error = '';
     let loading = true;
+    let searchTerm = '';
 
     const loadUsers = async () => {
         try {
@@ -38,6 +39,14 @@
         }
     };
 
+    $: filteredUsers = users.filter(user => {
+        const searchLower = searchTerm.toLowerCase();
+        return user.firstName.toLowerCase().includes(searchLower) ||
+               user.lastName.toLowerCase().includes(searchLower) ||
+               user.email.toLowerCase().includes(searchLower) ||
+               user.roles.some(role => role.toLowerCase().includes(searchLower));
+    });
+
     onMount(() => {
         const unsubscribe = globalUsers.subscribe(value => {
             users = value;
@@ -61,6 +70,16 @@
             </div>
         </div>
     {:else}
+        <div class="row mb-3">
+            <div class="col">
+                <input
+                    type="search"
+                    class="form-control"
+                    placeholder="Search users..."
+                    bind:value={searchTerm}
+                />
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table">
                 <thead>
@@ -72,7 +91,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#each users as user}
+                    {#each filteredUsers as user}
                         <tr>
                             <td>{user.firstName} {user.lastName}</td>
                             <td>{user.email}</td>

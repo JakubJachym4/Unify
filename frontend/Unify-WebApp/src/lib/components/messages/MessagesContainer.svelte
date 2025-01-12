@@ -3,7 +3,7 @@
     import type { MessageResponse } from '$lib/api/Messages/MessagesRequests';
     import MessagesList from './MessagesList.svelte';
     import NewMessage from './NewMessage.svelte';
-    import { messages } from '$lib/stores/messages';
+    import { messagesStore } from '$lib/stores/messages';
 	import { get } from 'svelte/store';
 
     export let fixed = false;
@@ -17,8 +17,8 @@
             const lastWeek = new Date(); 
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
-            await messages.refresh(date);
-            messagesList = get(messages).messages;
+            await messagesStore.refresh(date);
+            messagesList = get(messagesStore).messages;
             loading = false;
         } catch (err) {
             error = (err as Error).message;
@@ -27,10 +27,9 @@
     };
 
     $: {
-        $messages;  // Subscribe to store changes
+        $messagesStore;  // Subscribe to store changes
         if (!loading) {
-            messagesList = $messages;
-            console.log(messagesList);
+            messagesList = $messagesStore;
         }
     }
 

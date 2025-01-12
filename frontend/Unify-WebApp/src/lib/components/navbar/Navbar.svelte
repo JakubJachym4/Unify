@@ -2,10 +2,10 @@
   import { goto } from '$app/navigation';
   import { user } from '$lib/stores/user';
   import { unifyLogo } from '$lib/constants/literals';
-	import { universityInformation } from '$lib/stores/university';
+	import { universityInformationStore } from '$lib/stores/university';
 	import { logOutUser } from '$lib/api/User/UserRequests';
 
-  $: universityName = $universityInformation?.name ?? '';
+  $: universityName = $universityInformationStore?.name ?? '';
 
   const logout = async () => {
     const token = localStorage.getItem('token');

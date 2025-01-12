@@ -25,7 +25,7 @@ internal sealed class AddFacultyCommandHandler : ICommandHandler<AddFacultyComma
 
     public async Task<Result<Guid>> Handle(AddFacultyCommand request, CancellationToken cancellationToken)
     {
-        var foundFaculty = await _repository.GetByNameAsync(request.Name, cancellationToken);
+        var foundFaculty = _repository.GetByName(request.Name, cancellationToken);
 
         if (foundFaculty is not null)
         {
@@ -90,7 +90,7 @@ internal sealed class DeleteFacultyCommandHandler : ICommandHandler<DeleteFacult
     }
 }
 
-internal sealed class ListFacultiesQueryHandler : IRequestHandler<ListFacultyQuery, Result<List<Domain.UniversityCore.Faculty>>>
+internal sealed class ListFacultiesQueryHandler : IRequestHandler<ListFacultyQuery, Result<List<FacultyResult>>>
 {
     private readonly IFacultyRepository _repository;
 
@@ -99,9 +99,11 @@ internal sealed class ListFacultiesQueryHandler : IRequestHandler<ListFacultyQue
         _repository = repository;
     }
 
-    public async Task<Result<List<Domain.UniversityCore.Faculty>>> Handle(ListFacultyQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<FacultyResult>>> Handle(ListFacultyQuery request, CancellationToken cancellationToken)
     {
         var faculties = await _repository.GetAllAsync(cancellationToken);
-        return Result.Success(faculties.ToList());
+        return Result.Success(faculties.Select(f => new FacultyResult(f.Id, f.Name.Value)).ToList());
     }
 }
+
+public record FacultyResult(Guid Id, string Name);

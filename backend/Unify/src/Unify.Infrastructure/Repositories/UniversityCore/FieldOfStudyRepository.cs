@@ -11,8 +11,12 @@ public class FieldOfStudyRepository : Repository<FieldOfStudy>, IFieldOfStudyRep
     {
     }
 
-    public Task<FieldOfStudy?> GetByNameAsync(Name name, CancellationToken cancellationToken)
+    public async Task<FieldOfStudy?> GetByNameAsync(string name, CancellationToken cancellationToken)
     {
-        return DbContext.Set<FieldOfStudy>().FirstOrDefaultAsync(entity => entity.Name == name, cancellationToken);
+        //TODO: fix sql injection
+        var sql = $"SELECT * FROM fields_of_study WHERE Name = '{name}'";
+
+        return await DbContext.Set<FieldOfStudy>().FromSqlRaw(sql).FirstOrDefaultAsync(cancellationToken);
+
     }
 }

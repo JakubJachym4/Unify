@@ -4,7 +4,7 @@
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { globalUsers } from '$lib/stores/globalUsers';
     import { get } from 'svelte/store';
-    import { messages } from '$lib/stores/messages';
+    import { messagesStore } from '$lib/stores/messages';
     import type { ApiRequestError } from '$lib/api/apiError';
 // Add event dispatcher
     import { createEventDispatcher } from 'svelte';
@@ -56,7 +56,7 @@
             const lastWeek = new Date();
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
-            await messages.refresh(date);
+            await messagesStore.refresh(date);
             goto('/');
             onClose();
         } catch (err) {

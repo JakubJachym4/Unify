@@ -6,9 +6,11 @@ using Unify.Domain.UniversityCore.Abstractions;
 
 namespace Unify.Application.FieldsOfStudy;
 
-public record ListFieldOfStudiesQuery() : IQuery<List<FieldOfStudy>>;
+public record ListFieldOfStudiesQuery() : IQuery<List<FieldOfStudyResult>>;
+public record FieldOfStudyResult(Guid Id, string Name, string Description, Guid FacultyId);
 
-internal sealed class ListFieldOfStudiesQueryHandler : IQueryHandler<ListFieldOfStudiesQuery, List<FieldOfStudy>>
+
+internal sealed class ListFieldOfStudiesQueryHandler : IQueryHandler<ListFieldOfStudiesQuery, List<FieldOfStudyResult>>
 {
     private readonly IFieldOfStudyRepository _repository;
 
@@ -17,9 +19,9 @@ internal sealed class ListFieldOfStudiesQueryHandler : IQueryHandler<ListFieldOf
         _repository = repository;
     }
 
-    public async Task<Result<List<FieldOfStudy>>> Handle(ListFieldOfStudiesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<FieldOfStudyResult>>> Handle(ListFieldOfStudiesQuery request, CancellationToken cancellationToken)
     {
         var fieldOfStudies = await _repository.GetAllAsync(cancellationToken);
-        return Result.Success(fieldOfStudies.ToList());
+        return Result.Success(fieldOfStudies.Select(f=> new FieldOfStudyResult(f.Id, f.Name.Value, f.Description.Value, f.FacultyId)).ToList());
     }
 }

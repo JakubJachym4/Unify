@@ -130,7 +130,7 @@ internal sealed class DeleteLocationCommandHandler : ICommandHandler<DeleteLocat
     }
 }
 
-internal sealed class ListLocationsQueryHandler : IRequestHandler<ListLocationsQuery, Result<List<Location>>>
+internal sealed class ListLocationsQueryHandler : IRequestHandler<ListLocationsQuery, Result<List<LocationResult>>>
 {
     private readonly ILocationRepository _repository;
 
@@ -139,9 +139,39 @@ internal sealed class ListLocationsQueryHandler : IRequestHandler<ListLocationsQ
         _repository = repository;
     }
 
-    public async Task<Result<List<Location>>> Handle(ListLocationsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<LocationResult>>> Handle(ListLocationsQuery request, CancellationToken cancellationToken)
     {
         var locations = await _repository.GetAllAsync(cancellationToken);
-        return Result.Success(locations.ToList());
+        return Result.Success(LocationResult.FromLocations(locations));
     }
+}
+
+public sealed record LocationResult
+{
+    public static List<LocationResult> FromLocations(IEnumerable<Location> locations)
+    {
+        return locations.Select(location => new LocationResult(location)).ToList();
+    }
+
+    public LocationResult(Location location)
+    {
+        Id = location.Id;
+        Building = location.Building;
+        Street = location.Street;
+        Floor = location.Floor;
+        DoorNumber = location.DoorNumber;
+        FacultyId = location.FacultyId;
+        Online = location.Online;
+        MeetingUrl = location.MeetingUrl;
+    }
+
+    public Guid Id { get; private set; }
+    public string? Building { get; private set; }
+    public string? Street { get; private set; }
+    public short? Floor { get; private set; }
+    public string? DoorNumber { get; private set; }
+    public Guid? FacultyId { get; private set; }
+
+    public bool Online { get; private set; }
+    public string? MeetingUrl { get; private set; }
 }

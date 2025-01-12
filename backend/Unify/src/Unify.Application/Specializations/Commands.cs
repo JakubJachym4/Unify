@@ -6,6 +6,6 @@ using Unify.Domain.Shared;
 namespace Unify.Application.Specializations;
 
 
-public record AddSpecializationCommand(Name Name, Description Description, Guid FieldOfStudyId) : ICommand<Guid>;
-public record UpdateSpecializationCommand(Guid Id, Name Name, Description Description) : ICommand;
+public record AddSpecializationCommand(string Name, string Description, Guid FieldOfStudyId) : ICommand<Guid>;
+public record UpdateSpecializationCommand(Guid Id, string Name, string Description) : ICommand;
 public record DeleteSpecializationCommand(Guid Id) : ICommand;

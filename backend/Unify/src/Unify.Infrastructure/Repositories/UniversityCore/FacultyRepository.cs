@@ -11,8 +11,10 @@ public class FacultyRepository : Repository<Faculty>, IFacultyRepository
     {
     }
 
-    public Task<Faculty?> GetByNameAsync(string name, CancellationToken cancellationToken)
+    public Faculty? GetByName(string name, CancellationToken cancellationToken)
     {
-        return DbContext.Set<Faculty>().FirstOrDefaultAsync(entity => entity.Name.Value == name, cancellationToken);
+        return DbContext.Set<Faculty>()
+            .AsEnumerable()
+            .FirstOrDefault(entity => entity.Name.Value == name);
     }
 }

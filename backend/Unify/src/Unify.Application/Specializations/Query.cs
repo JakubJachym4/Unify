@@ -5,9 +5,11 @@ using Unify.Domain.UniversityCore.Abstractions;
 
 namespace Unify.Application.Specializations;
 
-public record ListSpecializationsQuery() : IRequest<Result<List<Specialization>>>;
+public record ListSpecializationsQuery() : IRequest<Result<List<SpecializationResponse>>>;
 
-internal sealed class ListSpecializationsQueryHandler : IRequestHandler<ListSpecializationsQuery, Result<List<Specialization>>>
+public record SpecializationResponse(Guid Id, string Name, string Description, Guid FieldOfStudyId);
+
+internal sealed class ListSpecializationsQueryHandler : IRequestHandler<ListSpecializationsQuery, Result<List<SpecializationResponse>>>
 {
     private readonly ISpecializationRepository _repository;
 
@@ -16,9 +18,11 @@ internal sealed class ListSpecializationsQueryHandler : IRequestHandler<ListSpec
         _repository = repository;
     }
 
-    public async Task<Result<List<Specialization>>> Handle(ListSpecializationsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<SpecializationResponse>>> Handle(ListSpecializationsQuery request, CancellationToken cancellationToken)
     {
         var specializations = await _repository.GetAllAsync(cancellationToken);
-        return Result.Success(specializations.ToList());
+        return Result.Success(
+            specializations.Select(s => new SpecializationResponse(s.Id, s.Name.Value, s.Description.Value, s.FieldOfStudyId)).ToList()
+            );
     }
 }

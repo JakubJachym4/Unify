@@ -15,7 +15,6 @@ function createMessagesStore() {
                     const messages = await getLastMessagesByDate(date, token);
                     const notificationsResponse = await getNonExpiredNotifications(token);
                     const notifications = notificationsResponse.informationMessageResponses || [];
-                    console.log(notifications);
                     messages.messages.push(...notifications);
                     set(messages);
                 } catch (error) {
@@ -26,4 +25,4 @@ function createMessagesStore() {
     };
 }
 
-export const messages = createMessagesStore();
+export const messagesStore = createMessagesStore();

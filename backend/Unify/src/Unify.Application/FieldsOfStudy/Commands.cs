@@ -5,6 +5,6 @@ using Unify.Domain.Shared;
 
 namespace Unify.Application.FieldsOfStudy;
 
-public record AddFieldOfStudyCommand(Name Name, Description Description, Guid FacultyId) : ICommand<Guid>;
-public record UpdateFieldOfStudyCommand(Guid Id, Name Name, Description Description) : ICommand;
-public record DeleteFieldOfStudyCommand(Guid Id) : IRequest<Result>, ICommand;
+public record AddFieldOfStudyCommand(string Name, string Description, Guid FacultyId) : ICommand<Guid>;
+public record UpdateFieldOfStudyCommand(Guid Id, string Name, string Description) : ICommand;
+public record DeleteFieldOfStudyCommand(Guid Id) : ICommand;

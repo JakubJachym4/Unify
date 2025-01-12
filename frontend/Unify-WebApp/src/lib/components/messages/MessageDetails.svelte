@@ -7,7 +7,7 @@
     import { onMount, onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
     import NewMessage from './NewMessage.svelte';
-	import { messages } from '$lib/stores/messages';
+	import { messagesStore } from '$lib/stores/messages';
 	import ForwardMessage from './ForwardMessage.svelte';
 
     export let message: MessageResponse;
@@ -70,12 +70,12 @@
             .map(u => `${u.firstName} ${u.lastName}`);
 
         if (message.respondingToId) {
-            const allMessages = get(messages).messages;
+            const allMessages = get(messagesStore).messages;
             respondingMessage = allMessages.find(m => m.messageId === message.respondingToId) || null;
         }
 
         if (message.forwardedFromId) {
-            const allMessages = get(messages).messages;
+            const allMessages = get(messagesStore).messages;
             forwardedMessage = allMessages.find(m => m.messageId === message.forwardedFromId) || null;
         }
     });

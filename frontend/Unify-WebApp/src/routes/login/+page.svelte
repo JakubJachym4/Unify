@@ -2,7 +2,7 @@
     import { goto } from '$app/navigation';
     import { user } from '$lib/stores/user';
     import { logInUser, getUserData, registerUser } from '$lib/api/User/UserRequests';
-    import { universityInformation } from '$lib/stores/university';
+    import { universityInformationStore } from '$lib/stores/university';
     import { globalUsers } from '$lib/stores/globalUsers';
     import type { ApiRequestError } from '$lib/api/apiError';
 
@@ -12,7 +12,7 @@
     let firstName = '';
     let lastName = '';
     let error = '';
-    $: universityName = $universityInformation?.name ?? '';
+    $: universityName = $universityInformationStore?.name ?? '';
 
     const handleSubmit = async () => {
         error = '';

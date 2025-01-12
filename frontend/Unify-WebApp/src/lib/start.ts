@@ -1,10 +1,10 @@
 import { getUserData, getAllUsers } from "./api/User/UserRequests";
-import { universityInformation } from "./stores/university";
+import { universityInformationStore } from "./stores/university";
 import { user } from "./stores/user";
 import { globalUsers } from "./stores/globalUsers";
 
 export const Load = async () => {
-    await universityInformation.load();
+    await universityInformationStore.load();
 
     const token = localStorage.getItem('token');
     if (token) {

@@ -8,7 +8,7 @@
     import { globalUsers } from '$lib/stores/globalUsers';
     import { get } from 'svelte/store';
 	import { browser } from '$app/environment';
-    import { messages } from '$lib/stores/messages';
+    import { messagesStore } from '$lib/stores/messages';
     import MessageDetails from './MessageDetails.svelte';
     import ForwardMessage from './ForwardMessage.svelte';
     import { user } from '$lib/stores/user';
@@ -61,7 +61,7 @@
 
     $: {
         if (respondingToId) {
-            const allMessages = get(messages).messages;
+            const allMessages = get(messagesStore).messages;
             respondingMessage = allMessages.find(m => m.messageId === respondingToId) || null;
             if (!recipientsIds.includes(respondingMessage?.senderId || '')){
                 recipientsIds.push(respondingMessage?.senderId || '');
@@ -114,7 +114,7 @@
             const lastWeek = new Date();
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
-            await messages.refresh(date);
+            await messagesStore.refresh(date);
             
             showForwardDropdown = false;
             onClose();
@@ -177,7 +177,7 @@
             const lastWeek = new Date();
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
-            await messages.refresh(date);
+            await messagesStore.refresh(date);
             goto('/')
             onClose();
         } catch (err) {
