@@ -86,6 +86,8 @@ public static class DependencyInjection
 
         services.AddScoped<IClassOfferingRepository, ClassOfferingRepository>();
 
+        services.AddScoped<IStudentGroupRepository, StudentGroupRepository>();
+
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
 
         services.AddSingleton<ISqlConnectionFactory>(_ =>

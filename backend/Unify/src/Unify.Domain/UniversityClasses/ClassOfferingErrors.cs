@@ -12,7 +12,11 @@ public static class ClassOfferingErrors
         Error.Create("ClassOffering.ClassFull",
             "The class is already full. Max size of this class is: {0}",
             size);
-    public static Error InvalidGroup() =>
+    public static Error InvalidGroup =>
         Error.Create("ClassOffering.InvalidGroup",
             "The class is bound to specific group. User must be member of said group to join class.");
+
+    public static Error GroupAlreadyBound =>
+        Error.Create("ClassOffering.GroupAlreadyBound",
+            "The class is already bound to a group. Unbind the group before binding new one.");
 }

@@ -18,7 +18,7 @@ public class CourseController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator,Lecturer")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> AddCourse([FromBody] AddCourseCommand command, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command, cancellationToken);
@@ -31,7 +31,7 @@ public class CourseController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Administrator,Lecturer")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseCommand command, CancellationToken cancellationToken)
     {
         if (id != command.Id)
@@ -49,7 +49,7 @@ public class CourseController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Administrator,Lecturer")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> DeleteCourse(Guid id, CancellationToken cancellationToken)
     {
         var command = new DeleteCourseCommand(id);

@@ -44,7 +44,7 @@ internal sealed class GetSpecializationStudentsHandler : IQueryHandler<GetSpecia
 
         if (specialization == null)
         {
-            return Result.Failure<List<Guid>>("Specialization.NotFound", "Specialization not found.");
+            return Result.Failure<List<Guid>>("SpecializationId.NotFound", "SpecializationId not found.");
         }
 
         return await _repository.GetStudentsAsync(specialization.Id, cancellationToken);

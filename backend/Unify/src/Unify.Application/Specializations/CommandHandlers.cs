@@ -44,7 +44,7 @@ internal sealed class UpdateSpecializationCommandHandler : ICommandHandler<Updat
         var specialization = await _repository.GetByIdAsync(request.Id, cancellationToken);
         if (specialization is null)
         {
-            return Result.Failure<Result>("Specialization.NotFound","Specialization not found.");
+            return Result.Failure<Result>("SpecializationId.NotFound","SpecializationId not found.");
         }
 
         specialization.Update(new Name(request.Name), new Description(request.Description));
@@ -69,7 +69,7 @@ internal sealed class DeleteSpecializationCommandHandler : ICommandHandler<Delet
         var specialization = await _repository.GetByIdAsync(request.Id, cancellationToken);
         if (specialization is null)
         {
-            return Result.Failure<Result>("Specialization.NotFound", "Specialization not found.");
+            return Result.Failure<Result>("SpecializationId.NotFound", "SpecializationId not found.");
         }
 
         _repository.Delete(specialization);
@@ -101,7 +101,7 @@ public class AssignStudentToSpecializationCommandHandler : ICommandHandler<Assig
         var specialization = await _specializationRepository.GetByIdAsync(request.SpecializationId, cancellationToken);
         if (specialization == null)
         {
-            return Result.Failure<Result>("Specialization.NotFound", "Specialization not found.");
+            return Result.Failure<Result>("SpecializationId.NotFound", "SpecializationId not found.");
         }
 
         specialization.AssignStudent(user);
@@ -133,7 +133,7 @@ public class UnassignStudentFromSpecializationCommandHandler : ICommandHandler<U
         var specialization = await _specializationRepository.GetByIdAsync(request.SpecializationId, cancellationToken);
         if (specialization == null)
         {
-            return Result.Failure<Result>("Specialization.NotFound", "Specialization not found.");
+            return Result.Failure<Result>("SpecializationId.NotFound", "SpecializationId not found.");
         }
 
         specialization.UnassignStudent(user);

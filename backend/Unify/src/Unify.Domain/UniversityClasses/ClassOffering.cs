@@ -58,13 +58,16 @@ public sealed class ClassOffering : Entity
         MaxStudentsCount = maxStudentsCount;
     }
 
+
     public void SetMaxStudentsCount(int maxStudentsCount) => MaxStudentsCount = maxStudentsCount;
+    public void UnbindStudentGroup() => BoundGroupId = null;
+
 
     public Result Enroll(User student, DateTime enrollmentDate, StudentGroup? boundGroup = null)
     {
         if (BoundGroupId != null && BoundGroupId != boundGroup?.Id)
         {
-            return Result.Failure(ClassOfferingErrors.InvalidGroup());
+            return Result.Failure(ClassOfferingErrors.InvalidGroup);
         }
 
         if (_enrollments.Any(e => e.StudentId == student.Id))
@@ -78,6 +81,17 @@ public sealed class ClassOffering : Entity
         }
 
         _enrollments.Add(ClassEnrollment.Enroll(this, student, enrollmentDate));
+
+        return Result.Success();
+    }
+
+    public Result BoundStudentGroup(StudentGroup group)
+    {
+        if (BoundGroupId != null)
+        {
+            return Result.Failure(ClassOfferingErrors.GroupAlreadyBound);
+        }
+        BoundGroupId = group.Id;
 
         return Result.Success();
     }
