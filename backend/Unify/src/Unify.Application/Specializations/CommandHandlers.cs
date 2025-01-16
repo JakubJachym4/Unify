@@ -3,6 +3,7 @@ using Unify.Domain.Abstractions;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.UniversityCore.Abstractions;
+using Unify.Domain.Users;
 
 namespace Unify.Application.Specializations;
 
@@ -72,6 +73,70 @@ internal sealed class DeleteSpecializationCommandHandler : ICommandHandler<Delet
         }
 
         _repository.Delete(specialization);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
+public class AssignStudentToSpecializationCommandHandler : ICommandHandler<AssignStudentToSpecializationCommand>
+{
+    private ISpecializationRepository _specializationRepository;
+    private IUserRepository _userRepository;
+    private IUnitOfWork _unitOfWork;
+
+    public AssignStudentToSpecializationCommandHandler(IUserRepository userRepository, ISpecializationRepository specializationRepository, IUnitOfWork unitOfWork)
+    {
+        _userRepository = userRepository;
+        _specializationRepository = specializationRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result> Handle(AssignStudentToSpecializationCommand request, CancellationToken cancellationToken)
+    {
+        var user = await _userRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        if (user == null)
+        {
+            return Result.Failure(UserErrors.NotFound(request.StudentId));
+        }
+        var specialization = await _specializationRepository.GetByIdAsync(request.SpecializationId, cancellationToken);
+        if (specialization == null)
+        {
+            return Result.Failure<Result>("Specialization.NotFound", "Specialization not found.");
+        }
+
+        specialization.AssignStudent(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
+public class UnassignStudentFromSpecializationCommandHandler : ICommandHandler<UnassignStudentFromSpecializationCommand>
+{
+    private ISpecializationRepository _specializationRepository;
+    private IUserRepository _userRepository;
+    private IUnitOfWork _unitOfWork;
+
+    public UnassignStudentFromSpecializationCommandHandler(IUserRepository userRepository, ISpecializationRepository specializationRepository, IUnitOfWork unitOfWork)
+    {
+        _userRepository = userRepository;
+        _specializationRepository = specializationRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result> Handle(UnassignStudentFromSpecializationCommand request, CancellationToken cancellationToken)
+    {
+        var user = await _userRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        if (user == null)
+        {
+            return Result.Failure(UserErrors.NotFound(request.StudentId));
+        }
+        var specialization = await _specializationRepository.GetByIdAsync(request.SpecializationId, cancellationToken);
+        if (specialization == null)
+        {
+            return Result.Failure<Result>("Specialization.NotFound", "Specialization not found.");
+        }
+
+        specialization.UnassignStudent(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

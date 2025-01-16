@@ -15,4 +15,15 @@ public class SpecializationRepository : Repository<Specialization>, ISpecializat
     {
         return DbContext.Set<Specialization>().FirstOrDefaultAsync(entity => entity.Name == name, cancellationToken);
     }
+
+    public Task<List<Guid>> GetStudentsAsync(Guid specializationId, CancellationToken cancellationToken)
+    {
+        return DbContext.Set<Specialization>()
+            .Include(s => s.Students)
+            .FirstOrDefaultAsync(s => s.Id == specializationId, cancellationToken).ContinueWith(task =>
+            {
+                var specialization = task.Result;
+                return specialization?.Students.Select(s => s.Id).ToList() ?? new List<Guid>();
+            }, cancellationToken);
+    }
 }

@@ -10,14 +10,23 @@
     let loading = true;
     let showNewMessage = false;
     let showSuccessAlert = false;
+    let showMessages = true;
+    let activeComponent = 'dashboard';
 
     const handleMessageSent = () => {
         showSuccessAlert = true;
         setTimeout(() => {
             showSuccessAlert = false;
-        }, 3000); // Hide after 3 seconds
+        }, 3000);
     };
 
+    const toggleMessages = () => {
+        showMessages = !showMessages;
+    };
+
+    const setActiveComponent = (component: string) => {
+        activeComponent = component;
+    };
 </script>
 
 {#if showSuccessAlert}
@@ -27,19 +36,47 @@
     </div>
 {/if}
 
-<div class="container-fluid mt-4">
-    <div class="row h-100">
-        <div class="col-md-8">
-            <h1>Student Dashboard</h1>
-            <!-- Add other student dashboard content here -->
+<div class="student-container">
+    <nav class="student-nav bg-light border-bottom mb-4">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <div class="nav-buttons">
+                    <button 
+                        class="btn {activeComponent === 'dashboard' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('dashboard')}
+                    >
+                        Dashboard
+                    </button>
+                    <!-- Add more student-specific buttons here -->
+                </div>
+                <button 
+                    class="btn {showMessages ? 'btn-primary' : 'btn-outline-primary'}"
+                    on:click={toggleMessages}
+                >
+                    {showMessages ? 'Hide Messages' : 'Show Messages'}
+                </button>
+            </div>
         </div>
-        <div class="col-md-4">
-            <MessagesContainer fixed={false} />
+    </nav>
+
+    <div class="content-container">
+        <div class="main-content {showMessages ? 'with-messages' : ''}">
+            {#if activeComponent === 'dashboard'}
+                <div class="p-3">
+                    <h2>Student Dashboard</h2>
+                    <!-- Add student dashboard content here -->
+                </div>
+            {/if}
         </div>
+        
+        {#if showMessages}
+            <div class="messages-sidebar">
+                <MessagesContainer fixed={false} />
+            </div>
+        {/if}
     </div>
 </div>
 
-<!-- Add NewMessage component -->
 <NewMessage 
     show={showNewMessage}
     onClose={() => showNewMessage = false}
@@ -47,64 +84,52 @@
 />
 
 <style>
-    .container-fluid {
+    .student-container {
         height: calc(100vh - 56px);
+        overflow: hidden;
     }
 
-    .row {
-        height: 100%;
+    .student-nav {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
     }
 
-    .col-md-8, .col-md-4 {
-        height: 100%;
-        overflow-y: auto;
-    }
-
-    .container {
+    .content-container {
         display: flex;
-        flex-direction: row;
-    }
-    .col-md-8 {
-        flex: 2;
-    }
-    .col-md-4 {
-        flex: 1;
-    }
-    .messages-panel {
-        position: fixed;
-        right: 0;
-        top: 56px; /* Height of navbar */
-        height: calc(100vh - 56px); /* Subtract navbar height */
-        padding-top: 1rem; /* Remove excessive padding */
-        background: white;
-        border-left: 1px solid #dee2e6;
-    }
-
-    .messages-container {
-        padding: 1rem;
         height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .messages-list {
-        overflow-y: auto;
-        flex: 1;
-        padding-right: 0.5rem;
     }
 
     .main-content {
-        margin-right: 33.333%; /* Adjust for fixed messages panel */
-        padding-top: 1rem;
-        height: calc(100vh - 56px);
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        transition: width 0.3s ease;
+    }
+
+    .main-content.with-messages {
+        width: calc(100% - 400px);
+    }
+
+    .messages-sidebar {
+        width: 400px;
+        border-left: 1px solid #dee2e6;
+        height: 100%;
         overflow-y: auto;
     }
 
-    .alert {
-        position: fixed;
-        top: 1rem;
-        right: 1rem;
-        z-index: 1070;
-        min-width: 300px;
+    @media (max-width: 768px) {
+        .main-content.with-messages {
+            width: 100%;
+        }
+
+        .messages-sidebar {
+            position: fixed;
+            right: 0;
+            top: 56px;
+            bottom: 0;
+            background: white;
+            z-index: 1030;
+        }
     }
 </style>

@@ -20,3 +20,26 @@ export const deleteSpecialization = async (id: string, token: string) => {
         null,
         token
     )};
+
+
+
+export const getSpecializationUsers = async (specializationId: string, token: string) => {
+    return await api<string[]>('GET', `/specializations/${specializationId}/students`,
+        null,
+        token
+    )
+}
+
+export const assignUserToSpecialization = async (specializationId: string, userId: string, token: string) => {
+    return await api('POST', `/specializations/assign-student`,
+        { StudentId: userId, SpecializationId: specializationId },
+        token
+    )
+}
+
+export const unassignUserToSpecialization = async (specializationId: string, userId: string, token: string) => {
+    return await api('DELETE', `/specializations/unassign-student`,
+        { StudentId: userId, SpecializationId: specializationId },
+        token
+    )
+}

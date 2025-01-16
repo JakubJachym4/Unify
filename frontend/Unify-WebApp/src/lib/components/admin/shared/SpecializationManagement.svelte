@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { unassignUserToSpecialization } from './../../../api/Admin/Specialization/SpecializationRequests.ts';
     import { onMount } from 'svelte';
-    import { addSpecialization, updateSpecialization, deleteSpecialization } from '$lib/api/Admin/Specialization/SpecializationRequests';
+    import { addSpecialization, updateSpecialization, deleteSpecialization, getSpecializationUsers, assignUserToSpecialization } from '$lib/api/Admin/Specialization/SpecializationRequests';
     import type { ApiRequestError } from '$lib/api/apiError';
     import type { Specialization, FieldOfStudy } from '$lib/types/university';
     import { specializationsStore, fieldOfStudiesStore } from '$lib/stores/university';
+	import { getAllUsers, type UserResponse } from '$lib/api/User/UserRequests';
+	import { globalUsers } from '$lib/stores/globalUsers';
 
     let specializations: Specialization[] = [];
     let fieldsOfStudy: FieldOfStudy[] = [];
@@ -19,6 +22,56 @@
     };
 
     let editingSpecialization: Specialization | null = null;
+
+    let selectedSpecialization: Specialization | null = null;
+    let users: UserResponse[] = [];
+    let specializationUsers: string[] = [];
+    let userSearchTerm = '';
+
+    let selectedSpecializationUsers: UserResponse[] | null = null;
+
+    const openUserManagement = async (specialization: Specialization) => {
+        selectedSpecialization = specialization;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+            
+            const [allUsers, currentUsers] = await Promise.all([
+                globalUsers,
+                getSpecializationUsers(specialization.id, token)
+            ]);
+            
+            allUsers.subscribe(value => {
+                users = value;
+            });
+            specializationUsers = currentUsers;
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    };
+    const handleAssignUser = async (userId: string, assign: boolean) => {
+        if (!selectedSpecialization) return;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+            if(assign){
+                await assignUserToSpecialization(selectedSpecialization.id, userId, token);
+            }else{
+                await unassignUserToSpecialization(selectedSpecialization.id, userId, token);
+            }
+            // Refresh users list
+            specializationUsers = await getSpecializationUsers(selectedSpecialization.id, token);
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    };
+
+    $: filteredUsers = users.filter(user => {
+        const searchLower = userSearchTerm.toLowerCase();
+        return user.firstName.toLowerCase().includes(searchLower) ||
+               user.lastName.toLowerCase().includes(searchLower) ||
+               user.email.toLowerCase().includes(searchLower);
+    });
 
     const loadData = async () => {
         try {
@@ -216,6 +269,11 @@
                                     on:click={() => handleDelete(specialization.id)}>
                                     Delete
                                 </button>
+                                <button 
+                                    class="btn btn-sm btn-outline-secondary"
+                                    on:click={() => openUserManagement(specialization)}>
+                                    Manage Users
+                                </button>
                             </td>
                         </tr>
                     {/each}
@@ -301,5 +359,77 @@
             </div>
             <div class="modal-backdrop fade show"></div>
         {/if}
+        {#if selectedSpecialization}
+    <div class="modal fade show" style="display: block;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Manage Users - {selectedSpecialization.name}
+                    </h5>
+                    <button 
+                        type="button" 
+                        class="btn-close" 
+                        on:click={() => selectedSpecialization = null}
+                    ></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <input
+                                type="search"
+                                class="form-control"
+                                placeholder="Search users..."
+                                bind:value={userSearchTerm}
+                            />
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each filteredUsers.filter(u => u.roles.includes('Student')) as user}
+                                    <tr>
+                                        <td>{user.firstName} {user.lastName}</td>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            {#if !specializationUsers.includes(user.id)}
+                                                <button 
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    on:click={() => handleAssignUser(user.id, true)}>
+                                                    Add to Specialization
+                                                </button>
+                                            {:else}
+                                                <button 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    on:click={() => handleAssignUser(user.id, false)}>
+                                                    Remove from Specialization
+                                                </button>
+                                            {/if}
+                                        </td>
+                                    </tr>
+                                {/each}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button 
+                        class="btn btn-secondary"
+                        on:click={() => selectedSpecialization = null}>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+{/if}
     {/if}
 </div>
