@@ -1,4 +1,5 @@
 using Unify.Domain.Shared;
+using Unify.Domain.Users;
 
 namespace Unify.Domain.UniversityCore.Abstractions;
 
@@ -10,6 +11,7 @@ public interface ISpecializationRepository
     void Add(Specialization entity);
     void Delete(Specialization entity);
 
-    Task<List<Guid>> GetStudentsAsync(Guid specializationId, CancellationToken cancellationToken);
+    Task<List<Guid>> GetStudentsGuidsAsync(Specialization specialization, CancellationToken cancellationToken);
+    Task<List<User>> GetStudentsAsync(Specialization specialization, CancellationToken cancellationToken);
 
 }

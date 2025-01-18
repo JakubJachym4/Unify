@@ -27,6 +27,7 @@ internal sealed class SpecializationConfiguration : IEntityTypeConfiguration<Spe
             .HasForeignKey(s => s.FieldOfStudyId);
 
         builder.HasMany(s => s.Students)
-            .WithOne();
+            .WithOne()
+            .HasForeignKey("specialization_id");
     }
 }

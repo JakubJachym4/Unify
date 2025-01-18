@@ -798,7 +798,7 @@ namespace Unify.Infrastructure.Migrations
                     b.ToTable("marks", (string)null);
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.SpecializationId", b =>
+            modelBuilder.Entity("Unify.Domain.UniversityCore.Specialization", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -870,29 +870,6 @@ namespace Unify.Infrastructure.Migrations
                         .HasDatabaseName("ix_student_group_specialization_id");
 
                     b.ToTable("student_group", (string)null);
-                });
-
-            modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroupsUsers", b =>
-                {
-                    b.Property<Guid>("StudentGroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_group_id");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<Guid>("MembersId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("members_id");
-
-                    b.HasKey("StudentGroupId", "StudentId")
-                        .HasName("pk_student_groups_users");
-
-                    b.HasIndex("MembersId")
-                        .HasDatabaseName("ix_student_groups_users_members_id");
-
-                    b.ToTable("student_groups_users", (string)null);
                 });
 
             modelBuilder.Entity("Unify.Domain.Users.Permission", b =>
@@ -1020,9 +997,13 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("last_name");
 
-                    b.Property<Guid?>("SpecializationId")
+                    b.Property<Guid?>("specialization_id")
                         .HasColumnType("uuid")
                         .HasColumnName("specialization_id");
+
+                    b.Property<Guid?>("student_group_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_group_id");
 
                     b.HasKey("Id")
                         .HasName("pk_users");
@@ -1035,8 +1016,11 @@ namespace Unify.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_users_identity_id");
 
-                    b.HasIndex("SpecializationId")
+                    b.HasIndex("specialization_id")
                         .HasDatabaseName("ix_users_specialization_id");
+
+                    b.HasIndex("student_group_id")
+                        .HasDatabaseName("ix_users_student_group_id");
 
                     b.ToTable("users", (string)null);
                 });
@@ -1319,7 +1303,7 @@ namespace Unify.Infrastructure.Migrations
 
             modelBuilder.Entity("Unify.Domain.UniversityCore.Course", b =>
                 {
-                    b.HasOne("Unify.Domain.UniversityCore.SpecializationId", null)
+                    b.HasOne("Unify.Domain.UniversityCore.Specialization", null)
                         .WithMany()
                         .HasForeignKey("SpecializationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1365,7 +1349,7 @@ namespace Unify.Infrastructure.Migrations
                         .HasConstraintName("fk_marks_grade_grade_id");
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.SpecializationId", b =>
+            modelBuilder.Entity("Unify.Domain.UniversityCore.Specialization", b =>
                 {
                     b.HasOne("Unify.Domain.UniversityCore.FieldOfStudy", null)
                         .WithMany()
@@ -1377,29 +1361,12 @@ namespace Unify.Infrastructure.Migrations
 
             modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroup", b =>
                 {
-                    b.HasOne("Unify.Domain.UniversityCore.SpecializationId", null)
+                    b.HasOne("Unify.Domain.UniversityCore.Specialization", null)
                         .WithMany()
                         .HasForeignKey("SpecializationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_student_group_specializations_specialization_id");
-                });
-
-            modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroupsUsers", b =>
-                {
-                    b.HasOne("Unify.Domain.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("MembersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_student_groups_users_user_members_id");
-
-                    b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
-                        .WithMany()
-                        .HasForeignKey("StudentGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_student_groups_users_student_group_student_group_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.Users.RolePermission", b =>
@@ -1421,10 +1388,15 @@ namespace Unify.Infrastructure.Migrations
 
             modelBuilder.Entity("Unify.Domain.Users.User", b =>
                 {
-                    b.HasOne("Unify.Domain.UniversityCore.SpecializationId", null)
+                    b.HasOne("Unify.Domain.UniversityCore.Specialization", null)
                         .WithMany("Students")
-                        .HasForeignKey("SpecializationId")
+                        .HasForeignKey("specialization_id")
                         .HasConstraintName("fk_users_specializations_specialization_id");
+
+                    b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
+                        .WithMany("Members")
+                        .HasForeignKey("student_group_id")
+                        .HasConstraintName("fk_users_student_group_student_group_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.CourseResource", b =>
@@ -1464,7 +1436,7 @@ namespace Unify.Infrastructure.Migrations
                     b.Navigation("Marks");
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.SpecializationId", b =>
+            modelBuilder.Entity("Unify.Domain.UniversityCore.Specialization", b =>
                 {
                     b.Navigation("Students");
                 });
@@ -1472,6 +1444,8 @@ namespace Unify.Infrastructure.Migrations
             modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroup", b =>
                 {
                     b.Navigation("ClassEnrollments");
+
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

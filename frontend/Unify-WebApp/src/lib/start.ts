@@ -2,6 +2,7 @@ import { getUserData, getAllUsers } from "./api/User/UserRequests";
 import { universityInformationStore } from "./stores/university";
 import { user } from "./stores/user";
 import { globalUsers } from "./stores/globalUsers";
+import { goto } from "$app/navigation";
 
 export const Load = async () => {
     await universityInformationStore.load();
@@ -20,7 +21,9 @@ export const Load = async () => {
             
         } catch (error) {
             localStorage.removeItem('token');
+            globalUsers.set([]);
             document.cookie = `user=false; Path=/; SameSite=Strict`;
+            goto('/login');
         }
     } else {
         document.cookie = `user=false; Path=/; SameSite=Strict`;

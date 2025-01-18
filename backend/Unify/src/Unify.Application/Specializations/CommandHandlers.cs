@@ -3,6 +3,7 @@ using Unify.Domain.Abstractions;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.UniversityCore.Abstractions;
+using Unify.Domain.UniversityCore.Errors;
 using Unify.Domain.Users;
 
 namespace Unify.Application.Specializations;
@@ -83,12 +84,14 @@ public class AssignStudentToSpecializationCommandHandler : ICommandHandler<Assig
     private ISpecializationRepository _specializationRepository;
     private IUserRepository _userRepository;
     private IUnitOfWork _unitOfWork;
+    private IStudentGroupRepository _studentGroupRepository;
 
-    public AssignStudentToSpecializationCommandHandler(IUserRepository userRepository, ISpecializationRepository specializationRepository, IUnitOfWork unitOfWork)
+    public AssignStudentToSpecializationCommandHandler(IUserRepository userRepository, ISpecializationRepository specializationRepository, IUnitOfWork unitOfWork, IStudentGroupRepository studentGroupRepository)
     {
         _userRepository = userRepository;
         _specializationRepository = specializationRepository;
         _unitOfWork = unitOfWork;
+        _studentGroupRepository = studentGroupRepository;
     }
 
     public async Task<Result> Handle(AssignStudentToSpecializationCommand request, CancellationToken cancellationToken)
@@ -104,6 +107,12 @@ public class AssignStudentToSpecializationCommandHandler : ICommandHandler<Assig
             return Result.Failure<Result>("SpecializationId.NotFound", "SpecializationId not found.");
         }
 
+        var group = await _studentGroupRepository.GetByUserAsync(user, cancellationToken);
+        if (group != null)
+        {
+            return Result.Failure(StudentGroupErrors.UserPresentInSpecializationGroup);
+        }
+
         specialization.AssignStudent(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
@@ -112,15 +121,17 @@ public class AssignStudentToSpecializationCommandHandler : ICommandHandler<Assig
 
 public class UnassignStudentFromSpecializationCommandHandler : ICommandHandler<UnassignStudentFromSpecializationCommand>
 {
-    private ISpecializationRepository _specializationRepository;
-    private IUserRepository _userRepository;
-    private IUnitOfWork _unitOfWork;
+    private readonly ISpecializationRepository _specializationRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IStudentGroupRepository _studentGroupRepository;
 
-    public UnassignStudentFromSpecializationCommandHandler(IUserRepository userRepository, ISpecializationRepository specializationRepository, IUnitOfWork unitOfWork)
+    public UnassignStudentFromSpecializationCommandHandler(IUserRepository userRepository, ISpecializationRepository specializationRepository, IUnitOfWork unitOfWork, IStudentGroupRepository studentGroupRepository)
     {
         _userRepository = userRepository;
         _specializationRepository = specializationRepository;
         _unitOfWork = unitOfWork;
+        _studentGroupRepository = studentGroupRepository;
     }
 
     public async Task<Result> Handle(UnassignStudentFromSpecializationCommand request, CancellationToken cancellationToken)
@@ -134,6 +145,11 @@ public class UnassignStudentFromSpecializationCommandHandler : ICommandHandler<U
         if (specialization == null)
         {
             return Result.Failure<Result>("SpecializationId.NotFound", "SpecializationId not found.");
+        }
+        var group = await _studentGroupRepository.GetByUserAsync(user, cancellationToken);
+        if (group != null)
+        {
+            return Result.Failure(StudentGroupErrors.UserPresentInSpecializationGroup);
         }
 
         specialization.UnassignStudent(user);

@@ -24,3 +24,21 @@ public sealed record CreateStudentGroupCommand(
     int Semester,
     string Term,
     int MaxGroupSize) : ICommand;
+
+public record JoinGroupCommand(Guid Id) : ICommand;
+
+public record MoveUserToGroupCommand(Guid UserId, Guid? GroupId) : ICommand;
+
+public record UpdateStudentGroupCommand(
+    Guid Id,
+    string Name,
+    Guid? SpecializationId,
+    int StudyYear,
+    int Semester,
+    string Term,
+    int MaxGroupSize) : ICommand;
+
+
+public record DeleteStudentGroupCommand(Guid Id) : ICommand;
+
+public record AutoAssignStudentsToGroupsCommand(Guid Id) : ICommand;

@@ -105,23 +105,17 @@ export const sendNotification = async (data: SendNotificationRequest, token: str
     const formData = new FormData();
     formData.append('title', data.title);
     formData.append('content', data.content);
-    console.log(data.recipientsIds)
     data.recipientsIds.forEach(id => {
         formData.append('recipientsIds', id);
     });
-    console.log(formData)
     data.attachments.forEach(file => {
         formData.append('attachments', file);
     });
 
-    console.log(data.severity)
     formData.append('severity', data.severity);
-    console.log(data.expirationDate.toString())
     formData.append('expirationDate', data.expirationDate.toString());
-    console.log(formData)
 
     const response = await api<string>('POST', '/notifications/send', formData, token, true);
-    console.log(response)
     return response;
 }
 

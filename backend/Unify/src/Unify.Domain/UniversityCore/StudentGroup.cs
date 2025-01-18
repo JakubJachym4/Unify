@@ -32,8 +32,11 @@ public sealed class StudentGroup : Entity
     public Semester Semester { get; private set; }
     public Term Term { get; private set; }
     public int MaxGroupSize {get; private set;}
+
     public void IncrementStudyYear() => StudyYear = new StudyYear(StudyYear.StartingYear + 1);
+
     public void SetGroupSize(int size) => MaxGroupSize = size;
+
     public void ChangeTerm()
     {
         if (Term == Term.Summer)
@@ -44,6 +47,13 @@ public sealed class StudentGroup : Entity
         {
             Term = Term.Summer;
         }
+    }
+
+    public void Update(Name name, StudyYear studyYear, Semester semester)
+    {
+        Name = name;
+        StudyYear = studyYear;
+        Semester = semester;
     }
 
 
@@ -88,7 +98,7 @@ public sealed class StudentGroup : Entity
         }
         for(int i = 0; i < groupCount; i++)
         {
-            groups.Add(new StudentGroup(new Name($"{name.Value}{groupCount}"), specialization.Id, studyYear, semester, term, maxGroupSize));
+            groups.Add(new StudentGroup(new Name($"{name.Value}{i+1}"), specialization.Id, studyYear, semester, term, maxGroupSize));
         }
 
         return groups;
