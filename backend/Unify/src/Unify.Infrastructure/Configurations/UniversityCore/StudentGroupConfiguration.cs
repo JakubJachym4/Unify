@@ -37,7 +37,7 @@ internal sealed class StudentGroupConfiguration : IEntityTypeConfiguration<Stude
 
         builder.HasMany(sg => sg.Members)
             .WithOne()
-            .HasForeignKey("student_group_id");
+            .HasForeignKey(u => u.StudentGroupId);
 
         builder.HasMany(sg => sg.ClassEnrollments)
             .WithOne()

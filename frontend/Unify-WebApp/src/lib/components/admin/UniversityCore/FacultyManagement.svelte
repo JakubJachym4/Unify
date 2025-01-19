@@ -62,7 +62,6 @@
     onMount(() => {
         const unsubscribe = facultiesStore.subscribe(value => {
             faculties = value;
-            console.log(faculties);
         });
         loadFaculties();
         return unsubscribe;

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
+using Unify.Domain.Users;
 
 namespace Unify.Infrastructure.Configurations.UniversityCore;
 
@@ -29,6 +30,10 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasMany(c => c.Classes)
             .WithOne()
             .HasForeignKey(co => co.CourseId);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(c => c.LecturerId);
 
     }
 }

@@ -4,11 +4,11 @@ using Unify.Domain.UniversityClasses;
 
 namespace Unify.Infrastructure.Configurations.UniversityClasses;
 
-internal sealed class OfferingSessionConfiguration : ClassSessionConfiguration<OfferingSession>
+internal sealed class ClassOfferingSessionConfiguration : ClassSessionConfiguration<ClassOfferingSession>
 {
-    public override void Configure(EntityTypeBuilder<OfferingSession> builder)
+    public override void Configure(EntityTypeBuilder<ClassOfferingSession> builder)
     {
-        builder.ToTable("offering_sessions");
+        builder.ToTable("class_offering_sessions");
 
         builder.HasOne<ClassOffering>()
             .WithMany()

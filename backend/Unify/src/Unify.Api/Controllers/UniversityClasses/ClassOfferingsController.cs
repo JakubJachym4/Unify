@@ -1,13 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Courses.CourseHandlers;
 using Unify.Application.UniversityClasses.ClassOfferings.Commands;
 
 namespace Unify.Api.Controllers.UniversityClasses;
 
 [ApiController]
 [Authorize]
-[Route("api/classes/classofferings")]
+[Route("api/class-offerings")]
 public class ClassOfferingController : ControllerBase
 {
     private readonly ISender _sender;
@@ -17,8 +19,8 @@ public class ClassOfferingController : ControllerBase
         _sender = sender;
     }
 
-    [HttpPost("add")]
-    [Authorize(Roles = "Administrator")]
+    [HttpPost]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> AddClassOffering([FromBody] AddClassOfferingCommand command, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command, cancellationToken);
@@ -30,8 +32,21 @@ public class ClassOfferingController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpPut("update/{id:guid}")]
-    [Authorize(Roles = "Administrator")]
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetClassOffering(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetClassOfferingQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> UpdateClassOffering(Guid id, [FromBody] UpdateClassOfferingCommand command, CancellationToken cancellationToken)
     {
         if (id != command.Id)
@@ -48,8 +63,8 @@ public class ClassOfferingController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("delete/{id:guid}")]
-    [Authorize(Roles = "Administrator")]
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> DeleteClassOffering(Guid id, CancellationToken cancellationToken)
     {
         var command = new DeleteClassOfferingCommand(id);
@@ -75,10 +90,12 @@ public class ClassOfferingController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpPost("enroll")]
-    [Authorize(Roles = "Student")]
-    public async Task<IActionResult> Enroll([FromBody] EnrollStudentCommand command, CancellationToken cancellationToken)
+    [HttpPost("{id:guid}/enroll")]
+    [Authorize(Roles = "Student,Lecturer")]
+    public async Task<IActionResult> Enroll(Guid id, CancellationToken cancellationToken)
     {
+        var command = new EnrollStudentCommand(id);
+
         var result = await _sender.Send(command, cancellationToken);
         if (result.IsFailure)
         {
@@ -87,4 +104,39 @@ public class ClassOfferingController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    [HttpPut("{id:guid}/lecturer/{lecturerId:guid}")]
+    [Authorize(Roles = "Administrator,Lecturer")]
+    public async Task<IActionResult> AssignLecturer(Guid id, Guid lecturerId, CancellationToken cancellationToken)
+    {
+        var command = new AssignLecturerCommand(id, lecturerId);
+
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+
+    [HttpGet("lecturer/{lecturerId:guid}")]
+    public async Task<IActionResult> GetClassOfferingsByLecturer(Guid lecturerId, CancellationToken cancellationToken)
+    {
+        var query = new GetClassOfferingsByLecturerQuery(lecturerId);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+
 }
+
+
+
+
+

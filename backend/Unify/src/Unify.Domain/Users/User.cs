@@ -27,6 +27,9 @@ public sealed class User : Entity
 
     public string IdentityId { get; private set; } = string.Empty;
 
+    public Guid? StudentGroupId { get; private set; }
+    public Guid? SpecializationId { get; private set; }
+
     public IReadOnlyCollection<Role> Roles => _roles.ToList();
 
     public static User Create(FirstName firstName, LastName lastName, Email email)

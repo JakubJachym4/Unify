@@ -40,6 +40,7 @@
     };
 
     const handleBackToSpecializations = () => {
+        error = '';
         currentView = 'specializations';
         selectedSpecialization.specialization = null;
     };
@@ -68,6 +69,7 @@
         await initUsersForSpecialization(specialization);
         selectedSpecialization.specialization = specialization;
         selectedSpecialization.active = true;
+        error = '';
        
     };
     const handleAssignUser = async (userId: string, assign: boolean) => {
@@ -264,7 +266,6 @@
                     />
                 </div>
             </div>
-
             <div class="table-responsive">
                 <table class="table">
                     <thead>
@@ -281,7 +282,7 @@
                                 <td>{specialization.name}</td>
                                 <td>{specialization.description}</td>
                                 <td>{fieldsOfStudy.find(f => f.id === specialization.fieldOfStudyId)?.name}</td>
-                                <td>
+                                <td class="text-nowrap align-middle">
                                     <button 
                                         class="btn btn-sm btn-outline-primary me-2"
                                         on:click={() => editingSpecialization = specialization}>

@@ -20,10 +20,10 @@ public abstract class ClassSession : Entity
     }
 
 
-    public Title Title { get; private set; }
-    public ClassType ClassType { get; private set; }
-    public DateTime ScheduledDate { get; private set; }
-    public TimeSpan Duration { get; private set; }
-    public Guid LecturerId { get; private set; }
-    public Guid LocationId { get; private set; }
+    public Title Title { get; protected set; }
+    public ClassType ClassType { get; protected set; }
+    public DateTime ScheduledDate { get; protected set; }
+    public TimeSpan Duration { get; protected set; }
+    public Guid LecturerId { get; protected set; }
+    public Guid LocationId { get; protected set; }
 }

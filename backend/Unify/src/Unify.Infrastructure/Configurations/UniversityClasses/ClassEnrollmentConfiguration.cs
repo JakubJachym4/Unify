@@ -13,7 +13,7 @@ internal sealed class ClassEnrollmentConfiguration : IEntityTypeConfiguration<Cl
         builder.ToTable("class_enrollments");
         builder.HasKey(ce => ce.Id);
 
-        builder.Property(ce => ce.EnrollmentOn)
+        builder.Property(ce => ce.EnrolledOn)
             .IsRequired();
 
         builder.HasOne<User>()

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityClasses;
 using Unify.Domain.UniversityClasses.Abstractions;
+using Unify.Domain.Users;
 
 namespace Unify.Infrastructure.Repositories.UniversityClasses;
 
@@ -11,4 +12,9 @@ public class ClassOfferingRepository : Repository<ClassOffering>, IClassOffering
     {
     }
 
+    public Task<List<ClassOffering>> GetByLecturerAsync(User lecturer, CancellationToken cancellationToken)
+    {
+        return DbContext.Set<ClassOffering>().Include(c => c.Enrollments)
+            .Where(course => course.LecturerId == lecturer.Id).ToListAsync(cancellationToken);
+    }
 }

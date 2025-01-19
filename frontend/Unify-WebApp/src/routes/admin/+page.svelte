@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CourseManagement from '../../lib/components/admin/CourseManagement.svelte';
 	import FacultyManagement from './../../lib/components/admin/UniversityCore/FacultyManagement.svelte';
 	import FieldOfStudyManagement from '$lib/components/admin/shared/FieldOfStudyManagement.svelte';
     import UserManagement from '$lib/components/admin/UserManagement.svelte';
@@ -53,6 +54,12 @@
                     >
                         Specializations
                     </button>
+                    <button 
+                        class="btn {activeComponent === 'course' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('course')}
+                    >
+                        Courses
+                    </button>
                     <!-- Add more management buttons here -->
                 </div>
                 <button 
@@ -77,6 +84,8 @@
                 <LocalizationManagement />
             {:else if activeComponent === 'specialization'}
                 <SpecializationManagement />
+            {:else if activeComponent === 'course'}
+                <CourseManagement />
             {/if}
             <!-- Add more components here -->
         </div>

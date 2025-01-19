@@ -14,11 +14,12 @@
 
     const loadMessages = async () => {
         try {
-            const lastWeek = new Date(); 
+            const lastWeek = new Date();
             lastWeek.setDate(lastWeek.getDate() - 7);
             const date = `${lastWeek.getFullYear()}-${lastWeek.getMonth() + 1}-${lastWeek.getDate()}`;
             await messagesStore.refresh(date);
             messagesList = get(messagesStore).messages;
+            console.log(messagesList);
             loading = false;
         } catch (err) {
             error = (err as Error).message;

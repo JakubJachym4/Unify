@@ -13,13 +13,13 @@
 
 		autoAssignSpecializationStudentsToGroups
 
-    } from '$lib/api/Common/StudentGroup';
+    } from '$lib/api/Common/StudentGroupRequests';
     import type { 
         CreateStudentGroupRequest,
         CreateStudentGroupForSpecializationRequest,
         UpdateStudentGroupRequest,
         MoveUserToGroupRequest 
-    } from '$lib/api/Common/StudentGroup';
+    } from '$lib/api/Common/StudentGroupRequests';
 	import type { Specialization } from '$lib/types/university';
 	import type { UserResponse } from '$lib/api/User/UserRequests';
 
@@ -128,7 +128,7 @@
     };
 
     const handleAutoAssignStudents = async () => {
-        if (!confirm('Before auto assigning make sure none of the students is assign to any group.')) return;
+        if (!confirm('Before auto assigning make sure none of the students is assigned to any group.')) return;
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');

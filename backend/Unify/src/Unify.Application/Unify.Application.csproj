@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Unify.Domain\Unify.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ClassEnrollment\Validators\" />
+  </ItemGroup>
+
 </Project>

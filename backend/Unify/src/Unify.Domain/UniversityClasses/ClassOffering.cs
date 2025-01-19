@@ -18,25 +18,24 @@ public sealed class ClassOffering : Entity
     public DateOnly StartDate { get; private set; }
     public DateOnly EndDate { get; private set; }
     public Guid LecturerId { get; private set; }
-    public Guid? BoundGroupId { get; private set; }
-
+    public Guid StudentGroupId { get; private set; }
     public int MaxStudentsCount { get; private set; }
 
 
     private ClassOffering() {}
 
-    private ClassOffering(Guid id, Name name, Guid courseId, DateOnly startDate, DateOnly endDate, Guid lecturerId, Guid? boundGroupId, int maxStudentsCount) : base(id)
+    private ClassOffering(Guid id, Name name, Guid courseId, DateOnly startDate, DateOnly endDate, Guid lecturerId, Guid studentGroupId, int maxStudentsCount) : base(id)
     {
         Name = name;
         CourseId = courseId;
         StartDate = startDate;
         EndDate = endDate;
         LecturerId = lecturerId;
-        BoundGroupId = boundGroupId;
+        StudentGroupId = studentGroupId;
         MaxStudentsCount = maxStudentsCount;
     }
 
-    public static ClassOffering Create(Name name, Course course, DateOnly startDate, DateOnly endDate, User lecturer, StudentGroup? studentGroup,
+    public static ClassOffering Create(Name name, Course course, DateOnly startDate, DateOnly endDate, User lecturer, StudentGroup studentGroup,
         int maxStudentsCount)
     {
         return new ClassOffering(
@@ -46,7 +45,7 @@ public sealed class ClassOffering : Entity
             startDate,
             endDate,
             lecturer.Id,
-            studentGroup?.Id,
+            studentGroup.Id,
             maxStudentsCount);
     }
 
@@ -60,12 +59,26 @@ public sealed class ClassOffering : Entity
 
 
     public void SetMaxStudentsCount(int maxStudentsCount) => MaxStudentsCount = maxStudentsCount;
-    public void UnbindStudentGroup() => BoundGroupId = null;
 
+    public void AssignLecturer(User lecturer) => LecturerId = lecturer.Id;
 
-    public Result Enroll(User student, DateTime enrollmentDate, StudentGroup? boundGroup = null)
+    public Result<ClassEnrollment> CancelEnrollment(User student)
     {
-        if (BoundGroupId != null && BoundGroupId != boundGroup?.Id)
+        var enrollment = _enrollments.FirstOrDefault(e => e.StudentId == student.Id);
+        if (enrollment is null)
+        {
+            return Result.Failure<ClassEnrollment>(ClassOfferingErrors.NotEnrolled);
+        }
+
+        _enrollments.Remove(enrollment);
+
+        return enrollment;
+    }
+
+
+    public Result Enroll(User student, DateTime enrollmentDate)
+    {
+        if (StudentGroupId != student.StudentGroupId)
         {
             return Result.Failure(ClassOfferingErrors.InvalidGroup);
         }
@@ -85,14 +98,4 @@ public sealed class ClassOffering : Entity
         return Result.Success();
     }
 
-    public Result BoundStudentGroup(StudentGroup group)
-    {
-        if (BoundGroupId != null)
-        {
-            return Result.Failure(ClassOfferingErrors.GroupAlreadyBound);
-        }
-        BoundGroupId = group.Id;
-
-        return Result.Success();
-    }
 }

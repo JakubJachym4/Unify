@@ -2,12 +2,14 @@ using MediatR;
 using Unify.Application.Abstractions.Authentication;
 using Unify.Application.Abstractions.Clock;
 using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Courses.CourseHandlers;
 using Unify.Application.UniversityClasses.ClassOfferings.Commands;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityClasses;
 using Unify.Domain.UniversityClasses.Abstractions;
 using Unify.Domain.UniversityCore.Abstractions;
+using Unify.Domain.UniversityCore.Errors;
 using Unify.Domain.Users;
 
 namespace Unify.Application.UniversityClasses.ClassOfferings.Handlers;
@@ -18,13 +20,16 @@ internal sealed class AddClassOfferingCommandHandler : ICommandHandler<AddClassO
     private readonly IClassOfferingRepository _repository;
     private readonly ICourseRepository _courseRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IStudentGroupRepository _studentGroupRepository;
 
-    public AddClassOfferingCommandHandler(IUnitOfWork unitOfWork, IClassOfferingRepository repository, ICourseRepository courseRepository, IUserRepository userRepository, IUserContext userContext)
+
+    public AddClassOfferingCommandHandler(IUnitOfWork unitOfWork, IClassOfferingRepository repository, ICourseRepository courseRepository, IUserRepository userRepository, IUserContext userContext, IStudentGroupRepository studentGroupRepository)
     {
         _unitOfWork = unitOfWork;
         _repository = repository;
         _courseRepository = courseRepository;
         _userRepository = userRepository;
+        _studentGroupRepository = studentGroupRepository;
     }
 
     public async Task<Result<Guid>> Handle(AddClassOfferingCommand request, CancellationToken cancellationToken)
@@ -41,10 +46,38 @@ internal sealed class AddClassOfferingCommandHandler : ICommandHandler<AddClassO
             return Result.Failure<Guid>("Lecturer.NotFound", "Lecturer not found.");
         }
 
-        var classOffering = ClassOffering.Create(new Name(request.Name), course, request.StartDate, request.EndDate, lecturer, null, request.MaxStudentsCount);
+        var studentGroup = await _studentGroupRepository.GetByIdAsync(request.StudentGroupId, cancellationToken);
+
+        if (studentGroup == null)
+        {
+            return Result.Failure<Guid>(StudentGroupErrors.NotFound);
+        }
+
+        var classOffering = ClassOffering.Create(new Name(request.Name), course, request.StartDate, request.EndDate, lecturer, studentGroup, request.MaxStudentsCount);
         _repository.Add(classOffering);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success(classOffering.Id);
+    }
+}
+
+internal sealed class GetClassOfferingQueryHandler : IQueryHandler<GetClassOfferingQuery, ClassOfferingResponse>
+{
+    private readonly IClassOfferingRepository _repository;
+
+    public GetClassOfferingQueryHandler(IClassOfferingRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<Result<ClassOfferingResponse>> Handle(GetClassOfferingQuery request, CancellationToken cancellationToken)
+    {
+        var classOffering = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        if (classOffering is null)
+        {
+            return Result.Failure<ClassOfferingResponse>(ClassOfferingErrors.NotFound);
+        }
+
+        return ClassOfferingResponse.FromClassOffering(classOffering);
     }
 }
 
@@ -64,7 +97,7 @@ internal sealed class UpdateClassOfferingCommandHandler : ICommandHandler<Update
         var classOffering = await _repository.GetByIdAsync(request.Id, cancellationToken);
         if (classOffering is null)
         {
-            return Result.Failure("ClassOfferings.NotFound" ,"Class Offering not found.");
+            return Result.Failure(ClassOfferingErrors.NotFound);
         }
 
         classOffering.Update(new Name(request.Name), request.StartDate, request.EndDate, request.MaxStudentsCount);
@@ -89,7 +122,7 @@ internal sealed class DeleteClassOfferingCommandHandler : ICommandHandler<Delete
         var classOffering = await _repository.GetByIdAsync(request.Id, cancellationToken);
         if (classOffering is null)
         {
-            return Result.Failure("ClassOfferings.NotFound" ,"ClassOffering not found.");
+            return Result.Failure(ClassOfferingErrors.NotFound);
         }
 
         _repository.Delete(classOffering);
@@ -141,13 +174,13 @@ internal sealed class EnrollClassOfferingHandler : ICommandHandler<EnrollStudent
         {
             return Result.Failure<Guid>(UserErrors.NotFound(_userContext.UserId));
         }
-        var classOffering = await _classOfferingRepository.GetByIdAsync(request.ClassOfferingId, cancellationToken);
+        var classOffering = await _classOfferingRepository.GetByIdAsync(request.Id, cancellationToken);
         if (classOffering == null)
         {
-            return Result.Failure<Guid>("ClassOfferings.NotFound" ,"Class Offering not found.");
+            return Result.Failure<Guid>(ClassOfferingErrors.NotFound);
         }
 
-        var result = classOffering.Enroll(user, _dateTimeProvider.UtcNow, null);
+        var result = classOffering.Enroll(user, _dateTimeProvider.UtcNow);
         if (result.IsFailure)
         {
             return Result.Failure<Guid>(result.Error);
@@ -155,5 +188,64 @@ internal sealed class EnrollClassOfferingHandler : ICommandHandler<EnrollStudent
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success(classOffering.Id);
+    }
+}
+
+internal sealed class AssignLecturerCommandHandler : ICommandHandler<AssignLecturerCommand>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public AssignLecturerCommandHandler(IUserRepository userRepository, IClassOfferingRepository classOfferingRepository, IUnitOfWork unitOfWork)
+    {
+        _userRepository = userRepository;
+        _classOfferingRepository = classOfferingRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result> Handle(AssignLecturerCommand request, CancellationToken cancellationToken)
+    {
+        var lecturer = await _userRepository.GetByIdAsync(request.LecturerId, cancellationToken);
+        if (lecturer == null)
+        {
+            return Result.Failure(UserErrors.NotFound(request.LecturerId));
+        }
+
+        var classOffering = await _classOfferingRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (classOffering == null)
+        {
+            return Result.Failure(ClassOfferingErrors.NotFound);
+        }
+
+        classOffering.AssignLecturer(lecturer);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
+internal sealed class GetClassOfferingsByLecturerQueryHandler: IQueryHandler<GetClassOfferingsByLecturerQuery, List<ClassOfferingResponse>>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+
+    public GetClassOfferingsByLecturerQueryHandler(IUserRepository userRepository, IClassOfferingRepository classOfferingRepository)
+    {
+        _userRepository = userRepository;
+        _classOfferingRepository = classOfferingRepository;
+    }
+
+    public async Task<Result<List<ClassOfferingResponse>>> Handle(GetClassOfferingsByLecturerQuery request, CancellationToken cancellationToken)
+    {
+        var lecturer = await _userRepository.GetByIdAsync(request.LecturerId, cancellationToken);
+        if (lecturer == null)
+        {
+            return Result.Failure<List<ClassOfferingResponse>>(UserErrors.NotFound(request.LecturerId));
+        }
+
+        var classOfferings = await _classOfferingRepository.GetByLecturerAsync(lecturer, cancellationToken);
+
+        var responses = ClassOfferingResponse.FromClassOfferingList(classOfferings);
+        return responses;
     }
 }

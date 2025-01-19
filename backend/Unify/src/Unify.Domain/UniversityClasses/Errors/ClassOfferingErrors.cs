@@ -19,4 +19,12 @@ public static class ClassOfferingErrors
     public static Error GroupAlreadyBound =>
         Error.Create("ClassOffering.GroupAlreadyBound",
             "The class is already bound to a group. Unbind the group before binding new one.");
+
+    public static Error NotFound =>
+        Error.Create("ClassOffering.NotFound",
+            "The class with the specified identifier was not found.");
+
+    public static Error NotEnrolled =>
+        Error.Create("ClassOffering.NotEnrolled",
+            "The user with the specified identifier is not enrolled into this class.");
 }

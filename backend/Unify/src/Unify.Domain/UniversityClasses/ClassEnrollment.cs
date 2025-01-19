@@ -11,14 +11,14 @@ public sealed class ClassEnrollment : Entity
     public Guid ClassOfferingId { get; private set; }
     public Guid StudentId { get; private set; }
     public Guid StudentGroupId { get; private set; }
-    public DateTime EnrollmentOn { get; private set; }
+    public DateTime EnrolledOn { get; private set; }
 
 
-    private ClassEnrollment(Guid id, Guid classOfferingId, Guid studentId, DateTime enrollmentOn) : base(id)
+    private ClassEnrollment(Guid id, Guid classOfferingId, Guid studentId, DateTime enrolledOn) : base(id)
     {
         ClassOfferingId = classOfferingId;
         StudentId = studentId;
-        EnrollmentOn = enrollmentOn;
+        EnrolledOn = enrolledOn;
     }
 
     public static ClassEnrollment Enroll(ClassOffering classOffering, User student, DateTime enrollmentOn)

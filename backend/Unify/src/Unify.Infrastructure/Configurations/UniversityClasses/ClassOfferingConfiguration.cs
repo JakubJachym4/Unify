@@ -38,7 +38,7 @@ internal sealed class ClassOfferingConfiguration : IEntityTypeConfiguration<Clas
 
         builder.HasOne<StudentGroup>()
             .WithMany()
-            .HasForeignKey(co => co.BoundGroupId);
+            .HasForeignKey(co => co.StudentGroupId);
 
         builder.HasMany(co => co.Enrollments)
             .WithOne()

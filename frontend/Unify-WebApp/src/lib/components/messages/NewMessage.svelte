@@ -18,9 +18,9 @@
     export let show = false;
     export let onClose: () => void;
     export let modalLevel = 1;
-
-    let title = '';
     export let respondingToId: string | null = null;
+
+    let title =  respondingToId ? 'Re: ' : '';
     let content = '';
     let recipientsIds: string[] = [];
     let attachments: File[] = [];
@@ -259,7 +259,7 @@
                         <label for="title" class="form-label">Title</label>
                         <input type="text" class="form-control" id="title" bind:value={title} required>
                     </div>
-                    {#if canSendNotification}
+                    {#if canSendNotification()}
                         <div class="mb-3 form-check">
                             <input 
                                 type="checkbox" 
