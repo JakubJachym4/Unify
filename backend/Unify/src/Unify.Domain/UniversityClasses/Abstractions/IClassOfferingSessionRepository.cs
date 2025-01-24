@@ -8,4 +8,6 @@ public interface IClassOfferingSessionRepository
     Task<ClassOfferingSession?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     void Add(ClassOfferingSession entity);
     void Delete(ClassOfferingSession entity);
+    Task<List<ClassOfferingSession>> GetByClassOfferingIdAsync(Guid classOfferingId, CancellationToken cancellationToken);
+    Task<List<ClassOfferingSession>> GetByLecturerIdAsync(Guid lecturerId, CancellationToken cancellationToken);
 }

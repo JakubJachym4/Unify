@@ -138,3 +138,95 @@ public sealed class ListClassOfferingSessionsQueryHandler : IQueryHandler<ListCl
         return Result.Success(sessions.Select(ClassOfferingSessionResponse.CreateFrom).ToList());
     }
 }
+
+internal sealed class GetSessionByClassOfferingQueryHandler : IQueryHandler<GetSessionByClassOfferingQuery, List<ClassOfferingSessionResponse>>
+{
+    private readonly IClassOfferingSessionRepository _classOfferingSessionRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+
+    public GetSessionByClassOfferingQueryHandler(IClassOfferingSessionRepository classOfferingSessionRepository, IClassOfferingRepository classOfferingRepository)
+    {
+        _classOfferingSessionRepository = classOfferingSessionRepository;
+        _classOfferingRepository = classOfferingRepository;
+    }
+
+    public async Task<Result<List<ClassOfferingSessionResponse>>> Handle(GetSessionByClassOfferingQuery request, CancellationToken cancellationToken)
+    {
+        var classOffering = await _classOfferingRepository.GetByIdAsync(request.ClassOfferingId, cancellationToken);
+        if (classOffering is null)
+        {
+            return Result.Failure<List<ClassOfferingSessionResponse>>(ClassOfferingErrors.NotFound);
+        }
+
+        var sessions = await _classOfferingSessionRepository.GetByClassOfferingIdAsync(classOffering.Id, cancellationToken);
+        return sessions.Select(ClassOfferingSessionResponse.CreateFrom).ToList();
+    }
+}
+
+public sealed class GetSessionByStudentQueryHandler : IQueryHandler<GetSessionByStudentQuery, List<ClassOfferingSessionResponse>>
+{
+    private readonly IClassOfferingSessionRepository _classOfferingSessionRepository;
+    private readonly IClassEnrollmentRepository _classEnrollmentRepository;
+    private readonly IUserRepository _userRepository;
+
+    public GetSessionByStudentQueryHandler(IClassOfferingSessionRepository classOfferingSessionRepository, IClassEnrollmentRepository classEnrollmentRepository, IUserRepository userRepository)
+    {
+        _classOfferingSessionRepository = classOfferingSessionRepository;
+        _classEnrollmentRepository = classEnrollmentRepository;
+        _userRepository = userRepository;
+    }
+
+    public async Task<Result<List<ClassOfferingSessionResponse>>> Handle(GetSessionByStudentQuery request, CancellationToken cancellationToken)
+    {
+        var student = await _userRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        if (student is null)
+        {
+            return Result.Failure<List<ClassOfferingSessionResponse>>(UserErrors.NotFound(request.StudentId));
+        }
+        if(student.Roles.All(role => role.Id != Role.Student.Id))
+        {
+            return Result.Failure<List<ClassOfferingSessionResponse>>("User.NotStudent", "User is not a student.");
+        }
+
+        var enrollments = await _classEnrollmentRepository.GetByStudentIdAsync(request.StudentId, cancellationToken);
+        var studentSessions = new List<ClassOfferingSession>();
+        foreach (var enrollment in enrollments)
+        {
+            var enrollmentSessions = await _classOfferingSessionRepository.GetByClassOfferingIdAsync(enrollment.ClassOfferingId, cancellationToken);
+            if (enrollmentSessions.Any())
+            {
+                studentSessions.AddRange(enrollmentSessions);
+            }
+        }
+
+        return studentSessions.Select(ClassOfferingSessionResponse.CreateFrom).ToList();
+    }
+}
+
+public sealed class GetSessionByLecturerQueryHandler : IQueryHandler<GetSessionByLecturerQuery, List<ClassOfferingSessionResponse>>
+{
+    private readonly IClassOfferingSessionRepository _classOfferingSessionRepository;
+    private readonly IUserRepository _userRepository;
+
+    public GetSessionByLecturerQueryHandler(IClassOfferingSessionRepository classOfferingSessionRepository, IUserRepository userRepository)
+    {
+        _classOfferingSessionRepository = classOfferingSessionRepository;
+        _userRepository = userRepository;
+    }
+
+    public async Task<Result<List<ClassOfferingSessionResponse>>> Handle(GetSessionByLecturerQuery request, CancellationToken cancellationToken)
+    {
+        var lecturer = await _userRepository.GetByIdAsync(request.LecturerId, cancellationToken);
+        if (lecturer is null)
+        {
+            return Result.Failure<List<ClassOfferingSessionResponse>>(UserErrors.NotFound(request.LecturerId));
+        }
+        if(lecturer.Roles.All(role => role.Id != Role.Lecturer.Id))
+        {
+            return Result.Failure<List<ClassOfferingSessionResponse>>("User.NotLecturer", "User is not a lecturer.");
+        }
+
+        var sessions = await _classOfferingSessionRepository.GetByLecturerIdAsync(request.LecturerId, cancellationToken);
+        return sessions.Select(ClassOfferingSessionResponse.CreateFrom).ToList();
+    }
+}

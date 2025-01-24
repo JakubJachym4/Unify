@@ -14,6 +14,7 @@ using Unify.Application.Abstractions.Files;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Messages;
 using Unify.Domain.Messages.InformationMessages;
+using Unify.Domain.OnlineResources.Abstraction;
 using Unify.Domain.UniversityClasses.Abstractions;
 using Unify.Domain.UniversityCore.Abstractions;
 using Unify.Domain.Users;
@@ -24,6 +25,7 @@ using Unify.Infrastructure.Data;
 using Unify.Infrastructure.Email;
 using Unify.Infrastructure.FileUpload;
 using Unify.Infrastructure.Repositories;
+using Unify.Infrastructure.Repositories.OnlineResources;
 using Unify.Infrastructure.Repositories.UniversityClasses;
 using Unify.Infrastructure.Repositories.UniversityCore;
 using AuthenticationOptions = Unify.Infrastructure.Authentication.AuthenticationOptions;
@@ -47,7 +49,10 @@ public static class DependencyInjection
 
         services.AddTransient<IFileConversionService, FileConverter>();
 
+
         AddPersistence(services, configuration);
+
+        AddEntityRepositories(services);
 
         AddAuthentication(services, configuration);
 
@@ -68,6 +73,17 @@ public static class DependencyInjection
             options.EnableSensitiveDataLogging();
         }, ServiceLifetime.Scoped);
 
+
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
+        services.AddSingleton<ISqlConnectionFactory>(_ =>
+            new SqlConnectionFactory(connectionString));
+
+        SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+    }
+
+    private static void AddEntityRepositories(IServiceCollection services)
+    {
         services.AddScoped<IUserRepository, UserRepository>();
 
         services.AddScoped<IMessageRepository, MessageRepository>();
@@ -90,12 +106,7 @@ public static class DependencyInjection
 
         services.AddScoped<IClassEnrollmentRepository, ClassEnrollmentRepository>();
 
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
-
-        services.AddSingleton<ISqlConnectionFactory>(_ =>
-            new SqlConnectionFactory(connectionString));
-
-        SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+        services.AddScoped<ICourseResourceRepository, CourseResourceRepository>();
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)

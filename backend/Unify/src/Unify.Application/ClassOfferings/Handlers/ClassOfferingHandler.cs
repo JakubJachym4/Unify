@@ -1,4 +1,3 @@
-using MediatR;
 using Unify.Application.Abstractions.Authentication;
 using Unify.Application.Abstractions.Clock;
 using Unify.Application.Abstractions.Messaging;
@@ -12,7 +11,7 @@ using Unify.Domain.UniversityCore.Abstractions;
 using Unify.Domain.UniversityCore.Errors;
 using Unify.Domain.Users;
 
-namespace Unify.Application.UniversityClasses.ClassOfferings.Handlers;
+namespace Unify.Application.ClassOfferings.Handlers;
 
 internal sealed class AddClassOfferingCommandHandler : ICommandHandler<AddClassOfferingCommand, Guid>
 {

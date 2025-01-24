@@ -13,5 +13,10 @@ public sealed class CourseResource : OnlineResource
         CourseId = course.Id;
     }
 
+    public static CourseResource Create(Title title, Description description, Course course)
+    {
+        return new CourseResource(title, description, course);
+    }
+
     public Guid CourseId { get; private set; }
 }

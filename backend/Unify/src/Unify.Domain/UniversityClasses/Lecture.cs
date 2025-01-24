@@ -14,4 +14,13 @@ public sealed class Lecture : ClassSession
     }
 
     public Guid CourseId { get; private set; }
+
+    public void Update(Title title, DateTime scheduledDate, TimeSpan duration, Guid lecturerId, Guid locationId)
+    {
+        Title = title;
+        ScheduledDate = scheduledDate;
+        Duration = duration;
+        LecturerId = lecturerId;
+        LocationId = locationId;
+    }
 }

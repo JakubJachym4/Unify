@@ -1,7 +1,11 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Unify.Application.Abstractions.Files;
 using Unify.Application.Abstractions.Messaging;
 using Unify.Application.Courses.Commands;
 using Unify.Domain.Abstractions;
+using Unify.Domain.OnlineResources;
+using Unify.Domain.OnlineResources.Abstraction;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityCore;
 using Unify.Domain.UniversityCore.Abstractions;
@@ -212,17 +216,166 @@ public sealed class GetCoursesByLecturerQueryHandler : IQueryHandler<GetCoursesB
     }
 }
 
-public record CourseResponse(
-    Guid Id,
-    string Name,
-    string Description,
-    Guid SpecializationId,
-    Guid? LecturerId,
-    List<ClassOfferingResponse> ClassOfferingResponses)
+public sealed class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseResourceCommand, Guid>
 {
-    public static CourseResponse CreateFromCourse(Course course)
+    private readonly ICourseRepository _courseRepository;
+    private readonly IFileConversionService _fileConversionService;
+    private readonly ICourseResourceRepository _courseResourceRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+
+    public CreateCourseResourceCommandHandler(ICourseRepository courseRepository, IFileConversionService fileConversionService, ICourseResourceRepository courseResourceRepository, IUnitOfWork unitOfWork)
     {
-        return new CourseResponse(course.Id, course.Name.Value, course.Description.Value, course.SpecializationId, course.LecturerId, ClassOfferingResponse.FromClassOfferingList(course.Classes.ToList()));
+        _courseRepository = courseRepository;
+        _fileConversionService = fileConversionService;
+        _courseResourceRepository = courseResourceRepository;
+        _unitOfWork = unitOfWork;
     }
-};
+
+    public async Task<Result<Guid>> Handle(CreateCourseResourceCommand request, CancellationToken cancellationToken)
+    {
+        var course = await _courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
+        if (course == null)
+        {
+            return Result.Failure<Guid>("Course.NotFound", "Course not found.");
+        }
+
+        var courseResource = CourseResource.Create(new Title(request.Title), new Description(request.Description), course);
+
+        if (request.Attachments != null)
+        {
+            var attachments = await _fileConversionService.ConvertToAttachments(request.Attachments ?? new List<IFormFile>());
+
+            foreach (var attachment in attachments)
+            {
+                if (attachment.IsFailure)
+                {
+                    return Result.Failure<Guid>(attachment.Error);
+                }
+                courseResource.AddFile(attachment.Value);
+            }
+        }
+
+        _courseResourceRepository.Add(courseResource);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return courseResource.Id;
+    }
+}
+
+public sealed class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseResourceCommand>
+{
+    private readonly IFileConversionService _fileConversionService;
+    private readonly ICourseResourceRepository _courseResourceRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public UpdateCourseResourceCommandHandler(IFileConversionService fileConversionService, ICourseResourceRepository courseResourceRepository, IUnitOfWork unitOfWork)
+    {
+        _fileConversionService = fileConversionService;
+        _courseResourceRepository = courseResourceRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result> Handle(UpdateCourseResourceCommand request, CancellationToken cancellationToken)
+    {
+        var courseResource = await _courseResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (courseResource == null)
+        {
+            return Result.Failure<Guid>("CourseResource.NotFound", "Course resource not found.");
+        }
+
+        courseResource.Update(new Title(request.Title), new Description(request.Description));
+
+        if (request.Attachments != null)
+        {
+            var attachments = await _fileConversionService.ConvertToAttachments(request.Attachments);
+            courseResource.ClearFiles();
+
+            foreach (var attachment in attachments)
+            {
+                if (attachment.IsFailure)
+                {
+                    return Result.Failure<Guid>(attachment.Error);
+                }
+                courseResource.AddFile(attachment.Value);
+            }
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+}
+
+public sealed class DeleteCourseResourceCommandHandler : ICommandHandler<DeleteCourseResourceCommand>
+{
+    private readonly ICourseResourceRepository _courseResourceRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public DeleteCourseResourceCommandHandler(ICourseResourceRepository courseResourceRepository, IUnitOfWork unitOfWork)
+    {
+        _courseResourceRepository = courseResourceRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result> Handle(DeleteCourseResourceCommand request, CancellationToken cancellationToken)
+    {
+        var courseResource = await _courseResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (courseResource == null)
+        {
+            return Result.Failure<Guid>("CourseResource.NotFound", "Course resource not found.");
+        }
+
+        _courseResourceRepository.Delete(courseResource);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+}
+
+public sealed class GetCourseResourceQueryHandler : IQueryHandler<GetCourseResourceQuery, CourseResourceResponse>
+{
+    private readonly ICourseResourceRepository _courseResourceRepository;
+
+    public GetCourseResourceQueryHandler(ICourseResourceRepository courseResourceRepository)
+    {
+        _courseResourceRepository = courseResourceRepository;
+    }
+
+    public async Task<Result<CourseResourceResponse>> Handle(GetCourseResourceQuery request, CancellationToken cancellationToken)
+    {
+        var courseResource = await _courseResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (courseResource == null)
+        {
+            return Result.Failure<CourseResourceResponse>("CourseResource.NotFound", "CourseResource not found.");
+        }
+
+        return CourseResourceResponse.CreateFromCourseResource(courseResource);
+    }
+}
+
+public sealed class GetCourseResourcesQueryHandler : IQueryHandler<GetCourseResourcesQuery, List<CourseResourceResponse>>
+{
+    private readonly ICourseRepository _courseRepository;
+    private readonly ICourseResourceRepository _courseResourceRepository;
+
+    public GetCourseResourcesQueryHandler(ICourseRepository courseRepository, ICourseResourceRepository courseResourceRepository)
+    {
+        _courseRepository = courseRepository;
+        _courseResourceRepository = courseResourceRepository;
+    }
+
+    public async Task<Result<List<CourseResourceResponse>>> Handle(GetCourseResourcesQuery request, CancellationToken cancellationToken)
+    {
+        var course = await _courseRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (course == null)
+        {
+            return Result.Failure<List<CourseResourceResponse>>("Course.NotFound", "Course not found.");
+        }
+
+        var courseResources = await _courseResourceRepository.GetByCourseAsync(course, cancellationToken);
+
+        return Result.Success(courseResources.Select(CourseResourceResponse.CreateFromCourseResource).ToList());
+    }
+}
 

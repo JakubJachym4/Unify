@@ -33,3 +33,20 @@ export interface ClassOffering{
     studentGroupId: string
     maxStudentsCount: number
 }
+
+export interface ClassOfferingSession{
+    id: string,
+    classOfferingId: string,
+    title: string,
+    scheduledDate: string,
+    duration: number,
+    lecturerId: string,
+    locationId: string,
+}
+
+export interface ClassEnrollment{
+    id:string,
+    classOfferingId: string,
+    studentId: string,
+    enrolledOn: string,
+}

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unify.Application.Abstractions.Messaging;
 using Unify.Application.Courses.CourseHandlers;
+using Unify.Application.OnlineResources.OfferingResources;
+using Unify.Application.OnlineResources.OfferingResources.CommandsAndQueries;
 using Unify.Application.UniversityClasses.ClassOfferings.Commands;
 
 namespace Unify.Api.Controllers.UniversityClasses;
@@ -133,9 +135,83 @@ public class ClassOfferingController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPost("{classOfferingId:guid}/resources")]
+    [Authorize(Roles = "Administrator,Lecturer")]
+    public async Task<IActionResult> CreateOfferingResource(Guid classOfferingId, [FromBody] CreateOfferingResourceCommand command, CancellationToken cancellationToken)
+    {
+        if (classOfferingId != command.ClassOfferingId)
+        {
+            return BadRequest("Class offering ID mismatch.");
+        }
+
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPut("resources/{id:guid}")]
+    [Authorize(Roles = "Administrator,Lecturer")]
+    public async Task<IActionResult> UpdateOfferingResource(Guid id, [FromBody] UpdateOfferingResourceCommand command, CancellationToken cancellationToken)
+    {
+        if (id != command.Id)
+        {
+            return BadRequest("Resource ID mismatch.");
+        }
+
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+
+    [HttpDelete("resources/{id:guid}")]
+    [Authorize(Roles = "Administrator,Lecturer")]
+    public async Task<IActionResult> DeleteOfferingResource(Guid id, CancellationToken cancellationToken)
+    {
+        var command = new DeleteOfferingResourceCommand(id);
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+    
+    [HttpGet("resources/{id:guid}")]
+    public async Task<IActionResult> GetOfferingResource(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetOfferingResourceQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+    
+    [HttpGet("{id:guid}/resources")]
+    public async Task<IActionResult> GetOfferingResources(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetOfferingResourcesQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
 
 }
-
 
 
 

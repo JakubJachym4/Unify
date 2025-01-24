@@ -44,4 +44,8 @@ public sealed class HomeworkSubmission : HomeworkBaseEntity
         Feedback = feedback;
         return grade;
     }
+
+    public void ClearFiles() => _attachments.Clear();
+
+    public void Update(DateTime requestSubmittedOn) => SubmittedOn = requestSubmittedOn;
 }

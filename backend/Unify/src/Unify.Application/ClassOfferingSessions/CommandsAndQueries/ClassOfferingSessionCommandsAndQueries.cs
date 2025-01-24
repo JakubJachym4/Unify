@@ -11,3 +11,10 @@ public record DeleteClassOfferingSessionCommand(Guid Id) : ICommand;
 public record GetClassOfferingSessionQuery(Guid Id) : IQuery<ClassOfferingSessionResponse>;
 
 public record ListClassOfferingSessionsQuery : IQuery<List<ClassOfferingSessionResponse>>;
+
+public record GetSessionByClassOfferingQuery(Guid ClassOfferingId) : IQuery<List<ClassOfferingSessionResponse>>;
+
+
+public record GetSessionByStudentQuery(Guid StudentId) : IQuery<List<ClassOfferingSessionResponse>>;
+
+public record GetSessionByLecturerQuery(Guid LecturerId) : IQuery<List<ClassOfferingSessionResponse>>;

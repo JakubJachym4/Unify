@@ -13,8 +13,14 @@ public abstract class OnlineResource : Entity
         Description = description;
     }
 
-    public Title Title { get; private set; }
-    public Description Description { get; private set; }
+    public Title Title { get; protected set; }
+    public Description Description { get; protected set; }
+
+    public void Update(Title title, Description description)
+    {
+        Title = title;
+        Description = description;
+    }
 
 
     private List<Attachment> _files = new();
@@ -22,4 +28,5 @@ public abstract class OnlineResource : Entity
     public void AddFile(Attachment attachment) => _files.Add(attachment);
     public void AddFiles(IEnumerable<Attachment> attachments) => _files.AddRange(attachments);
     public void RemoveFile(Attachment attachment) => _files.Remove(attachment);
+    public void ClearFiles() => _files.Clear();
 }

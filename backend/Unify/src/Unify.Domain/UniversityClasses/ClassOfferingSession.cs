@@ -8,7 +8,7 @@ public sealed class ClassOfferingSession : ClassSession
 {
     private ClassOfferingSession(){}
     public ClassOfferingSession(ClassOffering offering, Title title, DateTime scheduledDate, TimeSpan duration, User lecturer, Location guid)
-        : base(Guid.NewGuid(), title, ClassType.Lecture, scheduledDate, duration, lecturer, guid)
+        : base(Guid.NewGuid(), title, ClassType.Laboratory, scheduledDate, duration, lecturer, guid)
     {
         ClassOfferingId = offering.Id;
     }

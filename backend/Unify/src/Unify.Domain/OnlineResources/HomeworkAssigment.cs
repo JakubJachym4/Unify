@@ -35,5 +35,12 @@ public sealed class HomeworkAssigment : HomeworkBaseEntity
     public void RemoveFile(Attachment attachment) => _attachments.Remove(attachment);
     public void LockSubmission() => Locked = true;
     public void UnlockSubmission() => Locked = false;
+    public void ClearFiles() => _attachments.Clear();
 
+    public void Update(Title title, Description description, DateTime requestDueDate)
+    {
+        Title = title;
+        Description = description;
+        DueDate = requestDueDate;
+    }
 }

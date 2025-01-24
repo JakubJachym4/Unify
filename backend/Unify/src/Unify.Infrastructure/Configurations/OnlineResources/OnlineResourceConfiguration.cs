@@ -23,7 +23,8 @@ internal abstract class OnlineResourceConfiguration<T> : IEntityTypeConfiguratio
 
         builder.HasMany(or => or.Files)
             .WithOne()
-            .HasForeignKey("online_resource_id");
+            .HasForeignKey("online_resource_id")
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
 }

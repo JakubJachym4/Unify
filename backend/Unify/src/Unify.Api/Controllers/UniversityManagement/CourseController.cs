@@ -130,7 +130,85 @@ public class CourseController : ControllerBase
 
         return Ok(result.Value);
     }
+
+
+    [HttpPost("{courseId:guid}/resources")]
+    [Authorize(Roles = "Lecturer")]
+    public async Task<IActionResult> CreateCourseResource(Guid courseId, [FromForm] CreateCourseResourceCommand command, CancellationToken cancellationToken)
+    {
+        if (courseId != command.CourseId)
+        {
+            return BadRequest("Course ID mismatch.");
+        }
+
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPut("resources/{id:guid}")]
+    [Authorize(Roles = "Lecturer")]
+    public async Task<IActionResult> UpdateCourseResource(Guid id, [FromForm] UpdateCourseResourceCommand command, CancellationToken cancellationToken)
+    {
+        if (id != command.Id)
+        {
+            return BadRequest("Resource ID mismatch.");
+        }
+
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+
+    [HttpDelete("resources/{id:guid}")]
+    [Authorize(Roles = "Lecturer")]
+    public async Task<IActionResult> DeleteCourseResource(Guid id, CancellationToken cancellationToken)
+    {
+        var command = new DeleteCourseResourceCommand(id);
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+
+    [HttpGet("resources/{id:guid}")]
+    public async Task<IActionResult> GetCourseResource(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetCourseResourceQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("{id:guid}/resources")]
+    public async Task<IActionResult> GetCourseResources(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetCourseResourcesQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
 }
+
 
 
 

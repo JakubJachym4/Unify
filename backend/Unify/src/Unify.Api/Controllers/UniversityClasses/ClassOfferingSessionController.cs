@@ -85,4 +85,42 @@ public class ClassOfferingSessionController : ControllerBase
 
         return Ok(result.Value);
     }
+    [HttpGet("class-offering/{classOfferingId:guid}")]
+    public async Task<IActionResult> GetSessionByClassOffering(Guid classOfferingId, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetSessionByClassOfferingQuery(classOfferingId), cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("lecturer/{lecturerId:guid}")]
+    public async Task<IActionResult> GetSessionByLecturer(Guid lecturerId, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetSessionByLecturerQuery(lecturerId), cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("student/{studentId:guid}")]
+    public async Task<IActionResult> GetSessionByStudent(Guid studentId, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetSessionByStudentQuery(studentId), cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+
 }
+
