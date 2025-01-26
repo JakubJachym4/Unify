@@ -16,6 +16,11 @@ internal sealed class CourseResourceConfiguration : OnlineResourceConfiguration<
             .WithMany()
             .HasForeignKey(cr => cr.CourseId);
 
+        builder.HasMany(or => or.Files)
+            .WithOne()
+            .HasForeignKey("course_resources_id")
+            .OnDelete(DeleteBehavior.Cascade);
+
         base.Configure(builder);
     }
 }

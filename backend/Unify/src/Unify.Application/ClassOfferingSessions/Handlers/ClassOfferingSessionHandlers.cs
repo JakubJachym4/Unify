@@ -1,4 +1,5 @@
-﻿using Unify.Application.Abstractions.Messaging;
+﻿using Unify.Application.Abstractions.Authentication;
+using Unify.Application.Abstractions.Messaging;
 using Unify.Application.ClassOfferingSessions.CommandsAndQueries;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Shared;
@@ -228,5 +229,73 @@ public sealed class GetSessionByLecturerQueryHandler : IQueryHandler<GetSessionB
 
         var sessions = await _classOfferingSessionRepository.GetByLecturerIdAsync(request.LecturerId, cancellationToken);
         return sessions.Select(ClassOfferingSessionResponse.CreateFrom).ToList();
+    }
+}
+
+public sealed class CreateIntervalSessionsCommandHandler : ICommandHandler<CreateIntervalSessionsCommand>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+    private readonly ILocationRepository _locationRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IClassOfferingSessionRepository _sessionRepository;
+    private readonly IUserContext _userContext;
+    private readonly ICourseRepository _courseRepository;
+
+    public CreateIntervalSessionsCommandHandler(IUserRepository userRepository, IClassOfferingRepository classOfferingRepository, ILocationRepository locationRepository, IUnitOfWork unitOfWork, IClassOfferingSessionRepository sessionRepository, IUserContext userContext, ICourseRepository courseRepository)
+    {
+        _userRepository = userRepository;
+        _classOfferingRepository = classOfferingRepository;
+        _locationRepository = locationRepository;
+        _unitOfWork = unitOfWork;
+        _sessionRepository = sessionRepository;
+        _userContext = userContext;
+        _courseRepository = courseRepository;
+    }
+
+    public async Task<Result> Handle(CreateIntervalSessionsCommand request, CancellationToken cancellationToken)
+    {
+        var lecturer = await _userRepository.GetByIdAsync(request.LecturerId, cancellationToken);
+        if (lecturer == null)
+        {
+            return Result.Failure(UserErrors.NotFound(request.LecturerId));
+        }
+        var classOffering = await _classOfferingRepository.GetByIdAsync(request.ClassOfferingId, cancellationToken);
+        if (classOffering == null)
+        {
+            return Result.Failure(ClassOfferingErrors.NotFound);
+        }
+        var course = await _courseRepository.GetByIdAsync(classOffering.CourseId, cancellationToken);
+        if (course == null)
+        {
+            return Result.Failure("Course.NotFound", "Course not found.");
+        }
+        if (course.LecturerId != _userContext.UserId)
+        {
+            return Result.Failure("Course.NotLecturer", "User is not the lecturer of the course.");
+        }
+
+        var location = await _locationRepository.GetByIdAsync(request.LocationId, cancellationToken);
+        if (location == null)
+        {
+            return Result.Failure("Location.NotFound", "Location not found.");
+        }
+
+        var startDate = request.StartDate;
+        var sessions = new List<ClassOfferingSession>();
+        while (startDate < request.EndDate)
+        {
+            var session = new ClassOfferingSession(classOffering, new Title(request.Title), startDate, request.Duration, lecturer, location);
+            sessions.Add(session);
+            startDate = startDate.AddDays(request.WeekInterval * 7);
+        }
+
+        foreach (var session in sessions)
+        {
+            _sessionRepository.Add(session);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }

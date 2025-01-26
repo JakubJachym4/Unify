@@ -137,7 +137,7 @@ public class ClassOfferingController : ControllerBase
 
     [HttpPost("{classOfferingId:guid}/resources")]
     [Authorize(Roles = "Administrator,Lecturer")]
-    public async Task<IActionResult> CreateOfferingResource(Guid classOfferingId, [FromBody] CreateOfferingResourceCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateOfferingResource(Guid classOfferingId, [FromForm] CreateOfferingResourceCommand command, CancellationToken cancellationToken)
     {
         if (classOfferingId != command.ClassOfferingId)
         {
@@ -155,7 +155,7 @@ public class ClassOfferingController : ControllerBase
 
     [HttpPut("resources/{id:guid}")]
     [Authorize(Roles = "Administrator,Lecturer")]
-    public async Task<IActionResult> UpdateOfferingResource(Guid id, [FromBody] UpdateOfferingResourceCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateOfferingResource(Guid id, [FromForm] UpdateOfferingResourceCommand command, CancellationToken cancellationToken)
     {
         if (id != command.Id)
         {

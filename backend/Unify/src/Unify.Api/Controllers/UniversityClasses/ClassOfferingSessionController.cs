@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Abstractions.Messaging;
 using Unify.Application.ClassOfferingSessions.CommandsAndQueries;
 
 
@@ -19,7 +20,7 @@ public class ClassOfferingSessionController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Lecturer")]
     public async Task<IActionResult> CreateClassOfferingSession([FromBody] CreateClassOfferingSessionCommand command, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command, cancellationToken);
@@ -31,8 +32,22 @@ public class ClassOfferingSessionController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPost("create-interval")]
+    [Authorize(Roles = "Lecturer")]
+    public async Task<IActionResult> CreateIntervalSessions([FromBody] CreateIntervalSessionsCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+
+
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Lecturer")]
     public async Task<IActionResult> UpdateClassOfferingSession(Guid id, [FromBody] UpdateClassOfferingSessionCommand command, CancellationToken cancellationToken)
     {
         if (id != command.Id)
@@ -50,7 +65,7 @@ public class ClassOfferingSessionController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Lecturer")]
     public async Task<IActionResult> DeleteClassOfferingSession(Guid id, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(new DeleteClassOfferingSessionCommand(id), cancellationToken);

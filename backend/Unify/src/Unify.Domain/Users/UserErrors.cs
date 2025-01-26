@@ -24,4 +24,8 @@ public static class UserErrors
     public static Error AlreadyLoggedIn = new(
         "User.AlreadyLoggedIn",
         "Can't register when logged in");
+
+    public static Error LecturerNotAssigned = new(
+        "User.LecturerNotAssigned",
+        "The lecturer is not assigned to this class");
 }

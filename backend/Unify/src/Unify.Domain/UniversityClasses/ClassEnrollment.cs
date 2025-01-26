@@ -12,6 +12,7 @@ public sealed class ClassEnrollment : Entity
     public Guid StudentId { get; private set; }
     public Guid StudentGroupId { get; private set; }
     public DateTime EnrolledOn { get; private set; }
+    public Guid GradeId { get; private set; }
 
 
     private ClassEnrollment(Guid id, Guid classOfferingId, Guid studentId, DateTime enrolledOn) : base(id)
@@ -23,20 +24,22 @@ public sealed class ClassEnrollment : Entity
 
     public static ClassEnrollment Enroll(ClassOffering classOffering, User student, DateTime enrollmentOn)
     {
-        return new ClassEnrollment(
+
+        var enrollment = new ClassEnrollment(
             Guid.NewGuid(),
             classOffering.Id,
             student.Id,
             enrollmentOn);
+
+        enrollment.CreateGrade(new Description(string.Empty));
+
+        return enrollment;
     }
 
-    public Grade AddGrade(Description description)
+    private void CreateGrade(Description description)
     {
-        return Grade.Create(this, description);
+        var grade = Grade.Create(description);
+        GradeId = grade.Id;
     }
 
-    public Grade AddGrade(Description description, Score score, DateTime dateAwarded)
-    {
-        return Grade.Create(this, description, score, dateAwarded);
-    }
 }

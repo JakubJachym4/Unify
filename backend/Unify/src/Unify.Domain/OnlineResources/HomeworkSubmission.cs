@@ -48,4 +48,9 @@ public sealed class HomeworkSubmission : HomeworkBaseEntity
     public void ClearFiles() => _attachments.Clear();
 
     public void Update(DateTime requestSubmittedOn) => SubmittedOn = requestSubmittedOn;
+
+    public void ProvideFeedback(TextContent textContent)
+    {
+        Feedback = textContent;
+    }
 }

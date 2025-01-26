@@ -18,3 +18,13 @@ public record GetSessionByClassOfferingQuery(Guid ClassOfferingId) : IQuery<List
 public record GetSessionByStudentQuery(Guid StudentId) : IQuery<List<ClassOfferingSessionResponse>>;
 
 public record GetSessionByLecturerQuery(Guid LecturerId) : IQuery<List<ClassOfferingSessionResponse>>;
+
+public record CreateIntervalSessionsCommand(
+    Guid ClassOfferingId,
+    string Title,
+    DateTime StartDate,
+    DateTime EndDate,
+    int WeekInterval,
+    TimeSpan Duration,
+    Guid LecturerId,
+    Guid LocationId) : ICommand;

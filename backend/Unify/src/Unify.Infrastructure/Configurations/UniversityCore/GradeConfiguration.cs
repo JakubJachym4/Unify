@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Unify.Domain.Shared;
+using Unify.Domain.UniversityClasses;
 using Unify.Domain.UniversityCore;
 
 namespace Unify.Infrastructure.Configurations.UniversityCore;

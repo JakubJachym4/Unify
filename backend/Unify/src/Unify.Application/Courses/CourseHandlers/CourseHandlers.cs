@@ -344,7 +344,7 @@ public sealed class GetCourseResourceQueryHandler : IQueryHandler<GetCourseResou
 
     public async Task<Result<CourseResourceResponse>> Handle(GetCourseResourceQuery request, CancellationToken cancellationToken)
     {
-        var courseResource = await _courseResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        var courseResource = await _courseResourceRepository.GetByIdAsyncIncludeAttachments(request.Id, cancellationToken);
         if (courseResource == null)
         {
             return Result.Failure<CourseResourceResponse>("CourseResource.NotFound", "CourseResource not found.");
@@ -373,7 +373,7 @@ public sealed class GetCourseResourcesQueryHandler : IQueryHandler<GetCourseReso
             return Result.Failure<List<CourseResourceResponse>>("Course.NotFound", "Course not found.");
         }
 
-        var courseResources = await _courseResourceRepository.GetByCourseAsync(course, cancellationToken);
+        var courseResources = await _courseResourceRepository.GetByCourseAsyncIncludeAttachments(course, cancellationToken);
 
         return Result.Success(courseResources.Select(CourseResourceResponse.CreateFromCourseResource).ToList());
     }

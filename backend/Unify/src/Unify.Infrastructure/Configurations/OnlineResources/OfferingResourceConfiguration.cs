@@ -15,6 +15,12 @@ internal sealed class OfferingResourceConfiguration : OnlineResourceConfiguratio
             .WithMany()
             .HasForeignKey(or => or.ClassOfferingId);
 
+
+        builder.HasMany(or => or.Files)
+            .WithOne()
+            .HasForeignKey("offering_resources_id")
+            .OnDelete(DeleteBehavior.Cascade);
+
         base.Configure(builder);
     }
 }

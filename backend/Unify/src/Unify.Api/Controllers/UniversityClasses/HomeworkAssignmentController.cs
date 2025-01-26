@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Abstractions.Messaging;
 using Unify.Application.Homework.HomeworkAssignments.CommandsAndQueries;
 
 namespace Unify.Api.Controllers.UniversityClasses;
@@ -19,7 +20,7 @@ public class HomeworkAssignmentController : ControllerBase
         _sender = sender;
     }
 
-    [HttpPost("/class-offering/{classOfferingId:guid}")]
+    [HttpPost("class-offering/{classOfferingId:guid}")]
     [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> CreateHomeworkAssignment(Guid classOfferingId, [FromForm] CreateHomeworkAssignmentCommand command, CancellationToken cancellationToken)
     {
@@ -37,7 +38,7 @@ public class HomeworkAssignmentController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpPut("/{id:guid}")]
+    [HttpPut("{id:guid}")]
     [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> UpdateHomeworkAssignment(Guid id, [FromForm] UpdateHomeworkAssignmentCommand command, CancellationToken cancellationToken)
     {
@@ -55,7 +56,7 @@ public class HomeworkAssignmentController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("/{id:guid}")]
+    [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> DeleteHomeworkAssignment(Guid id, CancellationToken cancellationToken)
     {
@@ -68,4 +69,23 @@ public class HomeworkAssignmentController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("{assignmentId:guid}/submission/{submissionId:guid}/grade")]
+    [Authorize(Roles = "Lecturer")]
+    public async Task<IActionResult> GradeHomeworkSubmission(Guid assignmentId, Guid submissionId, [FromBody] GradeHomeworkSubmissionCommand command, CancellationToken cancellationToken)
+    {
+        if (assignmentId != command.AssignmentId || submissionId != command.SubmissionId)
+        {
+            return BadRequest("Mismatched assignment or submission ID.");
+        }
+
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
 }
+

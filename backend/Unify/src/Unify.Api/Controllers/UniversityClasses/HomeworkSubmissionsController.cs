@@ -19,7 +19,7 @@ public class HomeworkSubmissionsController : ControllerBase
     }
 
 
-    [HttpPost("/assignment/{homeworkAssignmentId:guid}")]
+    [HttpPost("assignment/{homeworkAssignmentId:guid}")]
     [Authorize(Roles = "Student")]
     public async Task<IActionResult> CreateHomeworkSubmission(Guid homeworkAssignmentId, [FromForm] CreateHomeworkSubmissionCommand command, CancellationToken cancellationToken)
     {

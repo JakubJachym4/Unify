@@ -107,6 +107,21 @@ public static class DependencyInjection
         services.AddScoped<IClassEnrollmentRepository, ClassEnrollmentRepository>();
 
         services.AddScoped<ICourseResourceRepository, CourseResourceRepository>();
+
+        services.AddScoped<IOfferingResourceRepository, OfferingResourceRepository>();
+
+        services.AddScoped<IHomeworkAssignmentRepository, HomeworkAssignmentRepository>();
+
+        services.AddScoped<IHomeworkSubmissionRepository, HomeworkSubmissionRepository>();
+
+        services.AddScoped<ILectureRepository, LectureRepository>();
+
+        services.AddScoped<IGradeRepository, GradeRepository>();
+
+        services.AddScoped<IMarkRepository, MarkRepository>();
+
+        services.AddScoped<IClassOfferingSessionRepository, ClassOfferingSessionRepository>();
+
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)

@@ -21,10 +21,5 @@ internal abstract class OnlineResourceConfiguration<T> : IEntityTypeConfiguratio
             .HasMaxLength(200)
             .HasConversion(description => description.Value, value => new Description(value));
 
-        builder.HasMany(or => or.Files)
-            .WithOne()
-            .HasForeignKey("online_resource_id")
-            .OnDelete(DeleteBehavior.Cascade);
-
     }
 }

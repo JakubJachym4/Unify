@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Lectures;
 using Unify.Application.Lectures.CommandsAndQueries;
 
 namespace Unify.Api.Controllers.UniversityClasses;
@@ -84,4 +86,30 @@ public class LectureController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    [HttpGet("course/{courseId:guid}")]
+    public async Task<IActionResult> ListLecturesByCourse(Guid courseId, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new ListLecturesByCourseQuery(courseId), cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPost("create-interval")]
+    [Authorize(Roles = Roles.Lecturer)]
+    public async Task<IActionResult> CreateIntervalLectures([FromBody] CreateIntervalLecturesCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
 }
+

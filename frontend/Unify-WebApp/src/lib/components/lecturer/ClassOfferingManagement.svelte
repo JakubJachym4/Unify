@@ -183,9 +183,11 @@ $: filteredLecturers = lecturers.filter(lecturer => {
             </thead>
             <tbody>
                 {#each course.classOfferings as offering}
+                {@const startDate = new Date(offering.startDate)}
+                {@const endDate = new Date(offering.endDate)}
                     <tr>
                         <td>{offering.name}</td>
-                        <td>{offering.startDate} - {offering.endDate}</td>
+                        <td>{startDate.toLocaleDateString("en-GB")} - {endDate.toLocaleDateString("en-GB")}</td>
 
                         <td>
                             {#if offering.studentGroupId}

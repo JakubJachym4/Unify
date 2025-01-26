@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Unify.Infrastructure;
@@ -11,9 +12,11 @@ using Unify.Infrastructure;
 namespace Unify.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250125184247_another_one")]
+    partial class another_one
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,13 +235,9 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("homework_submission_id");
 
-                    b.Property<Guid?>("course_resources_id")
+                    b.Property<Guid?>("online_resource_id")
                         .HasColumnType("uuid")
-                        .HasColumnName("course_resources_id");
-
-                    b.Property<Guid?>("offering_resources_id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("offering_resources_id");
+                        .HasColumnName("online_resource_id");
 
                     b.HasKey("Id")
                         .HasName("pk_attachments");
@@ -249,11 +248,8 @@ namespace Unify.Infrastructure.Migrations
                     b.HasIndex("HomeworkSubmissionId")
                         .HasDatabaseName("ix_attachments_homework_submission_id");
 
-                    b.HasIndex("course_resources_id")
-                        .HasDatabaseName("ix_attachments_course_resources_id");
-
-                    b.HasIndex("offering_resources_id")
-                        .HasDatabaseName("ix_attachments_offering_resources_id");
+                    b.HasIndex("online_resource_id")
+                        .HasDatabaseName("ix_attachments_online_resource_id");
 
                     b.ToTable("attachments", (string)null);
                 });
@@ -1158,15 +1154,15 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasOne("Unify.Domain.OnlineResources.CourseResource", null)
                         .WithMany("Files")
-                        .HasForeignKey("course_resources_id")
+                        .HasForeignKey("online_resource_id")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_attachments_course_resources_course_resources_id");
+                        .HasConstraintName("fk_attachments_course_resources_online_resource_id");
 
                     b.HasOne("Unify.Domain.OnlineResources.OfferingResource", null)
                         .WithMany("Files")
-                        .HasForeignKey("offering_resources_id")
+                        .HasForeignKey("online_resource_id")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_attachments_offering_resources_offering_resources_id");
+                        .HasConstraintName("fk_attachments_offering_resources_online_resource_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.CourseResource", b =>

@@ -20,12 +20,12 @@ internal sealed class ClassEnrollmentConfiguration : IEntityTypeConfiguration<Cl
             .WithMany()
             .HasForeignKey(ce => ce.StudentId);
 
-        builder.HasMany<Grade>()
-            .WithOne()
-            .HasForeignKey(grade => grade.ClassEnrollmentId);
-
         builder.HasOne<ClassOffering>()
             .WithMany()
             .HasForeignKey(ce => ce.ClassOfferingId);
+
+        builder.HasOne<Grade>()
+            .WithMany()
+            .HasForeignKey(ce => ce.GradeId);
     }
 }

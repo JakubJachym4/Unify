@@ -11,3 +11,15 @@ public record DeleteLectureCommand(Guid Id) : ICommand;
 public record GetLectureQuery(Guid Id) : IQuery<LectureResponse>;
 
 public record ListLecturesQuery : IQuery<List<LectureResponse>>;
+
+public record ListLecturesByCourseQuery(Guid CourseId) : IQuery<List<LectureResponse>>;
+
+public record CreateIntervalLecturesCommand(
+    Guid CourseId,
+    string Title,
+    DateTime StartDate,
+    DateTime EndDate,
+    int WeekInterval,
+    TimeSpan Duration,
+    Guid LecturerId,
+    Guid LocationId) : ICommand;

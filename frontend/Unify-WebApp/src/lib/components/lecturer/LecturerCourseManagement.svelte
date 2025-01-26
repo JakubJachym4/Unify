@@ -10,6 +10,7 @@
 	import { getAllSpecializations } from '$lib/api/Admin/Specialization/SpecializationRequests';
 	import { globalUsers } from '$lib/stores/globalUsers';
     import ClassOfferingManagement from './ClassOfferingManagement.svelte';
+	import CourseResourceManagement from './resources/CourseResourceManagement.svelte';
 
     let courses: Course[] = [];
     let specializations = [];
@@ -20,6 +21,7 @@
     let editForm: HTMLFormElement;
     let updating = false;
     let selectedCourse: Course | null = null;
+    let editingResources: Course | null = null;
 
     const loadCourses = async () => {
         try {
@@ -76,7 +78,6 @@
 
     const handleCourseSelect = (course: Course) => {
         selectedCourse = course;
-        console.log(selectedCourse);
         selectedCourse.classOfferings = selectedCourse.classOfferingResponses.map(classOffering => ({
             ...classOffering,
         }));
@@ -105,7 +106,9 @@
 </script>
 
 <div class="container mt-4">
+    {#if !selectedCourse && !editingResources}
     <h1 class="mb-4">My Courses</h1>
+    {/if}
 
     {#if error}
         <div class="alert alert-danger" role="alert">{error}</div>
@@ -118,6 +121,7 @@
             </div>
         </div>
     {:else}
+    {#if !selectedCourse && !editingResources}
         <div class="row mb-3">
             <div class="col">
                 <input
@@ -128,6 +132,7 @@
                 />
             </div>
         </div>
+        {/if}
 
         {#if selectedCourse}
         {#key updating}
@@ -137,6 +142,11 @@
             on:refresh={() => {updating = true; loadCourses()}}
         />
         {/key}
+
+        {:else if editingResources}
+            <CourseResourceManagement 
+                courseId={editingResources.id}
+                onBack={() => editingResources = nu} />
             
         {:else}
             <div class="table-responsive">
@@ -163,6 +173,11 @@
                                         class="btn btn-sm btn-outline-secondary"
                                         on:click={() => handleCourseSelect(course)}>
                                         Manage Offerings
+                                    </button>
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary"
+                                        on:click={() => editingResources = course}>
+                                        Edit Resources
                                     </button>
                                 </td>
                             </tr>

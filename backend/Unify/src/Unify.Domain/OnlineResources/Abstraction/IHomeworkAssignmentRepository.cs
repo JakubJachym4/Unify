@@ -6,5 +6,4 @@ public interface IHomeworkAssignmentRepository
     Task<List<HomeworkAssigment>> GetAllAsync(CancellationToken cancellationToken);
     void Add(HomeworkAssigment entity);
     void Delete(HomeworkAssigment entity);
-    Task<List<HomeworkAssigment>> GetByCourseAsync(HomeworkAssigment course, CancellationToken cancellationToken);
 }

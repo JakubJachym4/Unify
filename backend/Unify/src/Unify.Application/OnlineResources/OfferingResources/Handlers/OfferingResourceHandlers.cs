@@ -116,7 +116,7 @@ public sealed class GetOfferingResourceQueryHandler : IQueryHandler<GetOfferingR
 
     public async Task<Result<OfferingResourceResponse>> Handle(GetOfferingResourceQuery request, CancellationToken cancellationToken)
     {
-        var offeringResource = await _offeringResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        var offeringResource = await _offeringResourceRepository.GetByIdAsyncIncludeAttachments(request.Id, cancellationToken);
         if (offeringResource == null)
         {
             return Result.Failure<OfferingResourceResponse>("OfferingResource.NotFound", "Offering resource not found.");
@@ -146,7 +146,7 @@ public sealed class GetOfferingResourcesQueryHandler : IQueryHandler<GetOffering
             return Result.Failure<List<OfferingResourceResponse>>(ClassOfferingErrors.NotFound);
         }
 
-        var offeringResources = await _offeringResourceRepository.GetByClassOfferingAsync(classOffering, cancellationToken);
+        var offeringResources = await _offeringResourceRepository.GetByClassOfferingAsyncIncludeAttachments(classOffering, cancellationToken);
 
         return Result.Success(offeringResources.Select(OfferingResourceResponse.CreateFromOfferingResource).ToList());
     }

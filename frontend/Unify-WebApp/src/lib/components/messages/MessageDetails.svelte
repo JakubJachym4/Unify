@@ -1,7 +1,8 @@
 <script lang="ts">
 	import MessageDetails from './MessageDetails.svelte';
 	import { globalUsers } from './../../stores/globalUsers';
-    import { type MessageResponse, type Attachment, getSeverityColor } from '$lib/api/Messages/MessagesRequests';
+    import { type MessageResponse, getSeverityColor } from '$lib/api/Messages/MessagesRequests';
+	import { type Attachment } from "$lib/types/resources";
     import { getUserData } from '$lib/api/User/UserRequests';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { onMount, onDestroy } from 'svelte';

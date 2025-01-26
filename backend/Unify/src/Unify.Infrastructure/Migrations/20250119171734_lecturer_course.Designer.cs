@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Unify.Infrastructure;
@@ -11,9 +12,11 @@ using Unify.Infrastructure;
 namespace Unify.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250119171734_lecturer_course")]
+    partial class lecturer_course
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,13 +235,9 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("homework_submission_id");
 
-                    b.Property<Guid?>("course_resources_id")
+                    b.Property<Guid?>("online_resource_id")
                         .HasColumnType("uuid")
-                        .HasColumnName("course_resources_id");
-
-                    b.Property<Guid?>("offering_resources_id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("offering_resources_id");
+                        .HasColumnName("online_resource_id");
 
                     b.HasKey("Id")
                         .HasName("pk_attachments");
@@ -249,11 +248,8 @@ namespace Unify.Infrastructure.Migrations
                     b.HasIndex("HomeworkSubmissionId")
                         .HasDatabaseName("ix_attachments_homework_submission_id");
 
-                    b.HasIndex("course_resources_id")
-                        .HasDatabaseName("ix_attachments_course_resources_id");
-
-                    b.HasIndex("offering_resources_id")
-                        .HasDatabaseName("ix_attachments_offering_resources_id");
+                    b.HasIndex("online_resource_id")
+                        .HasDatabaseName("ix_attachments_online_resource_id");
 
                     b.ToTable("attachments", (string)null);
                 });
@@ -424,10 +420,6 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("enrolled_on");
 
-                    b.Property<Guid>("GradeId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("grade_id");
-
                     b.Property<Guid>("StudentGroupId")
                         .HasColumnType("uuid")
                         .HasColumnName("student_group_id");
@@ -441,9 +433,6 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasIndex("ClassOfferingId")
                         .HasDatabaseName("ix_class_enrollments_class_offering_id");
-
-                    b.HasIndex("GradeId")
-                        .HasDatabaseName("ix_class_enrollments_grade_id");
 
                     b.HasIndex("StudentGroupId")
                         .HasDatabaseName("ix_class_enrollments_student_group_id");
@@ -707,6 +696,10 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid>("ClassEnrollmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_enrollment_id");
+
                     b.Property<DateTime?>("DateAwarded")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("date_awarded");
@@ -719,6 +712,9 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_grade");
+
+                    b.HasIndex("ClassEnrollmentId")
+                        .HasDatabaseName("ix_grade_class_enrollment_id");
 
                     b.ToTable("grade", (string)null);
                 });
@@ -1158,15 +1154,13 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasOne("Unify.Domain.OnlineResources.CourseResource", null)
                         .WithMany("Files")
-                        .HasForeignKey("course_resources_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_attachments_course_resources_course_resources_id");
+                        .HasForeignKey("online_resource_id")
+                        .HasConstraintName("fk_attachments_course_resources_online_resource_id");
 
                     b.HasOne("Unify.Domain.OnlineResources.OfferingResource", null)
                         .WithMany("Files")
-                        .HasForeignKey("offering_resources_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_attachments_offering_resources_offering_resources_id");
+                        .HasForeignKey("online_resource_id")
+                        .HasConstraintName("fk_attachments_offering_resources_online_resource_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.CourseResource", b =>
@@ -1231,13 +1225,6 @@ namespace Unify.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_class_enrollments_class_offering_class_offering_id");
-
-                    b.HasOne("Unify.Domain.UniversityCore.Grade", null)
-                        .WithMany()
-                        .HasForeignKey("GradeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_class_enrollments_grade_grade_id");
 
                     b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
                         .WithMany("ClassEnrollments")
@@ -1349,6 +1336,16 @@ namespace Unify.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_fields_of_study_faculties_faculty_id");
+                });
+
+            modelBuilder.Entity("Unify.Domain.UniversityCore.Grade", b =>
+                {
+                    b.HasOne("Unify.Domain.UniversityClasses.ClassEnrollment", null)
+                        .WithMany()
+                        .HasForeignKey("ClassEnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_grade_class_enrollments_class_enrollment_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.UniversityCore.Location", b =>

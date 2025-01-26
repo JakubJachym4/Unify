@@ -12,8 +12,8 @@ using Unify.Infrastructure;
 namespace Unify.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241224104414_Initial")]
-    partial class Initial
+    [Migration("20250126000049_another_one_2")]
+    partial class another_one_2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -235,9 +235,13 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("homework_submission_id");
 
-                    b.Property<Guid?>("online_resource_id")
+                    b.Property<Guid?>("course_resources_id")
                         .HasColumnType("uuid")
-                        .HasColumnName("online_resource_id");
+                        .HasColumnName("course_resources_id");
+
+                    b.Property<Guid?>("offering_resources_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offering_resources_id");
 
                     b.HasKey("Id")
                         .HasName("pk_attachments");
@@ -248,8 +252,11 @@ namespace Unify.Infrastructure.Migrations
                     b.HasIndex("HomeworkSubmissionId")
                         .HasDatabaseName("ix_attachments_homework_submission_id");
 
-                    b.HasIndex("online_resource_id")
-                        .HasDatabaseName("ix_attachments_online_resource_id");
+                    b.HasIndex("course_resources_id")
+                        .HasDatabaseName("ix_attachments_course_resources_id");
+
+                    b.HasIndex("offering_resources_id")
+                        .HasDatabaseName("ix_attachments_offering_resources_id");
 
                     b.ToTable("attachments", (string)null);
                 });
@@ -416,9 +423,13 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("class_offering_id");
 
-                    b.Property<DateTime>("EnrollmentOn")
+                    b.Property<DateTime>("EnrolledOn")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("enrollment_on");
+                        .HasColumnName("enrolled_on");
+
+                    b.Property<Guid>("GradeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grade_id");
 
                     b.Property<Guid>("StudentGroupId")
                         .HasColumnType("uuid")
@@ -433,6 +444,9 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasIndex("ClassOfferingId")
                         .HasDatabaseName("ix_class_enrollments_class_offering_id");
+
+                    b.HasIndex("GradeId")
+                        .HasDatabaseName("ix_class_enrollments_grade_id");
 
                     b.HasIndex("StudentGroupId")
                         .HasDatabaseName("ix_class_enrollments_student_group_id");
@@ -449,10 +463,6 @@ namespace Unify.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<Guid?>("BoundGroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("bound_group_id");
 
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid")
@@ -480,11 +490,12 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("start_date");
 
+                    b.Property<Guid>("StudentGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_group_id");
+
                     b.HasKey("Id")
                         .HasName("pk_class_offerings");
-
-                    b.HasIndex("BoundGroupId")
-                        .HasDatabaseName("ix_class_offerings_bound_group_id");
 
                     b.HasIndex("CourseId")
                         .HasDatabaseName("ix_class_offerings_course_id");
@@ -492,7 +503,62 @@ namespace Unify.Infrastructure.Migrations
                     b.HasIndex("LecturerId")
                         .HasDatabaseName("ix_class_offerings_lecturer_id");
 
+                    b.HasIndex("StudentGroupId")
+                        .HasDatabaseName("ix_class_offerings_student_group_id");
+
                     b.ToTable("class_offerings", (string)null);
+                });
+
+            modelBuilder.Entity("Unify.Domain.UniversityClasses.ClassOfferingSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClassOfferingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_offering_id");
+
+                    b.Property<int>("ClassType")
+                        .HasColumnType("integer")
+                        .HasColumnName("class_type");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("interval")
+                        .HasColumnName("duration");
+
+                    b.Property<Guid>("LecturerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lecturer_id");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id")
+                        .HasName("pk_class_offering_sessions");
+
+                    b.HasIndex("ClassOfferingId")
+                        .HasDatabaseName("ix_class_offering_sessions_class_offering_id");
+
+                    b.HasIndex("LecturerId")
+                        .HasDatabaseName("ix_class_offering_sessions_lecturer_id");
+
+                    b.HasIndex("LocationId")
+                        .HasDatabaseName("ix_class_offering_sessions_location_id");
+
+                    b.ToTable("class_offering_sessions", (string)null);
                 });
 
             modelBuilder.Entity("Unify.Domain.UniversityClasses.Lecture", b =>
@@ -547,58 +613,6 @@ namespace Unify.Infrastructure.Migrations
                     b.ToTable("lectures", (string)null);
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityClasses.OfferingSession", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ClassOfferingId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("class_offering_id");
-
-                    b.Property<int>("ClassType")
-                        .HasColumnType("integer")
-                        .HasColumnName("class_type");
-
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("interval")
-                        .HasColumnName("duration");
-
-                    b.Property<Guid>("LecturerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("lecturer_id");
-
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("location_id");
-
-                    b.Property<DateTime>("ScheduledDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("scheduled_date");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id")
-                        .HasName("pk_offering_sessions");
-
-                    b.HasIndex("ClassOfferingId")
-                        .HasDatabaseName("ix_offering_sessions_class_offering_id");
-
-                    b.HasIndex("LecturerId")
-                        .HasDatabaseName("ix_offering_sessions_lecturer_id");
-
-                    b.HasIndex("LocationId")
-                        .HasDatabaseName("ix_offering_sessions_location_id");
-
-                    b.ToTable("offering_sessions", (string)null);
-                });
-
             modelBuilder.Entity("Unify.Domain.UniversityCore.Course", b =>
                 {
                     b.Property<Guid>("Id")
@@ -612,6 +626,10 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("character varying(400)")
                         .HasColumnName("description");
 
+                    b.Property<Guid?>("LecturerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lecturer_id");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -624,6 +642,9 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_courses");
+
+                    b.HasIndex("LecturerId")
+                        .HasDatabaseName("ix_courses_lecturer_id");
 
                     b.HasIndex("SpecializationId")
                         .HasDatabaseName("ix_courses_specialization_id");
@@ -689,10 +710,6 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("ClassEnrollmentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("class_enrollment_id");
-
                     b.Property<DateTime?>("DateAwarded")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("date_awarded");
@@ -705,9 +722,6 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_grade");
-
-                    b.HasIndex("ClassEnrollmentId")
-                        .HasDatabaseName("ix_grade_class_enrollment_id");
 
                     b.ToTable("grade", (string)null);
                 });
@@ -875,29 +889,6 @@ namespace Unify.Infrastructure.Migrations
                     b.ToTable("student_group", (string)null);
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroupsUsers", b =>
-                {
-                    b.Property<Guid>("StudentGroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_group_id");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<Guid>("MembersId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("members_id");
-
-                    b.HasKey("StudentGroupId", "StudentId")
-                        .HasName("pk_student_groups_users");
-
-                    b.HasIndex("MembersId")
-                        .HasDatabaseName("ix_student_groups_users_members_id");
-
-                    b.ToTable("student_groups_users", (string)null);
-                });
-
             modelBuilder.Entity("Unify.Domain.Users.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -1023,6 +1014,14 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("last_name");
 
+                    b.Property<Guid?>("SpecializationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("specialization_id");
+
+                    b.Property<Guid?>("StudentGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_group_id");
+
                     b.HasKey("Id")
                         .HasName("pk_users");
 
@@ -1033,6 +1032,12 @@ namespace Unify.Infrastructure.Migrations
                     b.HasIndex("IdentityId")
                         .IsUnique()
                         .HasDatabaseName("ix_users_identity_id");
+
+                    b.HasIndex("SpecializationId")
+                        .HasDatabaseName("ix_users_specialization_id");
+
+                    b.HasIndex("StudentGroupId")
+                        .HasDatabaseName("ix_users_student_group_id");
 
                     b.ToTable("users", (string)null);
                 });
@@ -1156,13 +1161,15 @@ namespace Unify.Infrastructure.Migrations
 
                     b.HasOne("Unify.Domain.OnlineResources.CourseResource", null)
                         .WithMany("Files")
-                        .HasForeignKey("online_resource_id")
-                        .HasConstraintName("fk_attachments_course_resources_online_resource_id");
+                        .HasForeignKey("course_resources_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_attachments_course_resources_course_resources_id");
 
                     b.HasOne("Unify.Domain.OnlineResources.OfferingResource", null)
                         .WithMany("Files")
-                        .HasForeignKey("online_resource_id")
-                        .HasConstraintName("fk_attachments_offering_resources_online_resource_id");
+                        .HasForeignKey("offering_resources_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_attachments_offering_resources_offering_resources_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.CourseResource", b =>
@@ -1228,6 +1235,13 @@ namespace Unify.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_class_enrollments_class_offering_class_offering_id");
 
+                    b.HasOne("Unify.Domain.UniversityCore.Grade", null)
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_enrollments_grade_grade_id");
+
                     b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
                         .WithMany("ClassEnrollments")
                         .HasForeignKey("StudentGroupId")
@@ -1245,11 +1259,6 @@ namespace Unify.Infrastructure.Migrations
 
             modelBuilder.Entity("Unify.Domain.UniversityClasses.ClassOffering", b =>
                 {
-                    b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
-                        .WithMany()
-                        .HasForeignKey("BoundGroupId")
-                        .HasConstraintName("fk_class_offerings_student_group_bound_group_id");
-
                     b.HasOne("Unify.Domain.UniversityCore.Course", null)
                         .WithMany("Classes")
                         .HasForeignKey("CourseId")
@@ -1263,6 +1272,37 @@ namespace Unify.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_class_offerings_user_lecturer_id");
+
+                    b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
+                        .WithMany()
+                        .HasForeignKey("StudentGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_offerings_student_group_student_group_id");
+                });
+
+            modelBuilder.Entity("Unify.Domain.UniversityClasses.ClassOfferingSession", b =>
+                {
+                    b.HasOne("Unify.Domain.UniversityClasses.ClassOffering", null)
+                        .WithMany()
+                        .HasForeignKey("ClassOfferingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_offering_sessions_class_offerings_class_offering_id");
+
+                    b.HasOne("Unify.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("LecturerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_offering_sessions_user_lecturer_id");
+
+                    b.HasOne("Unify.Domain.UniversityCore.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_class_offering_sessions_location_location_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.UniversityClasses.Lecture", b =>
@@ -1289,32 +1329,13 @@ namespace Unify.Infrastructure.Migrations
                         .HasConstraintName("fk_lectures_location_location_id");
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityClasses.OfferingSession", b =>
+            modelBuilder.Entity("Unify.Domain.UniversityCore.Course", b =>
                 {
-                    b.HasOne("Unify.Domain.UniversityClasses.ClassOffering", null)
-                        .WithMany()
-                        .HasForeignKey("ClassOfferingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_offering_sessions_class_offerings_class_offering_id");
-
                     b.HasOne("Unify.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("LecturerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_offering_sessions_user_lecturer_id");
+                        .HasConstraintName("fk_courses_user_lecturer_id");
 
-                    b.HasOne("Unify.Domain.UniversityCore.Location", null)
-                        .WithMany()
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_offering_sessions_location_location_id");
-                });
-
-            modelBuilder.Entity("Unify.Domain.UniversityCore.Course", b =>
-                {
                     b.HasOne("Unify.Domain.UniversityCore.Specialization", null)
                         .WithMany()
                         .HasForeignKey("SpecializationId")
@@ -1331,16 +1352,6 @@ namespace Unify.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_fields_of_study_faculties_faculty_id");
-                });
-
-            modelBuilder.Entity("Unify.Domain.UniversityCore.Grade", b =>
-                {
-                    b.HasOne("Unify.Domain.UniversityClasses.ClassEnrollment", null)
-                        .WithMany()
-                        .HasForeignKey("ClassEnrollmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_grade_class_enrollments_class_enrollment_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.UniversityCore.Location", b =>
@@ -1381,23 +1392,6 @@ namespace Unify.Infrastructure.Migrations
                         .HasConstraintName("fk_student_group_specializations_specialization_id");
                 });
 
-            modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroupsUsers", b =>
-                {
-                    b.HasOne("Unify.Domain.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("MembersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_student_groups_users_user_members_id");
-
-                    b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
-                        .WithMany()
-                        .HasForeignKey("StudentGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_student_groups_users_student_group_student_group_id");
-                });
-
             modelBuilder.Entity("Unify.Domain.Users.RolePermission", b =>
                 {
                     b.HasOne("Unify.Domain.Users.Permission", null)
@@ -1413,6 +1407,19 @@ namespace Unify.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_role_permissions_roles_role_id");
+                });
+
+            modelBuilder.Entity("Unify.Domain.Users.User", b =>
+                {
+                    b.HasOne("Unify.Domain.UniversityCore.Specialization", null)
+                        .WithMany("Students")
+                        .HasForeignKey("SpecializationId")
+                        .HasConstraintName("fk_users_specializations_specialization_id");
+
+                    b.HasOne("Unify.Domain.UniversityCore.StudentGroup", null)
+                        .WithMany("Members")
+                        .HasForeignKey("StudentGroupId")
+                        .HasConstraintName("fk_users_student_group_student_group_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.CourseResource", b =>
@@ -1452,9 +1459,16 @@ namespace Unify.Infrastructure.Migrations
                     b.Navigation("Marks");
                 });
 
+            modelBuilder.Entity("Unify.Domain.UniversityCore.Specialization", b =>
+                {
+                    b.Navigation("Students");
+                });
+
             modelBuilder.Entity("Unify.Domain.UniversityCore.StudentGroup", b =>
                 {
                     b.Navigation("ClassEnrollments");
+
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

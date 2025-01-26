@@ -1,3 +1,4 @@
+import type { Attachment } from "$lib/types/resources";
 import { api } from "../api";
 
 export const enum SeverityLevel {
@@ -30,12 +31,6 @@ export type MessageResponse ={
     forwardedFromId: string | null;
     expirationDate: Date | null;
     informationSeverityLevel: string | null;
-}
-
-export type Attachment = {
-    fileName: string;
-    contentType: string;
-    data: string
 }
 
 export type FileAttachment = File;

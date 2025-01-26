@@ -19,4 +19,9 @@ public sealed class ClassEnrollmentRepository : Repository<ClassEnrollment>, ICl
     {
         return DbContext.Set<ClassEnrollment>().Where(e => e.StudentId == studentId).ToListAsync(cancellationToken);
     }
+
+    public Task<ClassEnrollment?> GetByClassOfferingAndStudentAsync(Guid classOfferingId, Guid studentId, CancellationToken cancellationToken)
+    {
+        return DbContext.Set<ClassEnrollment>().FirstOrDefaultAsync(e => e.ClassOfferingId == classOfferingId && e.StudentId == studentId, cancellationToken);
+    }
 }
