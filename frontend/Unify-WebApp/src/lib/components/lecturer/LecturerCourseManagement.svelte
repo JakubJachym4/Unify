@@ -146,7 +146,7 @@
         {:else if editingResources}
             <CourseResourceManagement 
                 courseId={editingResources.id}
-                onBack={() => editingResources = nu} />
+                onBack={() => editingResources = null} />
             
         {:else}
             <div class="table-responsive">

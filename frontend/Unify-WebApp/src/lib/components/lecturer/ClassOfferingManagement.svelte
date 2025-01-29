@@ -24,7 +24,7 @@
     let assigningLecturerToOffering: ClassOffering | null = null;
     let lecturerSearchTerm = '';
     let selectedLecturerId: string | null = null;
-    let lecturers: UserResponse[] = []; // Assuming you have a Lecturer type and list
+    let lecturers: UserResponse[] = [];
     let filteredLecturers = [];
     let userId = $user!.id;
 
@@ -158,7 +158,7 @@ $: filteredLecturers = lecturers.filter(lecturer => {
         <h2>Classes - {course.name}</h2>
         <div>
             <button class="btn btn-primary me-2" on:click={() => addingOffering = true}>
-                Add Offering
+                Add Class
             </button>
             <button class="btn btn-secondary" on:click={onBack}>
                 Back to Courses
@@ -263,7 +263,7 @@ $: filteredLecturers = lecturers.filter(lecturer => {
                     novalidate
                 >
                     <div class="modal-header">
-                        <h5 class="modal-title">Add New Class Offering</h5>
+                        <h5 class="modal-title">Add New Class</h5>
                         <button type="button" class="btn-close" on:click={() => addingOffering = false}></button>
                     </div>
                     <div class="modal-body">
@@ -381,7 +381,7 @@ $: filteredLecturers = lecturers.filter(lecturer => {
                     novalidate
                 >
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Class Offering</h5>
+                        <h5 class="modal-title">Edit Class</h5>
                         <button type="button" class="btn-close" on:click={() => editingOffering = null}></button>
                     </div>
                     <div class="modal-body">

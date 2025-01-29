@@ -35,6 +35,7 @@ export const CreateCourseResource = async (data: CreateCourseResourceRequest, to
 
 export const UpdateCourseResource = async (data: UpdateCourseResourceRequest, token: string) => {
     const formData = new FormData();
+    formData.append('id', data.id);
     formData.append('title', data.title);
     formData.append('description', data.description);
     if(data.attachments)

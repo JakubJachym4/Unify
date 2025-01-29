@@ -34,7 +34,10 @@ export type Attachment = {
     data: string;
 };
 
-export const convertFilesToAttachments = (files: File[]): Attachment[] => {
+export const convertFilesToAttachments = (files: File[] | null): Attachment[] => {
+    if (!files) {
+        return [];
+    }
     return files.map(file => ({
         fileName: file.name,
         contentType: file.type,

@@ -17,16 +17,23 @@ import type { ApiRequestError } from '$lib/api/apiError';
 import { convertFilesToAttachments } from "$lib/types/resources";
 
 export let courseId: string;
-export const onBack = () => {};
+export let onBack: () => void;
 
 let resources: ClassResource[] = [];
 let error = '';
 let loading = true;
 let addingResource = false;
-let editingResource: ClassResource | null = null;
+let editingResourceState = false;
 let deletingResource: ClassResource | null = null;
 
 let newResource = {
+    title: '',
+    description: '',
+    attachments: null as File[] | null
+};
+
+let editingResource = {
+    id: '',
     title: '',
     description: '',
     attachments: null as File[] | null
@@ -49,11 +56,31 @@ const loadResources = async () => {
     }
 };
 
+const isImageFile = (fileName: string) => {
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        return extension ? imageExtensions.includes(extension) : false;
+    };
+
+const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch(extension) {
+        case 'pdf': return 'file-pdf';
+        case 'doc':
+        case 'docx': return 'file-word';
+        case 'xls':
+        case 'xlsx': return 'file-excel';
+        case 'ppt':
+        case 'pptx': return 'file-powerpoint';
+        default: return 'file';
+    }
+};
+
 const handleFileSelect = (event: Event, isEdit = false) => {
     const target = event.target as HTMLInputElement;
     const files = Array.from(target.files || []);
     if (isEdit && editingResource) {
-        editingResource.attachments = convertFilesToAttachments(files)
+        editingResource.attachments = files
     } else {
         newResource.attachments = files;
     }
@@ -80,14 +107,13 @@ const handleUpdate = async () => {
     try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No token found');
-        let attachments = editingResource ? convertAttachmentsToFiles(editingResource.attachments) : null;
         if(!editingResource) throw new Error('No resource found');
 
         await UpdateCourseResource({
-            ...editingResource,
-            attachments: attachments,
+            ...editingResource
         }, token);
-        editingResource = null;
+        editingResource = { id: '', title: '', description: '', attachments: null };
+        editingResourceState = false;
         await loadResources();
     } catch (err) {
         error = (err as ApiRequestError).details;
@@ -129,9 +155,15 @@ onMount(loadResources);
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Course Resources</h2>
-        <button class="btn btn-primary" on:click={() => addingResource = true}>
-            Add Resource
-        </button>
+        <div>
+            <button class="btn btn-primary" on:click={() => addingResource = true}>
+                Add Resource
+            </button>
+            <button class="btn btn-secondary" on:click={onBack}>
+                Back to Offering
+            </button>
+        </div>
+        
     </div>
 
     {#if error}
@@ -162,19 +194,42 @@ onMount(loadResources);
                             <td>{resource.description}</td>
                             <td>
                                 {#if resource.attachments}
+                                <div class="d-flex flex-wrap gap-2">
                                     {#each resource.attachments as attachment}
-                                        <p>
-                                            {attachment.fileName}
-                                        </p>
+                                        <div class="attachment-item">
+                                            {#if isImageFile(attachment.fileName)}
+                                                <img 
+                                                    src={attachment.data} 
+                                                    alt={attachment.fileName}
+                                                    class="img-thumbnail"
+                                                    style="max-width: 100px; max-height: 100px;"
+                                                />
+                                            {:else}
+                                                <i class="bi bi-{getFileIcon(attachment.fileName)} fs-2"></i>
+                                            {/if}
+                                            <div class="mt-1">
+                                                <small class="d-block text-truncate" style="max-width: 100px;">
+                                                    {attachment.fileName}
+                                                </small>
+                                                <a 
+                                                    href={attachment.data}
+                                                    download={attachment.fileName}
+                                                    class="btn btn-sm btn-outline-primary mt-1"
+                                                >
+                                                    <i class="bi bi-download"></i> Download
+                                                </a>
+                                            </div>
+                                        </div>
                                     {/each}
-                                {:else}
-                                    <span class="text-muted">No attachments</span>
-                                {/if}
+                                </div>
+                            {:else}
+                                <span class="text-muted">No attachments</span>
+                            {/if}
                             </td>
                             <td>
                                 <button 
                                     class="btn btn-sm btn-outline-primary me-2"
-                                    on:click={() => editingResource = {...resource}}>
+                                    on:click={() => {editingResource = {...resource, attachments: convertAttachmentsToFiles(resource.attachments)}; editingResourceState = true}}>
                                     Edit
                                 </button>
                                 <button 
@@ -268,7 +323,7 @@ onMount(loadResources);
 {/if}
 
 <!-- Edit Resource Modal -->
-{#if editingResource}
+{#if editingResourceState}
     <div class="modal fade show" style="display: block;">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -285,7 +340,10 @@ onMount(loadResources);
                 >
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Resource</h5>
-                        <button type="button" class="btn-close" on:click={() => editingResource = null}></button>
+                        <button type="button" class="btn-close" on:click={() => editingResource = {id: '',
+                            title: '',
+                            description: '',
+                            attachments: null as File[] | null}}></button>
                     </div>
                     <div class="modal-body">
                         <!-- Same form fields as Add Modal -->
@@ -322,7 +380,11 @@ onMount(loadResources);
                         <button 
                             type="button"
                             class="btn btn-secondary"
-                            on:click={() => editingResource = null}
+                            on:click={() => {editingResource = {
+                            id: '',
+                            title: '',
+                            description: '',
+                            attachments: null as File[] | null}; editingResourceState = false}}
                         >
                             Cancel
                         </button>

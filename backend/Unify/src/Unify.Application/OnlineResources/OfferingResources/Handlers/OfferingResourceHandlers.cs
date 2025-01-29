@@ -59,19 +59,36 @@ public sealed class UpdateOfferingResourceCommandHandler : ICommandHandler<Updat
 {
     private readonly IOfferingResourceRepository _offeringResourceRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileConversionService _fileConversionService;
 
-    public UpdateOfferingResourceCommandHandler(IOfferingResourceRepository offeringResourceRepository, IUnitOfWork unitOfWork)
+    public UpdateOfferingResourceCommandHandler(IOfferingResourceRepository offeringResourceRepository, IUnitOfWork unitOfWork, IFileConversionService fileConversionService)
     {
         _offeringResourceRepository = offeringResourceRepository;
         _unitOfWork = unitOfWork;
+        _fileConversionService = fileConversionService;
     }
 
     public async Task<Result> Handle(UpdateOfferingResourceCommand request, CancellationToken cancellationToken)
     {
-        var offeringResource = await _offeringResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        var offeringResource = await _offeringResourceRepository.GetByIdAsyncIncludeAttachments(request.Id, cancellationToken);
         if (offeringResource is null)
         {
             return Result.Failure("OfferingResource.NotFound", "Offering resource not found.");
+        }
+
+        if (request.Attachments != null)
+        {
+            var attachments = await _fileConversionService.ConvertToAttachments(request.Attachments);
+            offeringResource.ClearFiles();
+
+            foreach (var attachment in attachments)
+            {
+                if (attachment.IsFailure)
+                {
+                    return Result.Failure<Guid>(attachment.Error);
+                }
+                offeringResource.AddFile(attachment.Value);
+            }
         }
 
         offeringResource.Update(new Title(request.Title), new Description(request.Description));

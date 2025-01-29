@@ -278,7 +278,7 @@ public sealed class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateC
 
     public async Task<Result> Handle(UpdateCourseResourceCommand request, CancellationToken cancellationToken)
     {
-        var courseResource = await _courseResourceRepository.GetByIdAsync(request.Id, cancellationToken);
+        var courseResource = await _courseResourceRepository.GetByIdAsyncIncludeAttachments(request.Id, cancellationToken);
         if (courseResource == null)
         {
             return Result.Failure<Guid>("CourseResource.NotFound", "Course resource not found.");
