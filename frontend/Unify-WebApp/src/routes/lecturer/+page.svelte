@@ -1,6 +1,8 @@
 <script lang="ts">
     import LecturerCourseManagement from '$lib/components/lecturer/LecturerCourseManagement.svelte';
-import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
+    import MyClassesManagement from '$lib/components/lecturer/MyClassesManagement.svelte';
+    import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
+    
     
     let showMessages = true;
     let activeComponent = 'dashboard';
@@ -31,6 +33,12 @@ import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte
                     >
                         My Courses
                     </button>
+                    <button 
+                        class="btn {activeComponent === 'classes' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => activeComponent = 'classes'}
+                    >
+                        My Classes
+                    </button>
                     <!-- Add more lecturer-specific buttons here -->
                 </div>
                 <button 
@@ -53,7 +61,10 @@ import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte
 
             {:else if activeComponent === 'courses'}
                 <LecturerCourseManagement />
+            {:else if activeComponent === 'classes'}
+                <MyClassesManagement />
             {/if}
+            
         </div>
         
         {#if showMessages}

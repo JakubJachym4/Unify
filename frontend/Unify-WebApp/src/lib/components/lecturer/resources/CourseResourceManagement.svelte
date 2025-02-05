@@ -160,7 +160,7 @@ onMount(loadResources);
                 Add Resource
             </button>
             <button class="btn btn-secondary" on:click={onBack}>
-                Back to Offering
+                Back to Class
             </button>
         </div>
         
@@ -237,6 +237,7 @@ onMount(loadResources);
                                     on:click={() => deletingResource = resource}>
                                     Delete
                                 </button>
+                                
                             </td>
                         </tr>
                     {/each}

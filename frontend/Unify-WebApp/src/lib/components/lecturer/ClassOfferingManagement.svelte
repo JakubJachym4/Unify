@@ -355,7 +355,7 @@ $: filteredLecturers = lecturers.filter(lecturer => {
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            Add Offering
+                            Add Classes
                         </button>
                     </div>
                 </form>

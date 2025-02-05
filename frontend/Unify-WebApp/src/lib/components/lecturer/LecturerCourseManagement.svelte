@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LectureManagement from './LectureManagement.svelte';
     import { onMount } from 'svelte';
     import { courseStore } from '$lib/stores/course';
     import { GetCoursesByLecturer, UpdateCourse } from '$lib/api/Admin/Classes/CourseRequests';
@@ -22,6 +23,7 @@
     let updating = false;
     let selectedCourse: Course | null = null;
     let editingResources: Course | null = null;
+    let lectureCourse: Course | null = null;
 
     const loadCourses = async () => {
         try {
@@ -148,6 +150,10 @@
                 courseId={editingResources.id}
                 onBack={() => editingResources = null} />
             
+        {:else if lectureCourse}
+            <LectureManagement 
+            courseId={lectureCourse.id}
+            onBack={() => lectureCourse = null}/>
         {:else}
             <div class="table-responsive">
                 <table class="table">
@@ -165,19 +171,24 @@
                                 <td>{course.description}</td>
                                 <td>
                                     <button 
-                                        class="btn btn-sm btn-outline-primary me-2"
+                                        class="btn btn-sm btn-outline-primary"
                                         on:click={() => editingCourse = {...course}}>
                                         Edit
                                     </button>
                                     <button 
                                         class="btn btn-sm btn-outline-secondary"
                                         on:click={() => handleCourseSelect(course)}>
-                                        Manage Offerings
+                                        Manage Classes
                                     </button>
                                     <button 
                                         class="btn btn-sm btn-outline-primary"
                                         on:click={() => editingResources = course}>
                                         Edit Resources
+                                    </button>
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary"
+                                        on:click={() => lectureCourse = course}>
+                                        Lectures
                                     </button>
                                 </td>
                             </tr>
