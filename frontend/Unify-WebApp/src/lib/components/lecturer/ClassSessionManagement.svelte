@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import type { ClassSession } from '$lib/types/resources';
     import { 
-        CreateLecture, 
-        UpdateLecture, 
-        DeleteLecture,
-        CreateIntervalLectures,
-        GetLecturesByCourse 
-    } from '$lib/api/Admin/Classes/LectureRequests';
+        CreateClassSession,
+        UpdateClassSession,
+        DeleteClassSession,
+        CreateIntervalClassSessions,
+        GetClassSessionByClassOffering 
+    } from '$lib/api/Admin/Classes/ClassSessionRequests';
     import { GetAllLocations } from '$lib/api/Common/LocationRequests';
     import type { AcademicLocation } from '$lib/types/university';
     import type { ApiRequestError } from '$lib/api/apiError';
@@ -15,28 +15,27 @@
 
     const dispatch = createEventDispatcher<{refresh: void}>();
 
-    export let courseId: string;
+    export let classOfferingId: string;
     export let onBack: () => void;
 
-    let lectures: ClassSession[] = [];
+    let sessions: ClassSession[] = [];
     let locations: AcademicLocation[] = [];
     let error = '';
     let loading = true;
-    let addingLecture = false;
+    let addingSession = false;
     let addingInterval = false;
-    let editingLecture: ClassSession | null = null;
-    
+    let editingSession: ClassSession | null = null;
 
-    let newLecture = {
+    let newSession = {
         title: '',
         scheduledDate: '',
         duration: '90',
         lecturerId: '',
         locationId: '',
-        courseId: courseId
+        classOfferingId: classOfferingId
     };
 
-    let intervalLecture = {
+    let intervalSession = {
         title: '',
         startDate: '',
         endDate: '',
@@ -44,15 +43,15 @@
         duration: '90',
         lecturerId: '',
         locationId: '',
-        courseId: courseId
+        classOfferingId: classOfferingId
     };
 
-    const loadLectures = async () => {
+    const loadSessions = async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            const data = await GetLecturesByCourse(courseId, token);
-            lectures = data;
+            const data = await GetClassSessionByClassOffering(classOfferingId, token);
+            sessions = data;
             loading = false;
         } catch (err) {
             error = (err as ApiRequestError).details;
@@ -74,10 +73,10 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateLecture(newLecture, token);
-            addingLecture = false;
+            await CreateClassSession(newSession, token);
+            addingSession = false;
             dispatch('refresh');
-            await loadLectures();
+            await loadSessions();
         } catch (err) {
             error = (err as ApiRequestError).details;
         }
@@ -87,23 +86,26 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateIntervalLectures(intervalLecture, token);
+            await CreateIntervalClassSessions(intervalSession, token);
             addingInterval = false;
             dispatch('refresh');
-            await loadLectures();
+            await loadSessions();
         } catch (err) {
             error = (err as ApiRequestError).details;
         }
     };
 
     const handleUpdate = async () => {
-        if (!editingLecture) return;
+        if (!editingSession) return;
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await UpdateLecture({...editingLecture, duration: editingLecture.duration.toString()}, token);
-            editingLecture = null;
-            await loadLectures();
+            await UpdateClassSession({
+                ...editingSession,
+                duration: editingSession.duration.toString()
+            }, token);
+            editingSession = null;
+            await loadSessions();
         } catch (err) {
             error = (err as ApiRequestError).details;
         }
@@ -113,30 +115,30 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await DeleteLecture({ id }, token);
-            await loadLectures();
+            await DeleteClassSession({ id }, token);
+            await loadSessions();
         } catch (err) {
             error = (err as ApiRequestError).details;
         }
     };
 
     onMount(async () => {
-        await Promise.all([loadLectures(), loadLocations()]);
+        await Promise.all([loadSessions(), loadLocations()]);
     });
 </script>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Lecture Management</h2>
+        <h2>Class Sessions</h2>
         <div>
             <button class="btn btn-success me-2" on:click={() => addingInterval = true}>
                 Create Interval
             </button>
-            <button class="btn btn-primary me-2" on:click={() => addingLecture = true}>
-                Add Lecture
+            <button class="btn btn-primary me-2" on:click={() => addingSession = true}>
+                Add Session
             </button>
             <button class="btn btn-secondary" on:click={onBack}>
-                Back to Course
+                Back to Class
             </button>
         </div>
     </div>
@@ -165,32 +167,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#each lectures as lecture}
-                        {@const date = new Date(lecture.scheduledDate)}
+                    {#each sessions as session}
+                        {@const date = new Date(session.scheduledDate)}
                         <tr>
-                            <td>{lecture.title}</td>
+                            <td>{session.title}</td>
                             <td>{date.toLocaleDateString()}</td>
                             <td>{date.toLocaleTimeString()}</td>
-                            <td>{lecture.duration} min</td>
+                            <td>{session.duration} min</td>
                             <td>
-                                {#if locations.find(l => l.id === lecture.locationId)}
-                                    {@const location = locations.find(l => l.id === lecture.locationId)}
+                                {#if locations.find(l => l.id === session.locationId)}
+                                    {@const location = locations.find(l => l.id === session.locationId)}
                                     {#if location.online}
-                                        Online: {location.meetingUrl}
+                                        <a href={location.meetingUrl} target="_blank" rel="noopener noreferrer">
+                                            Online Meeting
+                                        </a>
                                     {:else}
-                                        Building: {location.building}, Room: {location.doorNumber}
+                                        Building: {location.building}<br>
+                                        Room: {location.doorNumber}
                                     {/if}
                                 {/if}
                             </td>
                             <td>
                                 <button 
                                     class="btn btn-sm btn-outline-primary me-2"
-                                    on:click={() => editingLecture = {...lecture}}>
+                                    on:click={() => editingSession = {...session}}>
                                     Edit
                                 </button>
                                 <button 
                                     class="btn btn-sm btn-outline-danger"
-                                    on:click={() => handleDelete(lecture.id)}>
+                                    on:click={() => handleDelete(session.id)}>
                                     Delete
                                 </button>
                             </td>
@@ -202,8 +207,8 @@
     {/if}
 </div>
 
-<!-- Add Lecture Modal -->
-{#if addingLecture}
+<!-- Add Session Modal -->
+{#if addingSession}
     <div class="modal fade show" style="display: block;">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -213,24 +218,24 @@
                     novalidate
                 >
                     <div class="modal-header">
-                        <h5 class="modal-title">Add New Lecture</h5>
-                        <button type="button" class="btn-close" on:click={() => addingLecture = false}></button>
+                        <h5 class="modal-title">Add New Session</h5>
+                        <button type="button" class="btn-close" on:click={() => addingSession = false}></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Title</label>
                             <input 
                                 class="form-control"
-                                bind:value={newLecture.title}
+                                bind:value={newSession.title}
                                 required
                             />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Date</label>
+                            <label class="form-label">Date & Time</label>
                             <input 
                                 type="datetime-local"
                                 class="form-control"
-                                bind:value={newLecture.scheduledDate}
+                                bind:value={newSession.scheduledDate}
                                 required
                             />
                         </div>
@@ -239,7 +244,7 @@
                             <input 
                                 type="number"
                                 class="form-control"
-                                bind:value={newLecture.duration}
+                                bind:value={newSession.duration}
                                 required
                                 min="15"
                                 step="15"
@@ -249,7 +254,7 @@
                             <label class="form-label">Location</label>
                             <select 
                                 class="form-select"
-                                bind:value={newLecture.locationId}
+                                bind:value={newSession.locationId}
                                 required
                             >
                                 <option value="">Select Location</option>
@@ -267,11 +272,11 @@
                         <button 
                             type="button"
                             class="btn btn-secondary"
-                            on:click={() => addingLecture = false}>
+                            on:click={() => addingSession = false}>
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            Add Lecture
+                            Add Session
                         </button>
                     </div>
                 </form>
@@ -292,7 +297,7 @@
                     novalidate
                 >
                     <div class="modal-header">
-                        <h5 class="modal-title">Create Lecture Interval</h5>
+                        <h5 class="modal-title">Create Session Interval</h5>
                         <button type="button" class="btn-close" on:click={() => addingInterval = false}></button>
                     </div>
                     <div class="modal-body">
@@ -300,16 +305,16 @@
                             <label class="form-label">Title</label>
                             <input 
                                 class="form-control"
-                                bind:value={intervalLecture.title}
+                                bind:value={intervalSession.title}
                                 required
                             />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Start Date</label>
                             <input 
-                                type="datetime-local"
+                                type="date"
                                 class="form-control"
-                                bind:value={intervalLecture.startDate}
+                                bind:value={intervalSession.startDate}
                                 required
                             />
                         </div>
@@ -318,7 +323,7 @@
                             <input 
                                 type="date"
                                 class="form-control"
-                                bind:value={intervalLecture.endDate}
+                                bind:value={intervalSession.endDate}
                                 required
                             />
                         </div>
@@ -327,7 +332,7 @@
                             <input 
                                 type="number"
                                 class="form-control"
-                                bind:value={intervalLecture.weekInterval}
+                                bind:value={intervalSession.weekInterval}
                                 required
                                 min="1"
                                 max="4"
@@ -338,7 +343,7 @@
                             <input 
                                 type="number"
                                 class="form-control"
-                                bind:value={intervalLecture.duration}
+                                bind:value={intervalSession.duration}
                                 required
                                 min="15"
                                 step="15"
@@ -348,7 +353,7 @@
                             <label class="form-label">Location</label>
                             <select 
                                 class="form-select"
-                                bind:value={intervalLecture.locationId}
+                                bind:value={intervalSession.locationId}
                                 required
                             >
                                 <option value="">Select Location</option>
@@ -381,7 +386,7 @@
 {/if}
 
 <!-- Edit Modal -->
-{#if editingLecture}
+{#if editingSession}
     <div class="modal fade show" style="display: block;">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -391,25 +396,24 @@
                     novalidate
                 >
                     <div class="modal-header">
-                        <h5 class="modal-title">Edit Lecture</h5>
-                        <button type="button" class="btn-close" on:click={() => editingLecture = null}></button>
+                        <h5 class="modal-title">Edit Session</h5>
+                        <button type="button" class="btn-close" on:click={() => editingSession = null}></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Same form fields as Add Modal -->
                         <div class="mb-3">
                             <label class="form-label">Title</label>
                             <input 
                                 class="form-control"
-                                bind:value={editingLecture.title}
+                                bind:value={editingSession.title}
                                 required
                             />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Date</label>
+                            <label class="form-label">Date & Time</label>
                             <input 
                                 type="datetime-local"
                                 class="form-control"
-                                bind:value={editingLecture.scheduledDate}
+                                bind:value={editingSession.scheduledDate}
                                 required
                             />
                         </div>
@@ -418,7 +422,7 @@
                             <input 
                                 type="number"
                                 class="form-control"
-                                bind:value={editingLecture.duration}
+                                bind:value={editingSession.duration}
                                 required
                                 min="15"
                                 step="15"
@@ -428,7 +432,7 @@
                             <label class="form-label">Location</label>
                             <select 
                                 class="form-select"
-                                bind:value={editingLecture.locationId}
+                                bind:value={editingSession.locationId}
                                 required
                             >
                                 <option value="">Select Location</option>
@@ -446,11 +450,11 @@
                         <button 
                             type="button"
                             class="btn btn-secondary"
-                            on:click={() => editingLecture = null}>
+                            on:click={() => editingSession = null}>
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            Update Lecture
+                            Update Session
                         </button>
                     </div>
                 </form>

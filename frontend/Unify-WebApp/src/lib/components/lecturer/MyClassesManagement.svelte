@@ -8,12 +8,15 @@
     import { user } from '$lib/stores/user';
     import { courseStore } from '$lib/stores/course';
     import { GetCourseById, type CourseResponse } from '$lib/api/Admin/Classes/CourseRequests';
+	import type { ClassSession } from '$lib/types/resources';
+	import ClassSessionManagement from './ClassSessionManagement.svelte';
 
     let classOfferings: (ClassOffering & { course?: CourseResponse })[] = [];
     let locations: AcademicLocation[] = [];
     let error = '';
     let loading = true;
     let searchTerm = '';
+    let classOfferingId: string | null = null;
 
     const loadClassOfferings = async () => {
         try {
@@ -86,6 +89,10 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
+    {:else if classOfferingId}
+        <ClassSessionManagement 
+        classOfferingId={classOfferingId}
+        onBack={() => classOfferingId = null}/>
     {:else}
         <div class="table-responsive">
             <table class="table">
@@ -122,7 +129,7 @@
                             <td>
                                 <button 
                                     class="btn btn-sm btn-outline-primary"
-                                    on:click={() => {/* Add session management navigation */}}
+                                    on:click={() => {classOfferingId = offering.id}}
                                 >
                                     View Sessions
                                 </button>
