@@ -62,7 +62,7 @@ export const GetClassSessions = async (token: string) : Promise<ClassSession[]> 
 }
 
 export const GetClassSessionByClassOffering = async (classOfferingId: string, token: string) : Promise<ClassSession[]> => {
-    let classSessions = await api<ClassSession[]>('GET', `/class-offering-sessions/course/${classOfferingId}`, null, token);
+    let classSessions = await api<ClassSession[]>('GET', `/class-offering-sessions/class-offering/${classOfferingId}`, null, token);
     classSessions.forEach(resource => {
         resource.classType = ClassType.class;
     });

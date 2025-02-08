@@ -10,8 +10,14 @@
     import { GetCourseById, type CourseResponse } from '$lib/api/Admin/Classes/CourseRequests';
 	import type { ClassSession } from '$lib/types/resources';
 	import ClassSessionManagement from './ClassSessionManagement.svelte';
+    import { studentGroupsStore } from '$lib/stores/studentGroups';
+	import { get } from 'svelte/store';
+	import { getStudentGroups } from '$lib/api/Common/StudentGroupRequests';
 
-    let classOfferings: (ClassOffering & { course?: CourseResponse })[] = [];
+    let classOfferings: (ClassOffering & { 
+        course?: CourseResponse;
+        groupName?: string;
+    })[] = [];
     let locations: AcademicLocation[] = [];
     let error = '';
     let loading = true;
@@ -25,18 +31,23 @@
             
             const offerings = await GetClassOfferingsByLecturer($user!.id, token);
             
-            // Fetch course details for each offering
-            const offeringsWithCourses = await Promise.all(
+            let groups = await getStudentGroups(token);
+            // Fetch course and group details for each offering
+            const offeringsWithDetails = await Promise.all(
                 offerings.map(async (offering) => {
-                    const course = await GetCourseById(offering.courseId, token);
+                    const [course, group] = await Promise.all([
+                        GetCourseById(offering.courseId, token),
+                        offering.studentGroupId ? groups.find(g => g.id === offering.studentGroupId): null
+                    ]);
                     return {
                         ...offering,
-                        course
+                        course,
+                        groupName: group?.name
                     };
                 })
             );
-            
-            classOfferings = offeringsWithCourses;
+
+            classOfferings = offeringsWithDetails;
             loading = false;
         } catch (err) {
             error = (err as ApiRequestError).details;
@@ -66,22 +77,27 @@
 </script>
 
 <div class="container mt-4">
-    <h2 class="mb-4">My Classes</h2>
+    {#if !classOfferingId}
+        <h2 class="mb-4">My Classes</h2>
+    {/if}
 
     {#if error}
         <div class="alert alert-danger" role="alert">{error}</div>
     {/if}
 
-    <div class="row mb-3">
-        <div class="col">
-            <input
-                type="search"
-                class="form-control"
-                placeholder="Search classes..."
-                bind:value={searchTerm}
-            />
-        </div>
+    {#if !classOfferingId}
+        <div class="row mb-3">
+            <div class="col">
+                <input
+                    type="search"
+                    class="form-control"
+                    placeholder="Search classes..."
+                    bind:value={searchTerm}
+                />
+            </div>
     </div>
+    {/if}
+    
 
     {#if loading}
         <div class="d-flex justify-content-center">
@@ -121,7 +137,7 @@
                             </td>
                             <td>
                                 {#if offering.studentGroupId}
-                                    {offering.studentGroupId}
+                                    {offering.groupName || 'Loading...'}
                                 {:else}
                                     <span class="text-muted">No group assigned</span>
                                 {/if}

@@ -20,7 +20,7 @@ public class LectureController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> CreateLecture([FromBody] CreateLectureCommand command, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command, cancellationToken);
@@ -33,7 +33,7 @@ public class LectureController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> UpdateLecture(Guid id, [FromBody] UpdateLectureCommand command, CancellationToken cancellationToken)
     {
         if (id != command.Id)
@@ -51,7 +51,7 @@ public class LectureController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> DeleteLecture(Guid id, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(new DeleteLectureCommand(id), cancellationToken);

@@ -12,6 +12,9 @@
     import type { AcademicLocation } from '$lib/types/university';
     import type { ApiRequestError } from '$lib/api/apiError';
     import { createEventDispatcher } from 'svelte';
+    import { globalUsers } from '$lib/stores/globalUsers';
+    import type { UserResponse } from '$lib/api/User/UserRequests';
+	import { get } from 'svelte/store';
 
     const dispatch = createEventDispatcher<{refresh: void}>();
 
@@ -20,6 +23,8 @@
 
     let lectures: ClassSession[] = [];
     let locations: AcademicLocation[] = [];
+    let lecturers: UserResponse[] = [];
+    let selectedLecturerId: string = '';
     let error = '';
     let loading = true;
     let addingLecture = false;
@@ -70,11 +75,27 @@
         }
     };
 
-    const handleAdd = async () => {
+    const loadLecturers = async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateLecture(newLecture, token);
+            const users = await get(globalUsers);
+            lecturers = users.filter(u => u.roles.includes('Lecturer'));
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    };
+
+    const handleAdd = async () => {
+        if (!newLecture.title || !selectedLecturerId) {
+            error = 'Please fill all required fields';
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+            await CreateLecture({...newLecture, lecturerId: selectedLecturerId}, token);
             addingLecture = false;
             dispatch('refresh');
             await loadLectures();
@@ -87,7 +108,7 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateIntervalLectures(intervalLecture, token);
+            await CreateIntervalLectures({...intervalLecture, lecturerId: selectedLecturerId}, token);
             addingInterval = false;
             dispatch('refresh');
             await loadLectures();
@@ -120,9 +141,27 @@
         }
     };
 
+const formatTime = (date: Date): string => {
+    const rawTime = date.getUTCHours().toString().padStart(2, '0') + ':' + date.getUTCMinutes().toString().padStart(2, '0');
+
+    
+    return rawTime;
+};
+
+    const getLecturerName = (lecturerId: string): string => {
+        const lecturer = lecturers.find(l => l.id === lecturerId);
+        return lecturer ? `${lecturer.firstName} ${lecturer.lastName}` : 'Unknown';
+    };
+
     onMount(async () => {
-        await Promise.all([loadLectures(), loadLocations()]);
+        await Promise.all([loadLectures(), loadLocations(), loadLecturers()]);
     });
+
+    $: sortedLectures = lectures.sort((a, b) => 
+        new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
+    );
+
+    $: formattedDuration = (duration: string) => duration.split('.')[0];
 </script>
 
 <div class="container mt-4">
@@ -161,17 +200,18 @@
                         <th>Time</th>
                         <th>Duration</th>
                         <th>Location</th>
+                        <th>Lecturer</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {#each lectures as lecture}
+                    {#each sortedLectures as lecture}
                         {@const date = new Date(lecture.scheduledDate)}
                         <tr>
                             <td>{lecture.title}</td>
                             <td>{date.toLocaleDateString()}</td>
-                            <td>{date.toLocaleTimeString()}</td>
-                            <td>{lecture.duration} min</td>
+                            <td>{formatTime(date)}</td>
+                            <td>{formattedDuration(lecture.duration)} min</td>
                             <td>
                                 {#if locations.find(l => l.id === lecture.locationId)}
                                     {@const location = locations.find(l => l.id === lecture.locationId)}
@@ -181,6 +221,9 @@
                                         Building: {location.building}, Room: {location.doorNumber}
                                     {/if}
                                 {/if}
+                            </td>
+                            <td>
+                                {getLecturerName(lecture.lecturerId)}
                             </td>
                             <td>
                                 <button 
@@ -258,6 +301,22 @@
                                         {location.online ? 
                                             `Online: ${location.meetingUrl}` : 
                                             `${location.building} - Room ${location.doorNumber}`}
+                                    </option>
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lecturer" class="form-label">Lecturer</label>
+                            <select 
+                                class="form-select" 
+                                id="lecturer"
+                                bind:value={selectedLecturerId}
+                                required
+                            >
+                                <option value="">Select Lecturer</option>
+                                {#each lecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName}
                                     </option>
                                 {/each}
                             </select>
@@ -343,6 +402,22 @@
                                 min="15"
                                 step="15"
                             />
+                        </div>
+                        <div class="mb-3">
+                            <label for="lecturer" class="form-label">Lecturer</label>
+                            <select 
+                                class="form-select" 
+                                id="lecturer"
+                                bind:value={selectedLecturerId}
+                                required
+                            >
+                                <option value="">Select Lecturer</option>
+                                {#each lecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName}
+                                    </option>
+                                {/each}
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Location</label>
@@ -437,6 +512,21 @@
                                         {location.online ? 
                                             `Online: ${location.meetingUrl}` : 
                                             `${location.building} - Room ${location.doorNumber}`}
+                                    </option>
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editLecturer" class="form-label">Lecturer</label>
+                            <select 
+                                class="form-select" 
+                                id="editLecturer"
+                                bind:value={editingLecture.lecturerId}
+                                required
+                            >
+                                {#each lecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName}
                                     </option>
                                 {/each}
                             </select>

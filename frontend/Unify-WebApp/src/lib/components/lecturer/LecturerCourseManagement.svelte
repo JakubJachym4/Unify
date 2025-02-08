@@ -108,7 +108,7 @@
 </script>
 
 <div class="container mt-4">
-    {#if !selectedCourse && !editingResources}
+    {#if !selectedCourse && !editingResources && !lectureCourse}
     <h1 class="mb-4">My Courses</h1>
     {/if}
 
@@ -123,7 +123,7 @@
             </div>
         </div>
     {:else}
-    {#if !selectedCourse && !editingResources}
+    {#if !selectedCourse && !editingResources && !lectureCourse}
         <div class="row mb-3">
             <div class="col">
                 <input

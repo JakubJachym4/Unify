@@ -1,5 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { get } from 'svelte/store';
+    import { globalUsers } from '$lib/stores/globalUsers';
+    import type { UserResponse } from '$lib/api/User/UserRequests';
     import type { ClassSession } from '$lib/types/resources';
     import { 
         CreateClassSession,
@@ -20,6 +23,8 @@
 
     let sessions: ClassSession[] = [];
     let locations: AcademicLocation[] = [];
+    let lecturers: UserResponse[] = [];
+    let selectedLecturerId: string = '';
     let error = '';
     let loading = true;
     let addingSession = false;
@@ -69,11 +74,23 @@
         }
     };
 
+    const loadLecturers = async () => {
+        try {
+            const users = get(globalUsers);
+            lecturers = users.filter(u => u.roles.includes('Lecturer'));
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    };
+
     const handleAdd = async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateClassSession(newSession, token);
+            await CreateClassSession({
+                ...newSession,
+                lecturerId: selectedLecturerId
+            }, token);
             addingSession = false;
             dispatch('refresh');
             await loadSessions();
@@ -122,8 +139,14 @@
         }
     };
 
+    const formatTime = (date: Date): string => {
+        const rawTime = date.getUTCHours().toString().padStart(2, '0') + ':' + 
+                       date.getUTCMinutes().toString().padStart(2, '0');
+        return rawTime;
+    };
+
     onMount(async () => {
-        await Promise.all([loadSessions(), loadLocations()]);
+        await Promise.all([loadSessions(), loadLocations(), loadLecturers()]);
     });
 </script>
 
@@ -172,7 +195,7 @@
                         <tr>
                             <td>{session.title}</td>
                             <td>{date.toLocaleDateString()}</td>
-                            <td>{date.toLocaleTimeString()}</td>
+                            <td>{formatTime(date)}</td>
                             <td>{session.duration} min</td>
                             <td>
                                 {#if locations.find(l => l.id === session.locationId)}
@@ -249,6 +272,22 @@
                                 min="15"
                                 step="15"
                             />
+                        </div>
+                        <div class="mb-3">
+                            <label for="lecturer" class="form-label">Lecturer</label>
+                            <select 
+                                class="form-select" 
+                                id="lecturer"
+                                bind:value={selectedLecturerId}
+                                required
+                            >
+                                <option value="">Select Lecturer</option>
+                                {#each lecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName}
+                                    </option>
+                                {/each}
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Location</label>
@@ -350,6 +389,22 @@
                             />
                         </div>
                         <div class="mb-3">
+                            <label for="lecturer" class="form-label">Lecturer</label>
+                            <select 
+                                class="form-select" 
+                                id="lecturer"
+                                bind:value={selectedLecturerId}
+                                required
+                            >
+                                <option value="">Select Lecturer</option>
+                                {#each lecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName}
+                                    </option>
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Location</label>
                             <select 
                                 class="form-select"
@@ -427,6 +482,22 @@
                                 min="15"
                                 step="15"
                             />
+                        </div>
+                        <div class="mb-3">
+                            <label for="lecturer" class="form-label">Lecturer</label>
+                            <select 
+                                class="form-select" 
+                                id="lecturer"
+                                bind:value={selectedLecturerId}
+                                required
+                            >
+                                <option value="">Select Lecturer</option>
+                                {#each lecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName}
+                                    </option>
+                                {/each}
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Location</label>
