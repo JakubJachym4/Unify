@@ -14,16 +14,18 @@ namespace Unify.Application.ClassOfferingSessions.Handlers;
 public sealed class CreateClassOfferingSessionCommandHandler : ICommandHandler<CreateClassOfferingSessionCommand, Guid>
 {
     private readonly IClassOfferingRepository _classOfferingRepository;
+    private readonly IClassOfferingSessionRepository _classOfferingSessionRepository;
     private readonly IUserRepository _userRepository;
     private readonly ILocationRepository _locationRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateClassOfferingSessionCommandHandler(IClassOfferingRepository classOfferingRepository, IUserRepository userRepository, ILocationRepository locationRepository, IUnitOfWork unitOfWork)
+    public CreateClassOfferingSessionCommandHandler(IClassOfferingRepository classOfferingRepository, IUserRepository userRepository, ILocationRepository locationRepository, IUnitOfWork unitOfWork, IClassOfferingSessionRepository classOfferingSessionRepository)
     {
         _classOfferingRepository = classOfferingRepository;
         _userRepository = userRepository;
         _locationRepository = locationRepository;
         _unitOfWork = unitOfWork;
+        _classOfferingSessionRepository = classOfferingSessionRepository;
     }
 
     public async Task<Result<Guid>> Handle(CreateClassOfferingSessionCommand request, CancellationToken cancellationToken)
@@ -48,6 +50,7 @@ public sealed class CreateClassOfferingSessionCommandHandler : ICommandHandler<C
 
         var session = new ClassOfferingSession(classOffering, new Title(request.Title), request.ScheduledDate, request.Duration, lecturer, location);
 
+        _classOfferingSessionRepository.Add(session);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success(session.Id);
     }

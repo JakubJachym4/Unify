@@ -17,7 +17,7 @@ public sealed class ClassOfferingSessionRepository : Repository<ClassOfferingSes
 
     public Task<List<ClassOfferingSession>> GetByClassOfferingIdAsync(Guid classOfferingId, CancellationToken cancellationToken)
     {
-        return DbContext.Set<ClassOfferingSession>().Where(os => os.Id == classOfferingId)
+        return DbContext.Set<ClassOfferingSession>().Where(os => os.ClassOfferingId == classOfferingId)
             .ToListAsync(cancellationToken);
     }
 
