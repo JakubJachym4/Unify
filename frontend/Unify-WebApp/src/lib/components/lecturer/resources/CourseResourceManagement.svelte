@@ -56,10 +56,8 @@ const loadResources = async () => {
     }
 };
 
-const isImageFile = (fileName: string) => {
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        const extension = fileName.split('.').pop()?.toLowerCase();
-        return extension ? imageExtensions.includes(extension) : false;
+const isImage = (file: Attachment) => {
+        return file.contentType.startsWith('image/');
     };
 
 const getFileIcon = (fileName: string) => {
@@ -197,13 +195,13 @@ onMount(loadResources);
                                 <div class="d-flex flex-wrap gap-2">
                                     {#each resource.attachments as attachment}
                                         <div class="attachment-item">
-                                            {#if isImageFile(attachment.fileName)}
-                                                <img 
-                                                    src={attachment.data} 
-                                                    alt={attachment.fileName}
-                                                    class="img-thumbnail"
-                                                    style="max-width: 100px; max-height: 100px;"
-                                                />
+                                            {#if isImage(attachment)}
+                                            <img 
+                                            src={`data:${attachment.contentType};base64,${attachment.data}`} 
+                                            alt={attachment.fileName}
+                                            style="max-width: 100px; max-height: 100px;"
+                                            class="attachment-preview"
+                                            />
                                             {:else}
                                                 <i class="bi bi-{getFileIcon(attachment.fileName)} fs-2"></i>
                                             {/if}

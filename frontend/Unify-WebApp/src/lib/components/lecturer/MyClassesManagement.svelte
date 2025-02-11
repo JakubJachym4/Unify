@@ -13,6 +13,7 @@
     import { studentGroupsStore } from '$lib/stores/studentGroups';
 	import { get } from 'svelte/store';
 	import { getStudentGroups } from '$lib/api/Common/StudentGroupRequests';
+	import ClassOfferingResourceManagement from './resources/ClassOfferingResourceManagement.svelte';
 
     let classOfferings: (ClassOffering & { 
         course?: CourseResponse;
@@ -23,6 +24,7 @@
     let loading = true;
     let searchTerm = '';
     let classOfferingId: string | null = null;
+    let resourceClass: ClassOffering | null = null;
 
     const loadClassOfferings = async () => {
         try {
@@ -109,6 +111,11 @@
         <ClassSessionManagement 
         classOfferingId={classOfferingId}
         onBack={() => classOfferingId = null}/>
+
+    {:else if resourceClass}
+        <ClassOfferingResourceManagement 
+        classOfferingId={resourceClass.id}
+        onBack={() => resourceClass = null}/>
     {:else}
         <div class="table-responsive">
             <table class="table">
@@ -118,7 +125,7 @@
                         <th>Class Name</th>
                         <th>Duration</th>
                         <th>Student Group</th>
-                        <th>Schedule</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,6 +155,12 @@
                                     on:click={() => {classOfferingId = offering.id}}
                                 >
                                     View Sessions
+                                </button>
+                                <button 
+                                    class="btn btn-sm btn-outline-primary"
+                                    on:click={() => {resourceClass = offering}}
+                                >
+                                    Manage Resources
                                 </button>
                             </td>
                         </tr>

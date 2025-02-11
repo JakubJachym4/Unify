@@ -136,6 +136,8 @@
         }
     };
 
+    let currentClassOffering: ClassOffering | null = null;
+
     onMount(async () => {
         await Promise.all([
             loadStudentGroups(),
@@ -151,369 +153,382 @@ $: filteredLecturers = lecturers.filter(lecturer => {
            lecturer.email.toLowerCase().includes(searchLower);
 });
 
+import ClassOfferingResourceManagement from './resources/ClassOfferingResourceManagement.svelte';
+let managingResources = false;
+
 </script>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Classes - {course.name}</h2>
-        <div>
-            <button class="btn btn-primary me-2" on:click={() => addingOffering = true}>
-                Add Class
-            </button>
-            <button class="btn btn-secondary" on:click={onBack}>
-                Back to Courses
-            </button>
+{#if currentClassOffering}
+    <ClassOfferingResourceManagement
+        classOfferingId={currentClassOffering.id}
+        onBack={() => currentClassOffering = null}
+    />
+{:else}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Classes - {course.name}</h2>
+            <div>
+                <button class="btn btn-primary me-2" on:click={() => addingOffering = true}>
+                    Add Class
+                </button>
+                <button class="btn btn-secondary" on:click={onBack}>
+                    Back to Courses
+                </button>
+            </div>
+        </div>
+
+        {#if error}
+            <div class="alert alert-danger" role="alert">{error}</div>
+        {/if}
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Student Group</th>
+                        <th>Lecturer</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each course.classOfferings as offering}
+                    {@const startDate = new Date(offering.startDate)}
+                    {@const endDate = new Date(offering.endDate)}
+                        <tr>
+                            <td>{offering.name}</td>
+                            <td>{startDate.toLocaleDateString("en-GB")} - {endDate.toLocaleDateString("en-GB")}</td>
+
+                            <td>
+                                {#if offering.studentGroupId}
+                                    {#if studentGroups.find(g => g.id === offering.studentGroupId)}
+                                        {@const group = studentGroups.find(g => g.id === offering.studentGroupId)}
+                                        {group.name}
+                                        <br/>
+                                        <small class="text-muted">
+                                            Students: {group.members.length}/{group.maxGroupSize}
+                                        </small>
+                                    {:else}
+                                        <span class="text-muted">Group not found</span>
+                                    {/if}
+                                {:else}
+                                    <span class="text-muted">No group assigned</span>
+                                {/if}
+                            </td>
+                            <td>
+                                {#if offering.lecturerId}
+                                    {#if lecturers.find(l => l.id === offering.lecturerId)}
+                                        {@const lecturer = lecturers.find(l => l.id === offering.lecturerId)}
+                                        {lecturer.firstName} {lecturer.lastName}
+                                        <br>
+                                        <small class="text-muted">{lecturer.email}</small>
+                                    {:else}
+                                        <span class="text-muted">Lecturer not found</span>
+                                    {/if}
+                                {:else}
+                                    <button 
+                                        class="btn btn-sm btn-outline-secondary"
+                                        on:click={() => {
+                                            assigningLecturerToOffering = offering;
+                                            selectedLecturerId = null;
+                                        }}
+                                    >
+                                        Assign Lecturer
+                                    </button>
+                                {/if}
+                            </td>
+                            <td>
+                                <button 
+                                    class="btn btn-sm btn-outline-primary"
+                                    on:click={() => editingOffering = {...offering}}>
+                                    Edit
+                                </button>
+                                <button 
+                                    class="btn btn-sm btn-outline-danger"
+                                    on:click={() => handleDelete(offering.id)}>
+                                    Delete
+                                </button>
+                            <button class="btn btn-sm btn-outline-primary" on:click={() => currentClassOffering = offering}>
+                                    Manage Resources
+                                </button>
+                            </td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    {#if error}
-        <div class="alert alert-danger" role="alert">{error}</div>
+
+    <!-- Add Modal -->
+    {#if addingOffering}
+        <div class="modal fade show" style="display: block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form 
+                        on:submit|preventDefault={async (e) => {
+                            if (e.target.checkValidity()) {
+                                await handleAdd();
+                            }
+                            e.target.classList.add('was-validated');
+                        }}
+                        class="needs-validation"
+                        novalidate
+                    >
+                        <div class="modal-header">
+                            <h5 class="modal-title">Add New Class</h5>
+                            <button type="button" class="btn-close" on:click={() => addingOffering = false}></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <input 
+                                    class="form-control"
+                                    bind:value={newOffering.name}
+                                    required
+                                    minlength="2"
+                                />
+                                <div class="invalid-feedback">
+                                    Please enter a name (minimum 2 characters)
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input 
+                                        type="date"
+                                        class="datepicker"
+                                        bind:value={newOffering.startDate}
+                                        required
+                                    />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input 
+                                        type="date"
+                                        class="datepicker"
+                                        bind:value={newOffering.endDate}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Student Group</label>
+                                <select 
+                                    class="form-select"
+                                    bind:value={newOffering.studentGroupId}
+                                    required
+                                >
+                                    <option value="">Select a group</option>
+                                    {#each studentGroups as group}
+                                        <option value={group.id}>
+                                            {group.name} ({group.members.length}/{group.maxGroupSize})
+                                        </option>  
+                                    {/each}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a student group
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Lecturer</label>
+                                <div class="mb-2">
+                                    <input
+                                        type="search"
+                                        class="form-control"
+                                        placeholder="Search lecturers..."
+                                        bind:value={lecturerSearchTerm}
+                                    />
+                                </div>
+                                <select 
+                                    class="form-select"
+                                    bind:value={selectedLecturerId}
+                                    required
+                                >
+                                    <option value="">Select a lecturer</option>
+                                    {#each filteredLecturers as lecturer}
+                                        <option value={lecturer.id}>
+                                            {lecturer.firstName} {lecturer.lastName} ({lecturer.email})
+                                        </option>
+                                    {/each}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a lecturer
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button 
+                                type="button"
+                                class="btn btn-secondary"
+                                on:click={() => addingOffering = false}
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Add Classes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
     {/if}
 
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>Student Group</th>
-                    <th>Lecturer</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {#each course.classOfferings as offering}
-                {@const startDate = new Date(offering.startDate)}
-                {@const endDate = new Date(offering.endDate)}
-                    <tr>
-                        <td>{offering.name}</td>
-                        <td>{startDate.toLocaleDateString("en-GB")} - {endDate.toLocaleDateString("en-GB")}</td>
-
-                        <td>
-                            {#if offering.studentGroupId}
-                                {#if studentGroups.find(g => g.id === offering.studentGroupId)}
-                                    {@const group = studentGroups.find(g => g.id === offering.studentGroupId)}
-                                    {group.name}
-                                    <br/>
-                                    <small class="text-muted">
-                                        Students: {group.members.length}/{group.maxGroupSize}
-                                    </small>
-                                {:else}
-                                    <span class="text-muted">Group not found</span>
-                                {/if}
-                            {:else}
-                                <span class="text-muted">No group assigned</span>
-                            {/if}
-                        </td>
-                        <td>
-                            {#if offering.lecturerId}
-                                {#if lecturers.find(l => l.id === offering.lecturerId)}
-                                    {@const lecturer = lecturers.find(l => l.id === offering.lecturerId)}
-                                    {lecturer.firstName} {lecturer.lastName}
-                                    <br>
-                                    <small class="text-muted">{lecturer.email}</small>
-                                {:else}
-                                    <span class="text-muted">Lecturer not found</span>
-                                {/if}
-                            {:else}
-                                <button 
-                                    class="btn btn-sm btn-outline-secondary"
-                                    on:click={() => {
-                                        assigningLecturerToOffering = offering;
-                                        selectedLecturerId = null;
-                                    }}
-                                >
-                                    Assign Lecturer
-                                </button>
-                            {/if}
-                        </td>
-                        <td>
-                            <button 
-                                class="btn btn-sm btn-outline-primary me-2"
-                                on:click={() => editingOffering = {...offering}}>
-                                Edit
-                            </button>
-                            <button 
-                                class="btn btn-sm btn-outline-danger"
-                                on:click={() => handleDelete(offering.id)}>
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                {/each}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
-<!-- Add Modal -->
-{#if addingOffering}
-    <div class="modal fade show" style="display: block;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form 
-                    on:submit|preventDefault={async (e) => {
-                        if (e.target.checkValidity()) {
-                            await handleAdd();
-                        }
-                        e.target.classList.add('was-validated');
-                    }}
-                    class="needs-validation"
-                    novalidate
-                >
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add New Class</h5>
-                        <button type="button" class="btn-close" on:click={() => addingOffering = false}></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input 
-                                class="form-control"
-                                bind:value={newOffering.name}
-                                required
-                                minlength="2"
-                            />
-                            <div class="invalid-feedback">
-                                Please enter a name (minimum 2 characters)
-                            </div>
-                        </div>
-                        
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Start Date</label>
-                                <input 
-                                    type="date"
-                                    class="datepicker"
-                                    bind:value={newOffering.startDate}
-                                    required
-                                />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">End Date</label>
-                                <input 
-                                    type="date"
-                                    class="datepicker"
-                                    bind:value={newOffering.endDate}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Student Group</label>
-                            <select 
-                                class="form-select"
-                                bind:value={newOffering.studentGroupId}
-                                required
-                            >
-                                <option value="">Select a group</option>
-                                {#each studentGroups as group}
-                                    <option value={group.id}>
-                                        {group.name} ({group.members.length}/{group.maxGroupSize})
-                                    </option>  
-                                {/each}
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select a student group
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Lecturer</label>
-                            <div class="mb-2">
-                                <input
-                                    type="search"
-                                    class="form-control"
-                                    placeholder="Search lecturers..."
-                                    bind:value={lecturerSearchTerm}
-                                />
-                            </div>
-                            <select 
-                                class="form-select"
-                                bind:value={selectedLecturerId}
-                                required
-                            >
-                                <option value="">Select a lecturer</option>
-                                {#each filteredLecturers as lecturer}
-                                    <option value={lecturer.id}>
-                                        {lecturer.firstName} {lecturer.lastName} ({lecturer.email})
-                                    </option>
-                                {/each}
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select a lecturer
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button 
-                            type="button"
-                            class="btn btn-secondary"
-                            on:click={() => addingOffering = false}
-                        >
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            Add Classes
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-{/if}
-
-<!-- Edit Modal -->
-{#if editingOffering}
-    <div class="modal fade show" style="display: block;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form 
-                    on:submit|preventDefault={async (e) => {
-                        if (e.target.checkValidity()) {
-                            await handleUpdate();
-                        }
-                        e.target.classList.add('was-validated');
-                    }}
-                    class="needs-validation"
-                    novalidate
-                >
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Class</h5>
-                        <button type="button" class="btn-close" on:click={() => editingOffering = null}></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Same form fields as Add Modal -->
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input 
-                                class="form-control"
-                                bind:value={editingOffering.name}
-                                required
-                                minlength="2"
-                            />
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Start Date</label>
-                                <input 
-                                    type="date"
-                                    class="datepicker"
-                                    bind:value={editingOffering.startDate}
-                                    required
-                                />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">End Date</label>
-                                <input 
-                                    type="date"
-                                    class="datepicker"
-                                    bind:value={editingOffering.endDate}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Lecturer</label>
-                            <div class="mb-2">
-                                <input
-                                    type="search"
-                                    class="form-control"
-                                    placeholder="Search lecturers..."
-                                    bind:value={lecturerSearchTerm}
-                                />
-                            </div>
-                            <select 
-                                class="form-select"
-                                bind:value={selectedLecturerId}
-                                required
-                            >
-                                <option value="">Select a lecturer</option>
-                                {#each filteredLecturers as lecturer}
-                                    <option value={lecturer.id}>
-                                        {lecturer.firstName} {lecturer.lastName} ({lecturer.email})
-                                    </option>
-                                {/each}
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select a lecturer
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button 
-                            type="button"
-                            class="btn btn-secondary"
-                            on:click={() => editingOffering = null}
-                        >
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-{/if}
-
-<!-- Assign Lecturer Modal -->
-{#if assigningLecturerToOffering}
-    <div class="modal fade show" style="display: block;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Assign Lecturer to {assigningLecturerToOffering.name}</h5>
-                    <button type="button" class="btn-close" on:click={() => assigningLecturerToOffering = null}></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <input
-                            type="search"
-                            class="form-control mb-3"
-                            placeholder="Search lecturers..."
-                            bind:value={lecturerSearchTerm}
-                        />
-                        <select 
-                            class="form-select"
-                            bind:value={selectedLecturerId}
-                            size="5"
-                            required
-                        >
-                            <option value="">Choose a lecturer</option>
-                            {#each filteredLecturers as lecturer}
-                                <option value={lecturer.id}>
-                                    {lecturer.firstName} {lecturer.lastName} ({lecturer.email})
-                                </option>
-                            {/each}
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button 
-                        class="btn btn-secondary"
-                        on:click={() => {
-                            assigningLecturerToOffering = null;
-                            lecturerSearchTerm = '';
+    <!-- Edit Modal -->
+    {#if editingOffering}
+        <div class="modal fade show" style="display: block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form 
+                        on:submit|preventDefault={async (e) => {
+                            if (e.target.checkValidity()) {
+                                await handleUpdate();
+                            }
+                            e.target.classList.add('was-validated');
                         }}
+                        class="needs-validation"
+                        novalidate
                     >
-                        Cancel
-                    </button>
-                    <button 
-                        class="btn btn-primary"
-                        disabled={!selectedLecturerId}
-                        on:click={handleAssignLecturer}
-                    >
-                        Assign
-                    </button>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Class</h5>
+                            <button type="button" class="btn-close" on:click={() => editingOffering = null}></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Same form fields as Add Modal -->
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <input 
+                                    class="form-control"
+                                    bind:value={editingOffering.name}
+                                    required
+                                    minlength="2"
+                                />
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input 
+                                        type="date"
+                                        class="datepicker"
+                                        bind:value={editingOffering.startDate}
+                                        required
+                                    />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input 
+                                        type="date"
+                                        class="datepicker"
+                                        bind:value={editingOffering.endDate}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Lecturer</label>
+                                <div class="mb-2">
+                                    <input
+                                        type="search"
+                                        class="form-control"
+                                        placeholder="Search lecturers..."
+                                        bind:value={lecturerSearchTerm}
+                                    />
+                                </div>
+                                <select 
+                                    class="form-select"
+                                    bind:value={selectedLecturerId}
+                                    required
+                                >
+                                    <option value="">Select a lecturer</option>
+                                    {#each filteredLecturers as lecturer}
+                                        <option value={lecturer.id}>
+                                            {lecturer.firstName} {lecturer.lastName} ({lecturer.email})
+                                        </option>
+                                    {/each}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a lecturer
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button 
+                                type="button"
+                                class="btn btn-secondary"
+                                on:click={() => editingOffering = null}
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
+        <div class="modal-backdrop fade show"></div>
+    {/if}
+
+    <!-- Assign Lecturer Modal -->
+    {#if assigningLecturerToOffering}
+        <div class="modal fade show" style="display: block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Assign Lecturer to {assigningLecturerToOffering.name}</h5>
+                        <button type="button" class="btn-close" on:click={() => assigningLecturerToOffering = null}></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input
+                                type="search"
+                                class="form-control mb-3"
+                                placeholder="Search lecturers..."
+                                bind:value={lecturerSearchTerm}
+                            />
+                            <select 
+                                class="form-select"
+                                bind:value={selectedLecturerId}
+                                size="5"
+                                required
+                            >
+                                <option value="">Choose a lecturer</option>
+                                {#each filteredLecturers as lecturer}
+                                    <option value={lecturer.id}>
+                                        {lecturer.firstName} {lecturer.lastName} ({lecturer.email})
+                                    </option>
+                                {/each}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button 
+                            class="btn btn-secondary"
+                            on:click={() => {
+                                assigningLecturerToOffering = null;
+                                lecturerSearchTerm = '';
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            class="btn btn-primary"
+                            disabled={!selectedLecturerId}
+                            on:click={handleAssignLecturer}
+                        >
+                            Assign
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    {/if}
 {/if}

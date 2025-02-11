@@ -148,6 +148,14 @@
         return rawTime;
     };
 
+    const getDurationMinutes = (duration: string): string => {
+        return duration.split('.')[0]
+    };
+
+    $: sortedClasses = sessions.sort((a, b) => {
+        return new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime();
+    });
+
     onMount(async () => {
         await Promise.all([loadSessions(), loadLocations(), loadLecturers()]);
     });
@@ -193,13 +201,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#each sessions as session}
+                    {#each sortedClasses as session}
                         {@const date = new Date(session.scheduledDate)}
                         <tr>
                             <td>{session.title}</td>
                             <td>{date.toLocaleDateString()}</td>
                             <td>{formatTime(date)}</td>
-                            <td>{session.duration} min</td>
+                            <td>{getDurationMinutes(session.duration.toString())} min</td>
                             <td>
                                 {#if locations.find(l => l.id === session.locationId)}
                                     {@const location = locations.find(l => l.id === session.locationId)}
@@ -354,7 +362,7 @@
                         <div class="mb-3">
                             <label class="form-label">Start Date</label>
                             <input 
-                                type="date"
+                                type="datetime-local"
                                 class="form-control"
                                 bind:value={intervalSession.startDate}
                                 required
