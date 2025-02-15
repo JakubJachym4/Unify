@@ -75,10 +75,10 @@ public class MessagesController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpGet("get_last_by_number")]
-    public async Task<IActionResult> GetMessages(GetLastMessagesByNumberRequest request, CancellationToken cancellationToken)
+    [HttpGet("get_last_by_number/{number:int}")]
+    public async Task<IActionResult> GetMessages(int number, CancellationToken cancellationToken)
     {
-        var query = new GetLastMessagesByNumberQuery(request.NumberOfMessages);
+        var query = new GetLastMessagesByNumberQuery(number);
 
         var result = await _sender.Send(query, cancellationToken);
 

@@ -1,8 +1,10 @@
 using Unify.Application.Abstractions.Authentication;
 using Unify.Application.Abstractions.Clock;
 using Unify.Application.Abstractions.Messaging;
+using Unify.Application.ClassOfferingSessions.CommandsAndQueries;
 using Unify.Application.Courses.CourseHandlers;
 using Unify.Application.UniversityClasses.ClassOfferings.Commands;
+using Unify.Application.Users.GetLoggedInUser;
 using Unify.Domain.Abstractions;
 using Unify.Domain.Shared;
 using Unify.Domain.UniversityClasses;
@@ -245,6 +247,43 @@ internal sealed class GetClassOfferingsByLecturerQueryHandler: IQueryHandler<Get
         var classOfferings = await _classOfferingRepository.GetByLecturerAsync(lecturer, cancellationToken);
 
         var responses = ClassOfferingResponse.FromClassOfferingList(classOfferings);
+        return responses;
+    }
+}
+
+public sealed class GetStudentsByClassOfferingQueryHandler : IQueryHandler<GetStudentsByClassOfferingQuery, List<UserResponse>>
+{
+    private readonly IClassOfferingRepository _classOfferingRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IStudentGroupRepository _studentGroupRepository;
+
+    public GetStudentsByClassOfferingQueryHandler(IClassOfferingRepository classOfferingRepository, IUserRepository userRepository, IStudentGroupRepository studentGroupRepository)
+    {
+        _classOfferingRepository = classOfferingRepository;
+        _userRepository = userRepository;
+        _studentGroupRepository = studentGroupRepository;
+    }
+
+    public async Task<Result<List<UserResponse>>> Handle(GetStudentsByClassOfferingQuery request, CancellationToken cancellationToken)
+    {
+        var classOffering = await _classOfferingRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (classOffering == null)
+        {
+            return ClassOfferingErrors.NotFound;
+        }
+
+        var studentGroup = await _studentGroupRepository.GetByIdAsync(classOffering.StudentGroupId, cancellationToken);
+
+        if (studentGroup == null)
+        {
+            return new List<UserResponse>();
+        }
+
+
+        var students = await _userRepository.GetManyByIdAsync(studentGroup.Members.Select(member => member.Id).ToList(),
+            cancellationToken);
+
+        var responses = UserResponse.FromUsers(students);
         return responses;
     }
 }

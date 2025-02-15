@@ -10,16 +10,16 @@ internal sealed class UserRepository : Repository<User>, IUserRepository
     {
     }
 
-    public override async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public override Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<User>()
+        return DbContext.Set<User>()
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<ICollection<User>> GetManyByIdAsync(ICollection<Guid> ids, CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<User>().Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken);
+        return await DbContext.Set<User>().Include(u => u.Roles).Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken);
     }
 
     public async Task<ICollection<User>> GetAllAsync(CancellationToken cancellationToken = default)

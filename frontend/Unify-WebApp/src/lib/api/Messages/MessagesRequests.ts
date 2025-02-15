@@ -76,6 +76,11 @@ export const getLastMessagesByDate = async (data: string, token: string): Promis
     return response;
 };
 
+export const getLastMessagesByNumber = async (data: number, token: string): Promise<MessageResponse[]> => {
+    const response = await api<MessageResponse[]>('GET', `/messages/get_last_by_number/${data}`, null, token);
+    return response;
+}
+
 export const getNonExpiredNotifications = async (token: string): Promise<MessageResponse[]> => {
     const response = await api<MessageResponse[]>('GET', '/notifications', null, token);
     return response;

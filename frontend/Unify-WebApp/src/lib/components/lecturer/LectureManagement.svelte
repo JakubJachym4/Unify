@@ -95,7 +95,7 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateLecture({...newLecture, lecturerId: selectedLecturerId}, token);
+            await CreateLecture({...newLecture, duration: newLecture.duration.toString(), lecturerId: selectedLecturerId}, token);
             addingLecture = false;
             dispatch('refresh');
             await loadLectures();

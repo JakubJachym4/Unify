@@ -10,28 +10,36 @@
     import { user } from '$lib/stores/user';
     import { GetCourseById } from '$lib/api/Admin/Classes/CourseRequests';
     import { createEventDispatcher } from 'svelte';
+	import { getUserData } from '$lib/api/User/UserRequests';
+	import { get } from 'svelte/store';
+    import { GetLecturesByCourse } from '$lib/api/Admin/Classes/LectureRequests';
 
     let loading = true;
     let error = '';
     let upcomingSessions: (ClassSession & { courseName?: string, className?: string })[] = [];
     let upcomingAssignments: (HomeworkAssignment & { courseName?: string, className?: string })[] = [];
+    let upcomingLectures: (ClassSession & { courseName?: string } & {courseId: string})[] = [];
+    let retried = false;
 
     const DAYS_TO_SHOW = 7; // Show items for next 7 days
 
     const dispatch = createEventDispatcher<{
         openSession: { classOfferingId: string };
-        openAssignment: { classOfferingId: string };
+        openAssignmentSubmissions: { classOfferingId: string, selectedAssignmentId: string };
+        openLecture: { courseId: string };
     }>();
 
     const loadDashboardData = async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
+            if($user == null){
+                const userData = await getUserData(token);
+                user.set(userData);
+            }
 
-            // Get all class offerings for the lecturer
             const offerings = await GetClassOfferingsByLecturer($user!.id, token);
 
-            // Load sessions and assignments for each offering
             const sessionsPromises = offerings.map(async (offering) => {
                 const sessions = await GetClassSessionByClassOffering(offering.id, token);
                 const course = await GetCourseById(offering.courseId, token);
@@ -52,14 +60,28 @@
                 }));
             });
 
-            const allSessions = (await Promise.all(sessionsPromises)).flat();
-            const allAssignments = (await Promise.all(assignmentsPromises)).flat();
+            const uniqueCourseIds = [...new Set(offerings.map(o => o.courseId))];
+
+            const lecturesPromises = uniqueCourseIds.map(async (courseId) => {
+                const lectures = await GetLecturesByCourse(courseId, token);
+                const course = await GetCourseById(courseId, token);
+                return lectures.map(lecture => ({
+                    ...lecture,
+                    courseName: course.name,
+                    courseId: course.id
+                }));
+            });
+
+            const [allSessions, allAssignments, allLectures] = await Promise.all([
+                Promise.all(sessionsPromises).then(results => results.flat()),
+                Promise.all(assignmentsPromises).then(results => results.flat()),
+                Promise.all(lecturesPromises).then(results => results.flat())
+            ]);
 
             const now = new Date();
             const futureDate = new Date();
             futureDate.setDate(now.getDate() + DAYS_TO_SHOW);
 
-            // Filter and sort upcoming sessions
             upcomingSessions = allSessions
                 .filter(session => {
                     const sessionDate = new Date(session.scheduledDate);
@@ -67,13 +89,19 @@
                 })
                 .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
 
-            // Filter and sort upcoming assignment deadlines
             upcomingAssignments = allAssignments
                 .filter(assignment => {
                     const dueDate = new Date(assignment.dueDate);
                     return dueDate >= now && dueDate <= futureDate;
                 })
                 .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+            upcomingLectures = allLectures
+                .filter(lecture => {
+                    const lectureDate = new Date(lecture.scheduledDate);
+                    return lectureDate >= now && lectureDate <= futureDate;
+                })
+                .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
 
             loading = false;
         } catch (err) {
@@ -82,17 +110,25 @@
         }
     };
 
-    const formatDateTime = (date: Date): string => {
+    const formatDateTime = (date: string): string => {
         return new Date(date).toLocaleString();
+    };
+
+    const cutMinutes = (date: string): string => {
+        return date.split('.')[0]
     };
 
     const handleSessionClick = (classOfferingId: string) => {
         dispatch('openSession', { classOfferingId });
     };
 
-    const handleAssignmentClick = (classOfferingId: string) => {
-        dispatch('openAssignment', { classOfferingId });
+    const handleAssignmentClick = (classOfferingId: string, selectedSubmissionId: string) => {
+        dispatch('openAssignmentSubmissions', { classOfferingId, selectedAssignmentId: selectedSubmissionId});
     };
+
+    const handleLectureClick = (courseId: string) => {
+    dispatch('openLecture', { courseId });
+};
 
     onMount(loadDashboardData);
 </script>
@@ -113,7 +149,7 @@
     {:else}
         <div class="row">
             <!-- Upcoming Sessions -->
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-0">Upcoming Sessions</h5>
@@ -138,10 +174,7 @@
                                         <h6 class="mb-2">{session.courseName}</h6>
                                         <p class="mb-1">Class: {session.className}</p>
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">Duration: {session.duration} minutes</small>
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                View Details
-                                            </button>
+                                            <small class="text-muted">Duration: {cutMinutes(session.duration)} minutes</small>
                                         </div>
                                     </div>
                                 {/each}
@@ -151,8 +184,7 @@
                 </div>
             </div>
 
-            <!-- Upcoming Assignment Deadlines -->
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-0">Upcoming Assignment Deadlines</h5>
@@ -165,7 +197,7 @@
                                 {#each upcomingAssignments as assignment}
                                     <div 
                                         class="list-group-item list-group-item-action dashboard-item"
-                                        on:click={() => handleAssignmentClick(assignment.classOfferingId)}
+                                        on:click={() => handleAssignmentClick(assignment.classOfferingId, assignment.id)}
                                         role="button"
                                     >
                                         <div class="d-flex w-100 justify-content-between align-items-start mb-2">
@@ -184,9 +216,44 @@
                                                     No submissions yet
                                                 {/if}
                                             </small>
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                Manage Assignment
-                                            </button>
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Lectures -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Upcoming Lectures</h5>
+                    </div>
+                    <div class="card-body">
+                        {#if upcomingLectures.length === 0}
+                            <p class="text-muted">No upcoming lectures in the next {DAYS_TO_SHOW} days</p>
+                        {:else}
+                            <div class="list-group">
+                                <!-- svelte-ignore a11y_interactive_supports_focus -->
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_interactive_supports_focus -->
+                                {#each upcomingLectures as lecture}
+                                    <div 
+                                        class="list-group-item list-group-item-action dashboard-item"
+                                        role="button"
+                                        on:click={() => handleLectureClick(lecture.courseId)}
+                                    >
+                                        <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                                            <h5 class="mb-1">{lecture.title}</h5>
+                                            <span class="badge bg-info rounded-pill">
+                                                {formatDateTime(lecture.scheduledDate)}
+                                            </span>
+                                        </div>
+                                        <h6 class="mb-2">{lecture.courseName}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">Duration: {cutMinutes(lecture.duration)} minutes</small>
                                         </div>
                                     </div>
                                 {/each}
@@ -239,5 +306,9 @@
 
     .list-group-item:hover {
         background-color: #f8f9fa;
+    }
+
+    .list-group-item.dashboard-item:has(.bg-info) {
+        border-left: 4px solid var(--bs-info);
     }
 </style>

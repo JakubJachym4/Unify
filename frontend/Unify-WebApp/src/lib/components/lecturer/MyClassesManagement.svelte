@@ -82,7 +82,7 @@
 </script>
 
 <div class="container mt-4">
-    {#if !classOfferingId}
+    {#if !classOfferingId && !managingAssignments}
         <h2 class="mb-4">My Classes</h2>
     {/if}
 
@@ -90,7 +90,7 @@
         <div class="alert alert-danger" role="alert">{error}</div>
     {/if}
 
-    {#if !classOfferingId}
+    {#if !classOfferingId  && !managingAssignments}
         <div class="row mb-3">
             <div class="col">
                 <input

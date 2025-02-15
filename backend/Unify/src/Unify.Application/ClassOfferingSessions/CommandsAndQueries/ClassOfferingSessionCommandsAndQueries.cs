@@ -1,4 +1,5 @@
 ﻿using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Users.GetLoggedInUser;
 
 namespace Unify.Application.ClassOfferingSessions.CommandsAndQueries;
 
@@ -18,6 +19,8 @@ public record GetSessionByClassOfferingQuery(Guid ClassOfferingId) : IQuery<List
 public record GetSessionByStudentQuery(Guid StudentId) : IQuery<List<ClassOfferingSessionResponse>>;
 
 public record GetSessionByLecturerQuery(Guid LecturerId) : IQuery<List<ClassOfferingSessionResponse>>;
+
+public record GetStudentsByClassOfferingQuery(Guid Id) : IQuery<List<UserResponse>>;
 
 public record CreateIntervalSessionsCommand(
     Guid ClassOfferingId,

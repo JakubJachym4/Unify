@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unify.Application.Abstractions.Messaging;
+using Unify.Application.ClassOfferingSessions.CommandsAndQueries;
 using Unify.Application.Courses.CourseHandlers;
 using Unify.Application.OnlineResources.OfferingResources;
 using Unify.Application.OnlineResources.OfferingResources.CommandsAndQueries;
@@ -38,6 +39,19 @@ public class ClassOfferingController : ControllerBase
     public async Task<IActionResult> GetClassOffering(Guid id, CancellationToken cancellationToken)
     {
         var query = new GetClassOfferingQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("{id:guid}/students")]
+    public async Task<IActionResult> GetStudentsByClassOffering(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetStudentsByClassOfferingQuery(id);
         var result = await _sender.Send(query, cancellationToken);
         if (result.IsFailure)
         {
@@ -212,6 +226,8 @@ public class ClassOfferingController : ControllerBase
     }
 
 }
+
+
 
 
 

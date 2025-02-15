@@ -1,6 +1,8 @@
 <script lang="ts">
 	import HomeworkAssignmentManagement from '$lib/components/lecturer/assignments/HomeworkAssignmentManagement.svelte';
+	import HomeworkSubmissionManagement from '$lib/components/lecturer/assignments/HomeworkSubmissionManagement.svelte';
 	import ClassSessionManagement from '$lib/components/lecturer/ClassSessionManagement.svelte';
+	import LectureManagement from '$lib/components/lecturer/LectureManagement.svelte';
     import LecturerCourseManagement from '$lib/components/lecturer/LecturerCourseManagement.svelte';
 	import LecturerDashboard from '$lib/components/lecturer/LecturerDashboard.svelte';
     import MyClassesManagement from '$lib/components/lecturer/MyClassesManagement.svelte';
@@ -19,8 +21,11 @@
     };
 
     let showingSession = false;
-    let showingAssignment = false;
+    let showingAssignments = false;
+    let showingLecture = false;
     let selectedClassOfferingId: string | null = null;
+    let selectedAssignmentId: string | null = null;
+    let selectedCourseId: string | null = null;
 </script>
 
 <div class="lecturer-container">
@@ -46,7 +51,6 @@
                     >
                         My Classes
                     </button>
-                    <!-- Add more lecturer-specific buttons here -->
                 </div>
                 <button 
                     class="btn {showMessages ? 'btn-primary' : 'btn-outline-primary'}"
@@ -69,12 +73,21 @@
                             selectedClassOfferingId = null;
                         }}
                     />
-                {:else if showingAssignment && selectedClassOfferingId}
-                    <HomeworkAssignmentManagement
+                {:else if showingAssignments && selectedClassOfferingId && selectedAssignmentId}
+                    <HomeworkSubmissionManagement
                         classOfferingId={selectedClassOfferingId}
+                        assignmentId={selectedAssignmentId}
                         onBack={() => {
-                            showingAssignment = false;
+                            showingAssignments = false;
                             selectedClassOfferingId = null;
+                        }}
+                    />
+                {:else if showingLecture && selectedCourseId}
+                    <LectureManagement 
+                        courseId={selectedCourseId}
+                        onBack={() => {
+                            showingLecture = false;
+                            selectedCourseId = null;
                         }}
                     />
                 {:else}
@@ -83,9 +96,14 @@
                             selectedClassOfferingId = event.detail.classOfferingId;
                             showingSession = true;
                         }}
-                        on:openAssignment={(event) => {
+                        on:openAssignmentSubmissions={(event) => {
                             selectedClassOfferingId = event.detail.classOfferingId;
-                            showingAssignment = true;
+                            selectedAssignmentId = event.detail.selectedAssignmentId;
+                            showingAssignments = true;
+                        }}
+                        on:openLecture={(event) => {
+                            selectedCourseId = event.detail.courseId;
+                            showingLecture = true;
                         }}
                     />
                 {/if}

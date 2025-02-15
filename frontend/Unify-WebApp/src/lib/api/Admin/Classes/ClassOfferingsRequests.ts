@@ -1,4 +1,5 @@
 import { api } from "$lib/api/api";
+import type { UserResponse } from "$lib/api/User/UserRequests";
 
 export interface ClassOfferingResponse{
     id: string
@@ -55,4 +56,8 @@ export const GetClassOffering = async (classOfferingId: string, token: string) =
 
 export const GetClassOfferingsByLecturer = async (lecturerId: string, token: string) => {
     return await api<ClassOfferingResponse[]>('GET', `/class-offerings/lecturer/${lecturerId}`, null, token);
+}
+
+export const GetStudentsByClassOffering = async (classOfferingId: string, token: string) => {
+    return await api<UserResponse[]>('GET', `/class-offerings/${classOfferingId}/students`, null, token);
 }

@@ -15,6 +15,7 @@
     import type { ApiRequestError } from '$lib/api/apiError';
     import type { HomeworkAssignment, HomeworkSubmission, Attachment } from '$lib/types/resources';
     import { convertFilesToAttachments, convertAttachmentsToFiles } from '$lib/types/resources';
+	import HomeworkSubmissionManagement from './HomeworkSubmissionManagement.svelte';
     
     export let classOfferingId: string;
     export let onBack: () => void;
@@ -23,8 +24,17 @@
     let error = '';
     let loading = true;
     let addingAssignment = false;
-    let editingAssignment: HomeworkAssignment | null = null;
     let gradingSubmission: HomeworkSubmission | null = null;
+    let editingAssignment = {
+                            id: '',
+                            title: '',
+                            description: '',
+                            dueDate: '',
+                            attachments: null as File[] | null
+                        }
+    let editingAssignmentState = false;
+    
+    let submissionAssignment: HomeworkAssignment | null = null;
 
     let newAssignment: CreateHomeworkAssignmentRequest = {
         classOfferingId: classOfferingId,
@@ -75,11 +85,17 @@
                 title: editingAssignment.title,
                 description: editingAssignment.description,
                 dueDate: editingAssignment.dueDate,
-                attachments: editingAssignment.attachments ? 
-                    convertAttachmentsToFiles(editingAssignment.attachments) : null
+                attachments: editingAssignment.attachments || []
             };
             await UpdateHomeworkAssignment(updateRequest, token);
-            editingAssignment = null;
+            editingAssignment = {
+                            id: '',
+                            title: '',
+                            description: '',
+                            dueDate: '',
+                            attachments: null as File[] | null
+                        }
+    
             await loadAssignments();
         } catch (err) {
             error = (err as ApiRequestError).details;
@@ -109,14 +125,14 @@
         }
     };
 
-    // Helper function for handling file attachments
+
     const handleFileSelect = (event: Event, isEdit = false) => {
         const target = event.target as HTMLInputElement;
         const files = Array.from(target.files || []);
         if (isEdit && editingAssignment) {
             editingAssignment = {
                 ...editingAssignment,
-                attachments: convertFilesToAttachments(files)
+                attachments: files
             };
         } else {
             newAssignment.attachments = files;
@@ -145,6 +161,7 @@
 </script>
 
 <div class="container mt-4">
+    {#if !submissionAssignment}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Homework Assignments</h2>
         <div>
@@ -156,6 +173,7 @@
             </button>
         </div>
     </div>
+    {/if}
 
     {#if error}
         <div class="alert alert-danger" role="alert">{error}</div>
@@ -167,6 +185,12 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
+    {:else if submissionAssignment}
+    <HomeworkSubmissionManagement
+        assignmentId={submissionAssignment.id}
+        onBack={() => submissionAssignment = null}
+        classOfferingId={classOfferingId}/>
+
     {:else}
         <div class="table-responsive">
             <table class="table">
@@ -223,7 +247,7 @@
                             <td>
                                 <button 
                                     class="btn btn-sm btn-outline-info"
-                                    on:click={() => {/* Show submissions modal */}}
+                                    on:click={() => { submissionAssignment = assignment; }}
                                 >
                                     View Submissions
                                 </button>
@@ -231,7 +255,7 @@
                             <td>
                                 <button 
                                     class="btn btn-sm btn-outline-primary me-2"
-                                    on:click={() => editingAssignment = {...assignment}}
+                                    on:click={() => {editingAssignment = {...assignment, attachments: convertAttachmentsToFiles(assignment.attachments)}; editingAssignmentState = true;}}
                                 >
                                     Edit
                                 </button>
@@ -311,14 +335,21 @@
 {/if}
 
 <!-- Edit Assignment Modal -->
-{#if editingAssignment}
+{#if editingAssignment && editingAssignmentState}
     <div class="modal fade show" style="display: block;">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form on:submit|preventDefault={handleUpdate}>
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Assignment</h5>
-                        <button type="button" class="btn-close" on:click={() => editingAssignment = null}></button>
+                        <button type="button" class="btn-close" on:click={() => {editingAssignment = {
+                            id: '',
+                            title: '',
+                            description: '',
+                            dueDate: '',
+                            attachments: null as File[] | null
+                        }
+                        editingAssignmentState = false;}}></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -349,27 +380,6 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Attachments</label>
-                            {#if editingAssignment?.attachments?.length}
-                                <div class="d-flex flex-wrap gap-2 mb-2">
-                                    {#each editingAssignment.attachments as attachment}
-                                        <div class="attachment-item">
-                                            {#if isImage(attachment)}
-                                                <img 
-                                                    src={`data:${attachment.contentType};base64,${attachment.data}`}
-                                                    alt={attachment.fileName}
-                                                    class="attachment-preview"
-                                                    style="max-width: 100px; max-height: 100px;"
-                                                />
-                                            {:else}
-                                                <i class="bi bi-{getFileIcon(attachment.fileName)} fs-2"></i>
-                                            {/if}
-                                            <small class="d-block text-truncate" style="max-width: 100px;">
-                                                {attachment.fileName}
-                                            </small>
-                                        </div>
-                                    {/each}
-                                </div>
-                            {/if}
                             <input 
                                 type="file"
                                 class="form-control"
@@ -379,48 +389,17 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" on:click={() => editingAssignment = null}>
+                        <button type="button" class="btn btn-secondary" on:click={() => {editingAssignment = {
+                            id: '',
+                            title: '',
+                            description: '',
+                            dueDate: '',
+                            attachments: null as File[] | null
+                        }
+                        editingAssignmentState = false;}}>
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-primary">Update Assignment</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-{/if}
-
-<!-- Grade Submission Modal -->
-{#if gradingSubmission}
-    <div class="modal fade show" style="display: block;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form 
-                    on:submit|preventDefault={(e) => {
-                        const formData = new FormData(e.target);
-                        handleGradeSubmission({
-                            assignmentId: gradingSubmission.assignmentId,
-                            submissionId: gradingSubmission.id,
-                            score: Number(formData.get('score')),
-                            maxScore: Number(formData.get('maxScore')),
-                            criteria: formData.get('criteria') as string,
-                            feedback: formData.get('feedback') as string
-                        });
-                    }}
-                >
-                    <div class="modal-header">
-                        <h5 class="modal-title">Grade Submission</h5>
-                        <button type="button" class="btn-close" on:click={() => gradingSubmission = null}></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Grade form fields -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" on:click={() => gradingSubmission = null}>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">Submit Grade</button>
                     </div>
                 </form>
             </div>
