@@ -11,3 +11,8 @@ public record UpdateHomeworkAssignmentCommand(Guid Id, string Title, string Desc
 public record DeleteHomeworkAssignmentCommand(Guid Id) : ICommand;
 
 public record GradeHomeworkSubmissionCommand(Guid AssignmentId, Guid SubmissionId, Decimal Score, Decimal MaxScore, string? Criteria, string? Feedback) : ICommand;
+
+public record GetHomeworkAssignmentQuery(Guid Id) : IQuery<HomeworkAssigmentResponse>;
+public record GetHomeworkAssignmentsByClassOfferingQuery(Guid ClassOfferingId) : IQuery<List<HomeworkAssigmentResponse>>;
+
+public record GetHomeworkAssignmentsByStudentQuery(Guid StudentId) : IQuery<List<HomeworkAssigmentResponse>>;

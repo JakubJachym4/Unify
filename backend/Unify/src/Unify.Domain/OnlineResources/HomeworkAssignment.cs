@@ -7,10 +7,10 @@ using Guid = System.Guid;
 
 namespace Unify.Domain.OnlineResources;
 
-public sealed class HomeworkAssigment : HomeworkBaseEntity
+public sealed class HomeworkAssignment : HomeworkBaseEntity
 {
-    private HomeworkAssigment() { }
-    public HomeworkAssigment(ClassOffering classOffering, Title title, Description description, DateTime dueDate) : base(Guid.NewGuid())
+    private HomeworkAssignment() { }
+    public HomeworkAssignment(ClassOffering classOffering, Title title, Description description, DateTime dueDate) : base(Guid.NewGuid())
     {
         ClassOfferingId = classOffering.Id;
         Title = title;

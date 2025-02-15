@@ -14,7 +14,8 @@
 	import { get } from 'svelte/store';
 	import { getStudentGroups } from '$lib/api/Common/StudentGroupRequests';
 	import ClassOfferingResourceManagement from './resources/ClassOfferingResourceManagement.svelte';
-
+    import HomeworkAssignmentManagement from './assignments/HomeworkAssignmentManagement.svelte';
+    
     let classOfferings: (ClassOffering & { 
         course?: CourseResponse;
         groupName?: string;
@@ -25,6 +26,8 @@
     let searchTerm = '';
     let classOfferingId: string | null = null;
     let resourceClass: ClassOffering | null = null;
+    let managingAssignments = false;
+    let selectedClassId: string | null = null;
 
     const loadClassOfferings = async () => {
         try {
@@ -116,6 +119,14 @@
         <ClassOfferingResourceManagement 
         classOfferingId={resourceClass.id}
         onBack={() => resourceClass = null}/>
+    {:else if managingAssignments && selectedClassId}
+        <HomeworkAssignmentManagement 
+            classOfferingId={selectedClassId}
+            onBack={() => {
+                managingAssignments = false;
+                selectedClassId = null;
+            }}
+        />
     {:else}
         <div class="table-responsive">
             <table class="table">
@@ -162,6 +173,15 @@
                                 >
                                     Manage Resources
                                 </button>
+                                <button 
+                                    class="btn btn-sm btn-outline-primary me-2"
+                                    on:click={() => {
+                                        managingAssignments = true;
+                                        selectedClassId = offering.id;
+                                    }}
+                                >
+                                    Manage Assignments
+                                </button>
                             </td>
                         </tr>
                     {/each}
@@ -169,6 +189,7 @@
             </table>
         </div>
     {/if}
+
 </div>
 
 <style>

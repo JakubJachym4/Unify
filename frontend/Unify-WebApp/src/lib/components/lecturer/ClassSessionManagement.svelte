@@ -105,7 +105,8 @@
             if (!token) throw new Error('No token found');
             await CreateIntervalClassSessions({
                 ...intervalSession,
-                lecturerId: selectedLecturerId
+                lecturerId: selectedLecturerId,
+                duration: intervalSession.duration.toString()
             }, token);
             addingInterval = false;
             dispatch('refresh');

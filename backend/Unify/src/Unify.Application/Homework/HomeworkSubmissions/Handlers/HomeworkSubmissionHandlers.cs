@@ -138,3 +138,78 @@ public sealed class DeleteHomeworkSubmissionCommandHandler : ICommandHandler<Del
         return Result.Success();
     }
 }
+
+public sealed class GetHomeworkSubmissionQueryHandler : IQueryHandler<GetHomeworkSubmissionQuery, HomeworkSubmissionResponse>
+{
+    private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
+
+    public GetHomeworkSubmissionQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository)
+    {
+        _homeworkSubmissionRepository = homeworkSubmissionRepository;
+    }
+
+    public async Task<Result<HomeworkSubmissionResponse>> Handle(GetHomeworkSubmissionQuery request, CancellationToken cancellationToken)
+    {
+        var homeworkSubmission = await _homeworkSubmissionRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (homeworkSubmission is null)
+        {
+            return Result.Failure<HomeworkSubmissionResponse>(HomeworkSubmissionErrors.NotFound);
+        }
+
+        return Result.Success(new HomeworkSubmissionResponse(homeworkSubmission));
+    }
+}
+
+public sealed class GetHomeworkSubmissionsByAssignmentQueryHandler : IQueryHandler<GetHomeworkSubmissionsByAssignmentQuery, List<HomeworkSubmissionResponse>>
+{
+    private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
+
+    public GetHomeworkSubmissionsByAssignmentQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IHomeworkAssignmentRepository homeworkAssignmentRepository)
+    {
+        _homeworkSubmissionRepository = homeworkSubmissionRepository;
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
+    }
+
+    public async Task<Result<List<HomeworkSubmissionResponse>>> Handle(GetHomeworkSubmissionsByAssignmentQuery request, CancellationToken cancellationToken)
+    {
+
+        var homeworkAssignment = await _homeworkAssignmentRepository.GetByIdAsync(request.HomeworkAssignmentId, cancellationToken);
+        if (homeworkAssignment is null)
+        {
+            return Result.Failure<List<HomeworkSubmissionResponse>>(HomeworkAssignmentErrors.NotFound);
+        }
+
+        var homeworkSubmissions = await _homeworkSubmissionRepository.GetByAssignmentAsync(homeworkAssignment, cancellationToken);
+        return Result.Success(homeworkSubmissions.Select(x => new HomeworkSubmissionResponse(x)).ToList());
+    }
+}
+
+public sealed class GetHomeworkByStudentQueryHandler : IQueryHandler<GetHomeworkSubmissionsByStudentQuery, List<HomeworkSubmissionResponse>>
+{
+    private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
+    private readonly IUserRepository _userRepository;
+
+    public GetHomeworkByStudentQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IUserRepository userRepository)
+    {
+        _homeworkSubmissionRepository = homeworkSubmissionRepository;
+        _userRepository = userRepository;
+    }
+
+    public async Task<Result<List<HomeworkSubmissionResponse>>> Handle(GetHomeworkSubmissionsByStudentQuery request, CancellationToken cancellationToken)
+    {
+        var student = await _userRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        if (student is null)
+        {
+            return Result.Failure<List<HomeworkSubmissionResponse>>(UserErrors.NotFound(request.StudentId));
+        }
+
+        var homeworkSubmissions = await _homeworkSubmissionRepository.GetByStudentAsync(student, cancellationToken);
+        return Result.Success(homeworkSubmissions.Select(x => new HomeworkSubmissionResponse(x)).ToList());
+    }
+}
+
+public static class HomeworkAssignmentErrors
+{
+    public static Error NotFound => new Error("HomeworkAssignment.NotFound", "Homework assignment not found.");
+}

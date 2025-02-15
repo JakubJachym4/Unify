@@ -1,11 +1,26 @@
-import type { Attachment } from "./resources";
-
 export interface ClassResource{
     id: string,
     title: string,
     description: string,
     attachments: Attachment[],
     resourceType: ResourceType,
+}
+
+export interface HomeworkAssignment{
+    id: string,
+    classOfferingId: string,
+    title: string,
+    description: string,
+    dueDate: string,
+    attachments: Attachment[],
+}
+
+export interface HomeworkSubmission{
+    id: string,
+    assignmentId: string,
+    studentId: string,
+    submissionDate: string,
+    attachments: Attachment[],
 }
 
 export enum ResourceType{
@@ -45,7 +60,10 @@ export const convertFilesToAttachments = (files: File[] | null): Attachment[] =>
     }));
 };
 
-export const convertAttachmentsToFiles = (attachments: Attachment[]): File[] => {
+export const convertAttachmentsToFiles = (attachments: Attachment[] | null): File[] => {
+    if (!attachments) {
+        return [];
+    }
     return attachments.map(attachment => new File([attachment.data], attachment.fileName, { type: attachment.contentType }));
 };
 

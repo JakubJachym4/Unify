@@ -12,7 +12,7 @@
     } from '$lib/api/Admin/Classes/ClassOfferingResourcesRequests';
     import type { ApiRequestError } from '$lib/api/apiError';
     import type { Attachment, ClassResource } from '$lib/types/resources';
-    import { ResourceType } from '$lib/types/resources';
+    import { convertAttachmentsToFiles, convertFilesToAttachments, ResourceType } from '$lib/types/resources';
     
     export let classOfferingId: string;
     export let onBack: () => void;
@@ -57,7 +57,7 @@
             if (!token) throw new Error('No token found');
             await CreateClassOfferingResource({
                 ...newResource,
-                classOfferingId
+                classOfferingId: classOfferingId
             }, token);
             addingResource = false;
             newResource = { title: '', description: '', attachments: null };
@@ -72,8 +72,16 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
+            
+            
+            const updateData = {
+            ...editingResource,
+            attachments: editingResource.attachments
+                 };
+
+
             await UpdateClassOfferingResource({
-                ...editingResource
+                ...updateData
             }, token);
             editingResource = { id: '', title: '', description: '', attachments: null };
             editingResourceState = false;
@@ -202,7 +210,7 @@
                                     <button 
                                         class="btn btn-sm btn-outline-primary me-2"
                                         on:click={() => {
-                                            editingResource = {...resource};
+                                            editingResource = {...resource, attachments: convertAttachmentsToFiles(resource.attachments)};
                                             editingResourceState = true;
                                         }}
                                     >

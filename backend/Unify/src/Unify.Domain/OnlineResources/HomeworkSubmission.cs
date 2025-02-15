@@ -26,10 +26,10 @@ public sealed class HomeworkSubmission : HomeworkBaseEntity
 
     public void AddAttachments(IEnumerable<Attachment> attachments) => _attachments.AddRange(attachments);
 
-    public static HomeworkSubmission Submit(HomeworkAssigment assigment, User student, DateTime submittedOn,
+    public static HomeworkSubmission Submit(HomeworkAssignment assignment, User student, DateTime submittedOn,
         ICollection<Attachment>? attachments = null)
     {
-        var submission = new HomeworkSubmission(Guid.NewGuid(), assigment.Id, student.Id, submittedOn);
+        var submission = new HomeworkSubmission(Guid.NewGuid(), assignment.Id, student.Id, submittedOn);
         if (attachments != null && attachments.Any())
         {
             submission.AddAttachments(attachments);

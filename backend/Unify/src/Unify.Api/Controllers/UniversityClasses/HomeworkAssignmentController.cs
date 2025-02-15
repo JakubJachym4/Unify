@@ -10,7 +10,7 @@ namespace Unify.Api.Controllers.UniversityClasses;
 
 [ApiController]
 [Authorize]
-[Route("api/class-offerings/assignments")]
+[Route("api/assignments")]
 public class HomeworkAssignmentController : ControllerBase
 {
     private readonly ISender _sender;
@@ -18,6 +18,45 @@ public class HomeworkAssignmentController : ControllerBase
     public HomeworkAssignmentController(ISender sender)
     {
         _sender = sender;
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetHomeworkAssignment(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetHomeworkAssignmentQuery(id);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("class-offering/{classOfferingId:guid}")]
+    public async Task<IActionResult> GetByClassOffering(Guid classOfferingId, CancellationToken cancellationToken)
+    {
+        var query = new GetHomeworkAssignmentsByClassOfferingQuery(classOfferingId);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("student/{studentId:guid}")]
+    public async Task<IActionResult> GetByStudent(Guid studentId, CancellationToken cancellationToken)
+    {
+        var query = new GetHomeworkAssignmentsByStudentQuery(studentId);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpPost("class-offering/{classOfferingId:guid}")]
@@ -88,4 +127,8 @@ public class HomeworkAssignmentController : ControllerBase
         return Ok();
     }
 }
+
+
+
+
 

@@ -12,8 +12,8 @@ using Unify.Infrastructure;
 namespace Unify.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250126000049_another_one_2")]
-    partial class another_one_2
+    [Migration("20250215174108_diddly")]
+    partial class diddly
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -227,9 +227,9 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("file_name");
 
-                    b.Property<Guid?>("HomeworkAssigmentId")
+                    b.Property<Guid?>("HomeworkAssignmentId")
                         .HasColumnType("uuid")
-                        .HasColumnName("homework_assigment_id");
+                        .HasColumnName("homework_assignment_id");
 
                     b.Property<Guid?>("HomeworkSubmissionId")
                         .HasColumnType("uuid")
@@ -246,8 +246,8 @@ namespace Unify.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_attachments");
 
-                    b.HasIndex("HomeworkAssigmentId")
-                        .HasDatabaseName("ix_attachments_homework_assigment_id");
+                    b.HasIndex("HomeworkAssignmentId")
+                        .HasDatabaseName("ix_attachments_homework_assignment_id");
 
                     b.HasIndex("HomeworkSubmissionId")
                         .HasDatabaseName("ix_attachments_homework_submission_id");
@@ -293,7 +293,7 @@ namespace Unify.Infrastructure.Migrations
                     b.ToTable("course_resources", (string)null);
                 });
 
-            modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkAssigment", b =>
+            modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkAssignment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -304,6 +304,12 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("class_offering_id");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description");
+
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("due_date");
@@ -312,10 +318,19 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("locked");
 
-                    b.HasKey("Id")
-                        .HasName("pk_homework_assigment");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("title");
 
-                    b.ToTable("homework_assigment", (string)null);
+                    b.HasKey("Id")
+                        .HasName("pk_homework_assignments");
+
+                    b.HasIndex("ClassOfferingId")
+                        .HasDatabaseName("ix_homework_assignments_class_offering_id");
+
+                    b.ToTable("homework_assignments", (string)null);
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkBasesAttachments", b =>
@@ -328,22 +343,8 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("homework_base_id");
 
-                    b.Property<Guid>("HomeworkAssigmentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("homework_assigment_id");
-
-                    b.Property<Guid>("HomeworkSubmissionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("homework_submission_id");
-
                     b.HasKey("AttachmentId", "HomeworkBaseId")
                         .HasName("pk_homework_bases_attachments");
-
-                    b.HasIndex("HomeworkAssigmentId")
-                        .HasDatabaseName("ix_homework_bases_attachments_homework_assigment_id");
-
-                    b.HasIndex("HomeworkSubmissionId")
-                        .HasDatabaseName("ix_homework_bases_attachments_homework_submission_id");
 
                     b.ToTable("homework_bases_attachments", (string)null);
                 });
@@ -355,9 +356,18 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Feedback")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("feedback");
+
                     b.Property<Guid>("HomeworkAssigmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("homework_assigment_id");
+
+                    b.Property<Guid?>("HomeworkAssignmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("homework_assignment_id");
 
                     b.Property<Guid?>("MarkId")
                         .HasColumnType("uuid")
@@ -372,12 +382,21 @@ namespace Unify.Infrastructure.Migrations
                         .HasColumnName("submitted_on");
 
                     b.HasKey("Id")
-                        .HasName("pk_homework_submission");
+                        .HasName("pk_homework_submissions");
 
                     b.HasIndex("HomeworkAssigmentId")
-                        .HasDatabaseName("ix_homework_submission_homework_assigment_id");
+                        .HasDatabaseName("ix_homework_submissions_homework_assigment_id");
 
-                    b.ToTable("homework_submission", (string)null);
+                    b.HasIndex("HomeworkAssignmentId")
+                        .HasDatabaseName("ix_homework_submissions_homework_assignment_id");
+
+                    b.HasIndex("MarkId")
+                        .HasDatabaseName("ix_homework_submissions_mark_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_homework_submissions_student_id");
+
+                    b.ToTable("homework_submissions", (string)null);
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.OfferingResource", b =>
@@ -1149,10 +1168,10 @@ namespace Unify.Infrastructure.Migrations
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.Attachment", b =>
                 {
-                    b.HasOne("Unify.Domain.OnlineResources.HomeworkAssigment", null)
+                    b.HasOne("Unify.Domain.OnlineResources.HomeworkAssignment", null)
                         .WithMany("Attachments")
-                        .HasForeignKey("HomeworkAssigmentId")
-                        .HasConstraintName("fk_attachments_homework_assigment_homework_assigment_id");
+                        .HasForeignKey("HomeworkAssignmentId")
+                        .HasConstraintName("fk_attachments_homework_assignment_homework_assignment_id");
 
                     b.HasOne("Unify.Domain.OnlineResources.HomeworkSubmission", null)
                         .WithMany("Attachments")
@@ -1182,38 +1201,41 @@ namespace Unify.Infrastructure.Migrations
                         .HasConstraintName("fk_course_resources_course_course_id");
                 });
 
-            modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkBasesAttachments", b =>
+            modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkAssignment", b =>
                 {
-                    b.HasOne("Unify.Domain.OnlineResources.Attachment", null)
+                    b.HasOne("Unify.Domain.UniversityClasses.ClassOffering", null)
                         .WithMany()
-                        .HasForeignKey("AttachmentId")
+                        .HasForeignKey("ClassOfferingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_homework_bases_attachments_attachments_attachment_id");
-
-                    b.HasOne("Unify.Domain.OnlineResources.HomeworkAssigment", null)
-                        .WithMany()
-                        .HasForeignKey("HomeworkAssigmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_homework_bases_attachments_homework_assigment_homework_assi");
-
-                    b.HasOne("Unify.Domain.OnlineResources.HomeworkSubmission", null)
-                        .WithMany()
-                        .HasForeignKey("HomeworkSubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_homework_bases_attachments_homework_submission_homework_sub");
+                        .HasConstraintName("fk_homework_assignments_class_offering_class_offering_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkSubmission", b =>
                 {
-                    b.HasOne("Unify.Domain.OnlineResources.HomeworkAssigment", null)
-                        .WithMany("Submissions")
+                    b.HasOne("Unify.Domain.OnlineResources.HomeworkAssignment", null)
+                        .WithMany()
                         .HasForeignKey("HomeworkAssigmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_homework_submission_homework_assigment_homework_assigment_id");
+                        .HasConstraintName("fk_homework_submissions_homework_assignments_homework_assigmen");
+
+                    b.HasOne("Unify.Domain.OnlineResources.HomeworkAssignment", null)
+                        .WithMany("Submissions")
+                        .HasForeignKey("HomeworkAssignmentId")
+                        .HasConstraintName("fk_homework_submissions_homework_assignments_homework_assignme");
+
+                    b.HasOne("Unify.Domain.UniversityCore.Mark", null)
+                        .WithMany()
+                        .HasForeignKey("MarkId")
+                        .HasConstraintName("fk_homework_submissions_mark_mark_id");
+
+                    b.HasOne("Unify.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_homework_submissions_user_student_id");
                 });
 
             modelBuilder.Entity("Unify.Domain.OnlineResources.OfferingResource", b =>
@@ -1427,7 +1449,7 @@ namespace Unify.Infrastructure.Migrations
                     b.Navigation("Files");
                 });
 
-            modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkAssigment", b =>
+            modelBuilder.Entity("Unify.Domain.OnlineResources.HomeworkAssignment", b =>
                 {
                     b.Navigation("Attachments");
 

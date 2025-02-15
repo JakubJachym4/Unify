@@ -1,5 +1,8 @@
 <script lang="ts">
+	import HomeworkAssignmentManagement from '$lib/components/lecturer/assignments/HomeworkAssignmentManagement.svelte';
+	import ClassSessionManagement from '$lib/components/lecturer/ClassSessionManagement.svelte';
     import LecturerCourseManagement from '$lib/components/lecturer/LecturerCourseManagement.svelte';
+	import LecturerDashboard from '$lib/components/lecturer/LecturerDashboard.svelte';
     import MyClassesManagement from '$lib/components/lecturer/MyClassesManagement.svelte';
     import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
     
@@ -14,6 +17,10 @@
     const setActiveComponent = (component: string) => {
         activeComponent = component;
     };
+
+    let showingSession = false;
+    let showingAssignment = false;
+    let selectedClassOfferingId: string | null = null;
 </script>
 
 <div class="lecturer-container">
@@ -54,11 +61,34 @@
     <div class="content-container">
         <div class="main-content {showMessages ? 'with-messages' : ''}">
             {#if activeComponent === 'dashboard'}
-                <div class="p-3">
-                    <h2>Lecturer Dashboard</h2>
-                    <!-- Add lecturer dashboard content here -->
-                </div>
-
+                {#if showingSession && selectedClassOfferingId}
+                    <ClassSessionManagement 
+                        classOfferingId={selectedClassOfferingId}
+                        onBack={() => {
+                            showingSession = false;
+                            selectedClassOfferingId = null;
+                        }}
+                    />
+                {:else if showingAssignment && selectedClassOfferingId}
+                    <HomeworkAssignmentManagement
+                        classOfferingId={selectedClassOfferingId}
+                        onBack={() => {
+                            showingAssignment = false;
+                            selectedClassOfferingId = null;
+                        }}
+                    />
+                {:else}
+                    <LecturerDashboard
+                        on:openSession={(event) => {
+                            selectedClassOfferingId = event.detail.classOfferingId;
+                            showingSession = true;
+                        }}
+                        on:openAssignment={(event) => {
+                            selectedClassOfferingId = event.detail.classOfferingId;
+                            showingAssignment = true;
+                        }}
+                    />
+                {/if}
             {:else if activeComponent === 'courses'}
                 <LecturerCourseManagement />
             {:else if activeComponent === 'classes'}

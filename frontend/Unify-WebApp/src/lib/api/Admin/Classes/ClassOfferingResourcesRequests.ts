@@ -35,6 +35,7 @@ export const CreateClassOfferingResource = async (data: CreateClassOfferingResou
 
 export const UpdateClassOfferingResource = async (data: UpdateClassOfferingResourceRequest, token: string) => {
     const formData = new FormData();
+    formData.append('id', data.id);
     formData.append('title', data.title);
     formData.append('description', data.description);
     if(data.attachments)

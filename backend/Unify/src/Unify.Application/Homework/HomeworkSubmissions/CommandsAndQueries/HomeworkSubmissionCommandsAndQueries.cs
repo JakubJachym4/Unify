@@ -9,3 +9,9 @@ public record CreateHomeworkSubmissionCommand(Guid HomeworkAssignmentId, List<IF
 public record UpdateHomeworkSubmissionCommand(Guid Id, List<IFormFile>? Attachments) : ICommand;
 
 public record DeleteHomeworkSubmissionCommand(Guid Id) : ICommand;
+
+public record GetHomeworkSubmissionQuery(Guid Id) : IQuery<HomeworkSubmissionResponse>;
+
+public record GetHomeworkSubmissionsByAssignmentQuery(Guid HomeworkAssignmentId) : IQuery<List<HomeworkSubmissionResponse>>;
+
+public record GetHomeworkSubmissionsByStudentQuery(Guid StudentId) : IQuery<List<HomeworkSubmissionResponse>>;

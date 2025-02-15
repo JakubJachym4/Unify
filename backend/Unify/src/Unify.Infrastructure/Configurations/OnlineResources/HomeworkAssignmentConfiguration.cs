@@ -6,9 +6,9 @@ using Unify.Domain.UniversityClasses;
 
 namespace Unify.Infrastructure.Configurations.OnlineResources;
 
-internal sealed class HomeworkAssigmentConfiguration : HomeworkBaseEntityConfiguration<HomeworkAssigment>
+internal sealed class HomeworkAssignmentConfiguration : HomeworkBaseEntityConfiguration<HomeworkAssignment>
 {
-    public void Configure(EntityTypeBuilder<HomeworkAssigment> builder)
+    public override void Configure(EntityTypeBuilder<HomeworkAssignment> builder)
     {
         builder.ToTable("homework_assignments");
 

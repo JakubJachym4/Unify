@@ -1,6 +1,7 @@
 ﻿using Unify.Application.Abstractions.Authentication;
 using Unify.Application.Abstractions.Files;
 using Unify.Application.Abstractions.Messaging;
+using Unify.Application.Files;
 using Unify.Application.Homework.HomeworkAssignments.CommandsAndQueries;
 using Unify.Domain.Abstractions;
 using Unify.Domain.OnlineResources;
@@ -39,7 +40,7 @@ public sealed class CreateHomeworkAssignmentCommandHandler : ICommandHandler<Cre
             return Result.Failure<Guid>(ClassOfferingErrors.NotFound);
         }
 
-        var homeworkAssignment = new HomeworkAssigment(classOffering, new Title(request.Title), new Description(request.Description), request.DueDate);
+        var homeworkAssignment = new HomeworkAssignment(classOffering, new Title(request.Title), new Description(request.Description), request.DueDate);
 
         if (request.Attachments != null)
         {
@@ -210,6 +211,114 @@ public sealed class GradeHomeworkSubmissionCommandHandler : ICommandHandler<Grad
         _markRepository.Add(mark);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
+    }
+}
+
+public sealed class GetHomeworkAssignmentQueryHandler : IQueryHandler<GetHomeworkAssignmentQuery, HomeworkAssigmentResponse>
+{
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
+
+    public GetHomeworkAssignmentQueryHandler(IHomeworkAssignmentRepository homeworkAssignmentRepository)
+    {
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
+    }
+
+    public async Task<Result<HomeworkAssigmentResponse>> Handle(GetHomeworkAssignmentQuery request, CancellationToken cancellationToken)
+    {
+        var homeworkAssignment = await _homeworkAssignmentRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (homeworkAssignment is null)
+        {
+            return Result.Failure<HomeworkAssigmentResponse>(HomeworkAssigmentErrors.NotFound);
+        }
+
+        return Result.Success(new HomeworkAssigmentResponse(homeworkAssignment.Id, homeworkAssignment.ClassOfferingId, homeworkAssignment.Title.Value,
+            homeworkAssignment.Description.Value, homeworkAssignment.DueDate, homeworkAssignment.Locked,
+            FileResponse.FromManyAttachments(homeworkAssignment?.Attachments.ToList() ?? new List<Attachment>())));
+    }
+}
+
+public sealed class GetHomeworkAssignmentByClassOfferingQueryHandler : IQueryHandler<GetHomeworkAssignmentsByClassOfferingQuery, List<HomeworkAssigmentResponse>>
+{
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+
+    public GetHomeworkAssignmentByClassOfferingQueryHandler(IHomeworkAssignmentRepository homeworkAssignmentRepository, IClassOfferingRepository classOfferingRepository)
+    {
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
+        _classOfferingRepository = classOfferingRepository;
+    }
+
+    public async Task<Result<List<HomeworkAssigmentResponse>>> Handle(GetHomeworkAssignmentsByClassOfferingQuery request, CancellationToken cancellationToken)
+    {
+
+        var classOffering = await _classOfferingRepository.GetByIdAsync(request.ClassOfferingId, cancellationToken);
+
+        if (classOffering == null)
+        {
+            return Result.Failure<List<HomeworkAssigmentResponse>>(ClassOfferingErrors.NotFound);
+        }
+
+        var homeworkAssignments = await _homeworkAssignmentRepository.GetByClassOffering(classOffering, cancellationToken);
+        if (homeworkAssignments is null || !homeworkAssignments.Any())
+        {
+            return new List<HomeworkAssigmentResponse>();
+        }
+
+        var response = homeworkAssignments.Select(ha => new HomeworkAssigmentResponse(
+            ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.DueDate, ha.Locked,
+            FileResponse.FromManyAttachments(ha.Attachments.ToList())
+        )).ToList();
+
+        return Result.Success(response);
+    }
+}
+
+public sealed class GetHomeworkAssignmentsByStudentQueryHandler : IQueryHandler<GetHomeworkAssignmentsByStudentQuery, List<HomeworkAssigmentResponse>>
+{
+
+    private readonly IUserRepository _userRepository;
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
+    private readonly IClassEnrollmentRepository _classEnrollmentRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+
+    public GetHomeworkAssignmentsByStudentQueryHandler(IUserRepository userRepository, IHomeworkAssignmentRepository homeworkAssignmentRepository, IClassEnrollmentRepository classEnrollmentRepository, IClassOfferingRepository classOfferingRepository)
+    {
+        _userRepository = userRepository;
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
+        _classEnrollmentRepository = classEnrollmentRepository;
+        _classOfferingRepository = classOfferingRepository;
+    }
+
+    public async Task<Result<List<HomeworkAssigmentResponse>>> Handle(GetHomeworkAssignmentsByStudentQuery request, CancellationToken cancellationToken)
+    {
+        var student = await _userRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        if (student is null)
+        {
+            return Result.Failure<List<HomeworkAssigmentResponse>>(UserErrors.NotFound(request.StudentId));
+        }
+
+        var enrollments = await _classEnrollmentRepository.GetByStudentIdAsync(student.Id, cancellationToken);
+        var offeringsTasks = enrollments.Select(e => _classOfferingRepository.GetByIdAsync(e.ClassOfferingId, cancellationToken));
+
+        var offerings = await Task.WhenAll(offeringsTasks);
+
+        if (offerings.Length == 0)
+        {
+            return new List<HomeworkAssigmentResponse>();
+        }
+
+        var assignmentsTasks = offerings.Select(o =>
+        {
+            if (o != null) return _homeworkAssignmentRepository.GetByClassOffering(o, cancellationToken);
+            return null;
+        }).Where(task => task != null);
+
+        var assignments = await Task.WhenAll(assignmentsTasks!);
+
+        return assignments.SelectMany(x => x).Select(ha => new HomeworkAssigmentResponse(
+            ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.DueDate, ha.Locked,
+            FileResponse.FromManyAttachments(ha.Attachments.ToList())
+        )).ToList();
     }
 }
 

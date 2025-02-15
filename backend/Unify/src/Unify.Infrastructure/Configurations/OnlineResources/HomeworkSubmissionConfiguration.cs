@@ -9,7 +9,7 @@ namespace Unify.Infrastructure.Configurations.OnlineResources;
 
 internal sealed class HomeworkSubmissionConfiguration : HomeworkBaseEntityConfiguration<HomeworkSubmission>
 {
-    public void Configure(EntityTypeBuilder<HomeworkSubmission> builder)
+    public override void Configure(EntityTypeBuilder<HomeworkSubmission> builder)
     {
         builder.ToTable("homework_submissions");
 
@@ -28,7 +28,7 @@ internal sealed class HomeworkSubmissionConfiguration : HomeworkBaseEntityConfig
             .WithMany()
             .HasForeignKey(hs => hs.MarkId);
 
-        builder.HasOne<HomeworkAssigment>()
+        builder.HasOne<HomeworkAssignment>()
             .WithMany()
             .HasForeignKey(hs => hs.HomeworkAssigmentId);
     }

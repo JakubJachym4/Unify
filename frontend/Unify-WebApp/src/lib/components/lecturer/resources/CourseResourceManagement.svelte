@@ -74,6 +74,7 @@ const getFileIcon = (fileName: string) => {
     }
 };
 
+
 const handleFileSelect = (event: Event, isEdit = false) => {
     const target = event.target as HTMLInputElement;
     const files = Array.from(target.files || []);
@@ -101,17 +102,26 @@ const handleAdd = async () => {
     }
 };
 
+// Update the handleUpdate function
 const handleUpdate = async () => {
     try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No token found');
         if(!editingResource) throw new Error('No resource found');
 
-        await UpdateCourseResource({
-            ...editingResource
-        }, token);
-        editingResource = { id: '', title: '', description: '', attachments: null };
+        const updateData = {
+            ...editingResource,
+            attachments: editingResource.attachments
+        };
+
+        await UpdateCourseResource(updateData, token);
         editingResourceState = false;
+        editingResource = {
+            id: '',
+            title: '',
+            description: '',
+            attachments: null
+        };
         await loadResources();
     } catch (err) {
         error = (err as ApiRequestError).details;
@@ -227,7 +237,14 @@ onMount(loadResources);
                             <td>
                                 <button 
                                     class="btn btn-sm btn-outline-primary me-2"
-                                    on:click={() => {editingResource = {...resource, attachments: convertAttachmentsToFiles(resource.attachments)}; editingResourceState = true}}>
+                                    on:click={() => {
+                                        editingResource = {
+                                            ...resource,
+                                            attachments: resource.attachments || []
+                                        }; 
+                                        editingResourceState = true;
+                                    }}
+                                >
                                     Edit
                                 </button>
                                 <button 
