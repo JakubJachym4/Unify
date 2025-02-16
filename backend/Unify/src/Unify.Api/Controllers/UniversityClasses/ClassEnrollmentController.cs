@@ -20,7 +20,7 @@ public class ClassEnrollmentController : ControllerBase
     }
 
     [HttpPost("enroll")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> EnrollStudent([FromBody] EnrollStudentCommand command, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command, cancellationToken);
@@ -32,8 +32,8 @@ public class ClassEnrollmentController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("cancelEnrollment")]
-    [Authorize(Roles = "Administrator")]
+    [HttpPost("cancel")]
+    [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> CancelEnrollment([FromBody] CancelEnrollmentStudentCommand command, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command, cancellationToken);

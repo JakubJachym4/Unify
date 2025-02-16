@@ -17,7 +17,7 @@ export interface DeleteHomeworkAssignmentRequest{
 
 export const CreateHomeworkSubmission = async (data: CreateHomeworkSubmissionRequest, token: string) => {
     const fromData = new FormData();
-    fromData.append('assignmentId', data.assignmentId);
+    fromData.append('HomeworkAssignmentId', data.assignmentId);
     if(data.attachments){
         data.attachments.forEach(file => {
             fromData.append('attachments', file);
@@ -26,7 +26,7 @@ export const CreateHomeworkSubmission = async (data: CreateHomeworkSubmissionReq
     return await api('POST', `/assignments/${data.assignmentId}/submit`, fromData, token, true);
 }
 
-export const UpdateHomeworkAssignment = async (data: UpdateHomeworkAssignmentRequest, token: string) => {
+export const UpdateHomeworkSubmission = async (data: UpdateHomeworkAssignmentRequest, token: string) => {
     const fromData = new FormData();
     fromData.append('id', data.id);
     if(data.attachments){
@@ -37,7 +37,7 @@ export const UpdateHomeworkAssignment = async (data: UpdateHomeworkAssignmentReq
     return await api('PUT', `/assignments/submissions/${data.id}`, fromData, token, true);
 }
 
-export const DeleteHomeworkAssignment = async (data: DeleteHomeworkAssignmentRequest, token: string) => {
+export const DeleteHomeworkSubmission = async (data: DeleteHomeworkAssignmentRequest, token: string) => {
     return await api('DELETE', `/assignments/submissions/${data.id}`, null, token);
 }
 

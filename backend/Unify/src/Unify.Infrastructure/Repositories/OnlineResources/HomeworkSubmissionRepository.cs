@@ -13,13 +13,18 @@ internal class HomeworkSubmissionRepository : Repository<HomeworkSubmission>, IH
 
     public Task<List<HomeworkSubmission>> GetByAssignmentAsync(HomeworkAssignment homeworkAssignment, CancellationToken cancellationToken)
     {
-        return DbContext.Set<HomeworkSubmission>().Where(submission => submission.HomeworkAssigmentId == homeworkAssignment.Id)
+        return DbContext.Set<HomeworkSubmission>().Include(s => s.Attachments).Where(submission => submission.HomeworkAssigmentId == homeworkAssignment.Id)
             .ToListAsync(cancellationToken);
+    }
+
+    public override Task<HomeworkSubmission?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return DbContext.Set<HomeworkSubmission>().Include(s => s.Attachments).FirstOrDefaultAsync(submission => submission.Id == id, cancellationToken);
     }
 
     public Task<List<HomeworkSubmission>> GetByStudentAsync(User student, CancellationToken cancellationToken)
     {
-        return DbContext.Set<HomeworkSubmission>().Where(submission => submission.StudentId == student.Id)
+        return DbContext.Set<HomeworkSubmission>().Include(s => s.Attachments).Where(submission => submission.StudentId == student.Id)
             .ToListAsync(cancellationToken);
     }
 }

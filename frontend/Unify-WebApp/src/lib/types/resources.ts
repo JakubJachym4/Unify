@@ -19,6 +19,8 @@ export interface HomeworkSubmission{
     id: string,
     assignmentId: string,
     studentId: string,
+    markId: string,
+    feedback: string,
     submissionDate: string,
     attachments: Attachment[],
 }

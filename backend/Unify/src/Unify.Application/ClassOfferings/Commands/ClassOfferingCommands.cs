@@ -9,10 +9,12 @@ public record UpdateClassOfferingCommand(Guid Id, string Name, DateOnly StartDat
 public record DeleteClassOfferingCommand(Guid Id) : ICommand;
 public record ListClassOfferingsQuery() : IQuery<List<Domain.UniversityClasses.ClassOffering>>;
 
-public record EnrollStudentCommand(Guid Id) : ICommand<Guid>;
 
 public record AssignLecturerCommand(Guid Id, Guid LecturerId) : ICommand;
 
 public record GetClassOfferingsByLecturerQuery(Guid LecturerId) : IQuery<List<ClassOfferingResponse>>;
 
 public record GetClassOfferingQuery(Guid Id) : IQuery<ClassOfferingResponse>;
+
+
+public record GetClassOfferingsByStudentQuery(Guid StudentId) : IQuery<List<ClassOfferingResponse>>;

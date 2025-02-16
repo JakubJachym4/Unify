@@ -148,49 +148,6 @@ internal sealed class ListClassOfferingsQueryHandler : IQueryHandler<ListClassOf
     }
 }
 
-internal sealed class EnrollClassOfferingHandler : ICommandHandler<EnrollStudentCommand, Guid>
-{
-
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IClassOfferingRepository _classOfferingRepository;
-    private readonly ICourseRepository _courseRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IUserContext _userContext;
-    private readonly IDateTimeProvider _dateTimeProvider;
-
-    public EnrollClassOfferingHandler(IUnitOfWork unitOfWork, IClassOfferingRepository classOfferingRepository, ICourseRepository courseRepository, IUserRepository userRepository, IUserContext userContext, IDateTimeProvider dateTimeProvider)
-    {
-        _unitOfWork = unitOfWork;
-        _classOfferingRepository = classOfferingRepository;
-        _courseRepository = courseRepository;
-        _userRepository = userRepository;
-        _userContext = userContext;
-        _dateTimeProvider = dateTimeProvider;
-    }
-
-    public async Task<Result<Guid>> Handle(EnrollStudentCommand request, CancellationToken cancellationToken)
-    {
-        var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken);
-        if (user == null)
-        {
-            return Result.Failure<Guid>(UserErrors.NotFound(_userContext.UserId));
-        }
-        var classOffering = await _classOfferingRepository.GetByIdAsync(request.Id, cancellationToken);
-        if (classOffering == null)
-        {
-            return Result.Failure<Guid>(ClassOfferingErrors.NotFound);
-        }
-
-        var result = classOffering.Enroll(user, _dateTimeProvider.UtcNow);
-        if (result.IsFailure)
-        {
-            return Result.Failure<Guid>(result.Error);
-        }
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result.Success(classOffering.Id);
-    }
-}
 
 internal sealed class AssignLecturerCommandHandler : ICommandHandler<AssignLecturerCommand>
 {
@@ -285,5 +242,39 @@ public sealed class GetStudentsByClassOfferingQueryHandler : IQueryHandler<GetSt
 
         var responses = UserResponse.FromUsers(students);
         return responses;
+    }
+}
+
+public sealed class GetClassOfferingsByStudentQueryHandler : IQueryHandler<GetClassOfferingsByStudentQuery, List<ClassOfferingResponse>>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IClassEnrollmentRepository _classEnrollmentRepository;
+    private readonly IClassOfferingRepository _classOfferingRepository;
+
+    public GetClassOfferingsByStudentQueryHandler(IUserRepository userRepository, IClassEnrollmentRepository classEnrollmentRepository, IClassOfferingRepository classOfferingRepository)
+    {
+        _userRepository = userRepository;
+        _classEnrollmentRepository = classEnrollmentRepository;
+        _classOfferingRepository = classOfferingRepository;
+    }
+
+    public async Task<Result<List<ClassOfferingResponse>>> Handle(GetClassOfferingsByStudentQuery request, CancellationToken cancellationToken)
+    {
+        var student = await _userRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        if(student == null)
+        {
+            return Result.Failure<List<ClassOfferingResponse>>(UserErrors.NotFound(request.StudentId));
+        }
+
+        var classEnrollments = await _classEnrollmentRepository.GetByStudentIdAsync(student.Id, cancellationToken);
+
+        var classOfferings = classEnrollments.Select(e => _classOfferingRepository.GetByIdAsync(e.ClassOfferingId, cancellationToken)).ToList();
+
+        var responses = await Task.WhenAll(classOfferings);
+        if(responses == null || responses.Length == 0)
+        {
+            return new List<ClassOfferingResponse>();
+        }
+        return ClassOfferingResponse.FromClassOfferingList(responses.Where(r => r != null).ToList()!);
     }
 }

@@ -13,6 +13,12 @@
     const dispatch = createEventDispatcher<{refresh: void}>();
 
     // Add imports
+    import { 
+        enrollStudent, 
+        cancelStudentEnrollment,
+        getEnrollmentsByClassOffering
+    } from '$lib/api/Admin/Classes/ClassEnrollmentsRequests';
+    import { type ClassEnrollment } from '$lib/types/universityClasses';
 
     export let course: Course;
     export let onBack: () => void;
@@ -25,6 +31,7 @@
     let lecturerSearchTerm = '';
     let selectedLecturerId: string | null = null;
     let lecturers: UserResponse[] = [];
+    let students: UserResponse[] = [];
     let filteredLecturers = [];
     let userId = $user!.id;
 
@@ -60,6 +67,17 @@
             error = (err as ApiRequestError).details;
         }
     };
+
+    const loadStudents = async() =>{
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+            const users = await getAllUsers(token);
+            students = users.filter(user => user.roles.includes('Student'));
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    } 
 
     const handleAdd = async () => {
         try {
@@ -141,7 +159,8 @@
     onMount(async () => {
         await Promise.all([
             loadStudentGroups(),
-            loadLecturers()
+            loadLecturers(),
+            loadStudents()
         ]);
     });
 
@@ -155,6 +174,59 @@ $: filteredLecturers = lecturers.filter(lecturer => {
 
 import ClassOfferingResourceManagement from './resources/ClassOfferingResourceManagement.svelte';
 let managingResources = false;
+
+// Add new state variables
+let managingEnrollments = false;
+let selectedOffering: ClassOffering | null = null;
+let enrollments: ClassEnrollment[] = [];
+let loadingEnrollments = false;
+
+console.log(course);
+
+// Add new functions
+const loadEnrollments = async (classOfferingId: string) => {
+
+    try {
+        loadingEnrollments = true;
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No token found');
+        enrollments = await getEnrollmentsByClassOffering(classOfferingId, token);
+    } catch (err) {
+        error = (err as ApiRequestError).details;
+    } finally {
+        loadingEnrollments = false;
+    }
+};
+
+const handleEnroll = async (studentId: string) => {
+    if (!selectedOffering) return;
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No token found');
+        await enrollStudent({
+            classOfferingId: selectedOffering.id,
+            studentId
+        }, token);
+        await loadEnrollments(selectedOffering.id);
+    } catch (err) {
+        error = (err as ApiRequestError).details;
+    }
+};
+
+const handleCancelEnrollment = async (studentId: string) => {
+    if (!selectedOffering) return;
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No token found');
+        await cancelStudentEnrollment({
+            classOfferingId: selectedOffering.id,
+            studentId
+        }, token);
+        await loadEnrollments(selectedOffering.id);
+    } catch (err) {
+        error = (err as ApiRequestError).details;
+    }
+};
 
 </script>
 
@@ -252,6 +324,16 @@ let managingResources = false;
                             <button class="btn btn-sm btn-outline-primary" on:click={() => currentClassOffering = offering}>
                                     Manage Resources
                                 </button>
+                                <button 
+                                    class="btn btn-sm btn-outline-info ms-1"
+                                    on:click={() => {
+                                        selectedOffering = offering;
+                                        managingEnrollments = true;
+                                        loadEnrollments(offering.id);
+                                    }}
+                                >
+                                    Manage Enrollments
+                                </button>
                             </td>
                         </tr>
                     {/each}
@@ -332,6 +414,15 @@ let managingResources = false;
                                 <div class="invalid-feedback">
                                     Please select a student group
                                 </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Max Student Count</label>
+                                <input 
+                                        type="number"
+                                        class="form-control"
+                                        bind:value={newOffering.maxStudentsCount}
+                                        required
+                                    />
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Lecturer</label>
@@ -431,6 +522,15 @@ let managingResources = false;
                                 </div>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Max Student Count</label>
+                                <input 
+                                        type="number"
+                                        class="form-control"
+                                        bind:value={editingOffering.maxStudentsCount}
+                                        required
+                                    />
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Lecturer</label>
                                 <div class="mb-2">
                                     <input
@@ -524,6 +624,114 @@ let managingResources = false;
                             on:click={handleAssignLecturer}
                         >
                             Assign
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    {/if}
+
+    <!-- Enrollments Modal -->
+    {#if managingEnrollments && selectedOffering}
+        <div class="modal fade show" style="display: block;">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Manage Enrollments - {selectedOffering.name}</h5>
+                        <button 
+                            type="button" 
+                            class="btn-close" 
+                            on:click={() => {
+                                managingEnrollments = false;
+                                selectedOffering = null;
+                            }}
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        {#if error}
+                            <div class="alert alert-danger" role="alert">{error}</div>
+                        {/if}
+
+                        {#if loadingEnrollments}
+                            <div class="d-flex justify-content-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        {:else}
+                            {@const group = studentGroups.find(g => g.id === selectedOffering.studentGroupId)}
+                            {#if group}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Email</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {#each group.members as studentId}
+                                                {@const student = students.find(s => s.id === studentId)}
+                                                {@const isEnrolled = enrollments.some(e => e.studentId === student.id)}
+                                                <tr>
+                                                    <td>{student.firstName} {student.lastName}</td>
+                                                    <td>{student.email}</td>
+                                                    <td>
+                                                        {#if isEnrolled}
+                                                            <span class="badge bg-success">Enrolled</span>
+                                                        {:else}
+                                                            <span class="badge bg-warning text-dark">Not Enrolled</span>
+                                                        {/if}
+                                                    </td>
+                                                    <td>
+                                                        {#if isEnrolled}
+                                                            <button 
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                on:click={() => handleCancelEnrollment(student.id)}
+                                                            >
+                                                                Cancel Enrollment
+                                                            </button>
+                                                        {:else}
+                                                            <button 
+                                                                class="btn btn-sm btn-outline-success"
+                                                                on:click={() => handleEnroll(student.id)}
+                                                            >
+                                                                Enroll
+                                                            </button>
+                                                        {/if}
+                                                    </td>
+                                                </tr>
+                                            {/each}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        Total Students: {group.members.length} | 
+                                        Enrolled: {enrollments.length} | 
+                                        Not Enrolled: {group.members.length - enrollments.length}
+                                    </small>
+                                </div>
+                            {:else}
+                                <div class="alert alert-warning">
+                                    No student group assigned to this class.
+                                </div>
+                            {/if}
+                        {/if}
+                    </div>
+                    <div class="modal-footer">
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary" 
+                            on:click={() => {
+                                managingEnrollments = false;
+                                selectedOffering = null;
+                            }}
+                        >
+                            Close
                         </button>
                     </div>
                 </div>

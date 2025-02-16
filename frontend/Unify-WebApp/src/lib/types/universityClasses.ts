@@ -45,8 +45,26 @@ export interface ClassOfferingSession{
 }
 
 export interface ClassEnrollment{
-    id:string,
+    id: string,
     classOfferingId: string,
     studentId: string,
     enrolledOn: string,
+    grade: Grade | null
+}
+
+export interface Grade{
+    id: string,
+    description: string,
+    score: number,
+    dateAwarded: string,
+    marks: Mark[] | null,
+}
+
+export interface Mark{
+    id: string,
+    gradeId: string,
+    submissionId: string | null,
+    criteria: string,
+    score: number,
+    maxScore: number,
 }

@@ -48,6 +48,19 @@ public class ClassOfferingController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpGet("student/{studentId:guid}")]
+    public async Task<IActionResult> GetClassOfferingsByStudent(Guid studentId, CancellationToken cancellationToken)
+    {
+        var query = new GetClassOfferingsByStudentQuery(studentId);
+        var result = await _sender.Send(query, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpGet("{id:guid}/students")]
     public async Task<IActionResult> GetStudentsByClassOffering(Guid id, CancellationToken cancellationToken)
     {
@@ -98,21 +111,6 @@ public class ClassOfferingController : ControllerBase
     {
         var query = new ListClassOfferingsQuery();
         var result = await _sender.Send(query, cancellationToken);
-        if (result.IsFailure)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return Ok(result.Value);
-    }
-
-    [HttpPost("{id:guid}/enroll")]
-    [Authorize(Roles = "Student,Lecturer")]
-    public async Task<IActionResult> Enroll(Guid id, CancellationToken cancellationToken)
-    {
-        var command = new EnrollStudentCommand(id);
-
-        var result = await _sender.Send(command, cancellationToken);
         if (result.IsFailure)
         {
             return BadRequest(result.Error);
@@ -224,9 +222,7 @@ public class ClassOfferingController : ControllerBase
 
         return Ok(result.Value);
     }
-
 }
-
 
 
 

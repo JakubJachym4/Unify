@@ -14,5 +14,9 @@ internal sealed class AttachmentConfiguration : IEntityTypeConfiguration<Attachm
 
         builder.Property(attachment =>  attachment.FileName).IsRequired();
         builder.Property(attachment => attachment.Data).IsRequired();
+
+        builder.HasMany<HomeworkAssignment>()
+            .WithOne()
+            .HasForeignKey("homework_assignment_id").OnDelete(DeleteBehavior.Cascade);
     }
 }

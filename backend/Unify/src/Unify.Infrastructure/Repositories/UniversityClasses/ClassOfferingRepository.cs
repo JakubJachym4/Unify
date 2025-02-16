@@ -12,6 +12,12 @@ public class ClassOfferingRepository : Repository<ClassOffering>, IClassOffering
     {
     }
 
+    public Task<ClassOffering?> GetByIdAsyncIncludeEnrollments(Guid id, CancellationToken cancellationToken)
+    {
+        return DbContext.Set<ClassOffering>().Include(c => c.Enrollments)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     public Task<List<ClassOffering>> GetByLecturerAsync(User lecturer, CancellationToken cancellationToken)
     {
         return DbContext.Set<ClassOffering>().Include(c => c.Enrollments)

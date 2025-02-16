@@ -76,26 +76,28 @@ public sealed class ClassOffering : Entity
     }
 
 
-    public Result Enroll(User student, DateTime enrollmentDate)
+    public Result<ClassEnrollment> Enroll(User student, DateTime enrollmentDate, Grade grade)
     {
         if (StudentGroupId != student.StudentGroupId)
         {
-            return Result.Failure(ClassOfferingErrors.InvalidGroup);
+            return ClassOfferingErrors.InvalidGroup;
         }
 
         if (_enrollments.Any(e => e.StudentId == student.Id))
         {
-            return Result.Failure(ClassOfferingErrors.AlreadyEnrolled(student.Id));
+            return ClassOfferingErrors.AlreadyEnrolled(student.Id);
         }
 
         if (_enrollments.Count == MaxStudentsCount)
         {
-            return Result.Failure(ClassOfferingErrors.ClassFull(MaxStudentsCount));
+            return ClassOfferingErrors.ClassFull(MaxStudentsCount);
         }
 
-        _enrollments.Add(ClassEnrollment.Enroll(this, student, enrollmentDate));
+        var enrollment = ClassEnrollment.Enroll(this, student, enrollmentDate, grade);
 
-        return Result.Success();
+        _enrollments.Add(enrollment);
+
+        return enrollment;
     }
 
 }

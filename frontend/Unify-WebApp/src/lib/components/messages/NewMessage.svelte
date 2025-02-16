@@ -53,7 +53,7 @@
     const canSendNotification = () : boolean =>
     {
         return $user != null && ($user.roles.includes('Lecturer') ||
-        $user.roles.includes('Admin')) && !respondingToId;
+        $user.roles.includes('Administrator')) && !respondingToId;
     }
 
     $: filteredUsers = availableUsers.filter(user => 

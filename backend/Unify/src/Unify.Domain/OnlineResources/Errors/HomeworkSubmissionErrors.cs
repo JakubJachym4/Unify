@@ -6,4 +6,7 @@ public static class HomeworkSubmissionErrors
 {
     public static Error NotFound =>
         new("HomeworkSubmission.NotFound", "Homework submission not found.");
+
+    public static Error AlreadySubmitted =>
+        new("HomeworkSubmission.AlreadySubmitted", "Already submitted.");
 }

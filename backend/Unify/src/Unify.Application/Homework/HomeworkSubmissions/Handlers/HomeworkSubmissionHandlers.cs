@@ -47,6 +47,13 @@ public sealed class CreateHomeworkSubmissionCommandHandler : ICommandHandler<Cre
             return Result.Failure<Guid>(UserErrors.NotFound(_userContext.UserId));
         }
 
+        var existingSubmission = await _homeworkSubmissionRepository.GetByStudentAsync(user, cancellationToken);
+
+        if(existingSubmission.Any(x => x.HomeworkAssigmentId == homeworkAssignment.Id))
+        {
+            return Result.Failure<Guid>(HomeworkSubmissionErrors.AlreadySubmitted);
+        }
+
         var homeworkSubmission = HomeworkSubmission.Submit(homeworkAssignment, user, _dateTimeProvider.UtcNow);
 
         if (request.Attachments != null)

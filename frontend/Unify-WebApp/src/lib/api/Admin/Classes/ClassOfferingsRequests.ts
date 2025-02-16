@@ -61,3 +61,7 @@ export const GetClassOfferingsByLecturer = async (lecturerId: string, token: str
 export const GetStudentsByClassOffering = async (classOfferingId: string, token: string) => {
     return await api<UserResponse[]>('GET', `/class-offerings/${classOfferingId}/students`, null, token);
 }
+
+export const GetClassOfferingsByStudent = async (studentId: string, token: string) => {
+    return await api<ClassOfferingResponse[]>('GET', `/class-offerings/student/${studentId}`, null, token);
+}

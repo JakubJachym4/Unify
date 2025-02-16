@@ -4,6 +4,8 @@
     import MessagesList from '$lib/components/messages/MessagesList.svelte';
     import NewMessage from '$lib/components/messages/NewMessage.svelte';
     import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
+    import StudentDashboard from '$lib/components/student/StudentDashboard.svelte';
+    import StudentAssignmentView from '$lib/components/student/StudentAssignmentView.svelte';
 
     let messages = [];
     let error = '';
@@ -12,6 +14,7 @@
     let showSuccessAlert = false;
     let showMessages = true;
     let activeComponent = 'dashboard';
+    let selectedAssignmentId = '';
 
     const handleMessageSent = () => {
         showSuccessAlert = true;
@@ -26,6 +29,23 @@
 
     const setActiveComponent = (component: string) => {
         activeComponent = component;
+    };
+
+    const handleViewSession = (event) => {
+        // Handle viewing session details
+    };
+    
+    const handleViewAssignment = (event) => {
+        selectedAssignmentId = event.detail.assignmentId;
+        setActiveComponent('assignment');
+    };
+    
+    const handleViewLecture = (event) => {
+        // Handle viewing lecture details
+    };
+
+    const handleBackFromAssignment = () => {
+        setActiveComponent('dashboard');
     };
 </script>
 
@@ -65,7 +85,18 @@
                 <div class="p-3">
                     <h2>Student Dashboard</h2>
                     <!-- Add student dashboard content here -->
+                    <StudentDashboard 
+                        on:viewSession={handleViewSession}
+                        on:viewAssignment={handleViewAssignment}
+                        on:viewLecture={handleViewLecture}
+                    />
                 </div>
+            {/if}
+            {#if activeComponent === 'assignment'}
+                <StudentAssignmentView 
+                    assignmentId={selectedAssignmentId}
+                    onBack={handleBackFromAssignment}
+                />
             {/if}
         </div>
         

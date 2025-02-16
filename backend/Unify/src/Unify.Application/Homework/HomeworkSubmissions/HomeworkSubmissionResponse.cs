@@ -5,7 +5,7 @@ namespace Unify.Application.Homework.HomeworkSubmissions;
 
 public record HomeworkSubmissionResponse(
     Guid Id,
-    Guid HomeworkAssigmentId,
+    Guid AssignmentId,
     Guid StudentId,
     Guid? MarkId,
     string Feedback,
