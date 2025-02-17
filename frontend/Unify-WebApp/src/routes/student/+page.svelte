@@ -6,15 +6,26 @@
     import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
     import StudentDashboard from '$lib/components/student/StudentDashboard.svelte';
     import StudentAssignmentView from '$lib/components/student/StudentAssignmentView.svelte';
+	import LocationListView from '$lib/components/common/LocationListView.svelte';
+	import AcademicStructureView from '$lib/components/common/AcademicStructureView.svelte';
+	import UserDirectoryView from '$lib/components/common/UserDirectoryView.svelte';
+	import StudentAssignmentList from '$lib/components/student/StudentAssignmentList.svelte';
+	import EnrollmentGradeView from '$lib/components/student/EnrollmentGradeView.svelte';
+	import StudentEnrollmentList from '$lib/components/student/StudentEnrollmentList.svelte';
+   
 
     let messages = [];
     let error = '';
     let loading = true;
     let showNewMessage = false;
+    let showingAssignment = false;
     let showSuccessAlert = false;
     let showMessages = true;
-    let activeComponent = 'dashboard';
+    let activeComponent: 'dashboard' | 'assignments' | 'locations' | 'structure' | 'directory' | 'assignment' | 'enrollment' | 'grade' = 'dashboard';
     let selectedAssignmentId = '';
+    let selectedClassOfferingId = '';
+    let selectedEnrollmentId: string | null = null;
+    let viewingGrade = false;
 
     const handleMessageSent = () => {
         showSuccessAlert = true;
@@ -38,6 +49,7 @@
         selectedAssignmentId = event.detail.assignmentId;
         setActiveComponent('assignment');
     };
+
     
     const handleViewLecture = (event) => {
     };
@@ -65,7 +77,36 @@
                     >
                         Dashboard
                     </button>
-                    <!-- Add more student-specific buttons here -->
+                    <button 
+                        class="btn {activeComponent === 'assignments' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('assignments')}
+                    >
+                        My Assignments
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'locations' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('locations')}
+                    >
+                        Locations
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'structure' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('structure')}
+                    >
+                        Academic Structure
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'directory' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('directory')}
+                    >
+                        Academic Members
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'enrollment' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('enrollment')}
+                    >
+                        My Enrollments
+                    </button>
                 </div>
                 <button 
                     class="btn {showMessages ? 'btn-primary' : 'btn-outline-primary'}"
@@ -87,12 +128,43 @@
                         on:viewLecture={handleViewLecture}
                     />
                 </div>
-            {/if}
-            {#if activeComponent === 'assignment'}
+            {:else if activeComponent === 'assignment'}
                 <StudentAssignmentView 
                     assignmentId={selectedAssignmentId}
                     onBack={handleBackFromAssignment}
                 />
+            {:else if activeComponent === 'locations'}
+                <div class="p-3">
+                    <LocationListView />
+                </div>
+            {:else if activeComponent === 'structure'}
+                <div class="p-3">
+                    <AcademicStructureView />
+                </div>
+            {:else if activeComponent === 'directory'}
+                <div class="p-3">
+                    <UserDirectoryView />
+                </div>
+            {:else if activeComponent === 'assignments'}
+                <div class="p-3">
+                    <StudentAssignmentList
+                        on:viewAssignment={(event) => {
+                            selectedAssignmentId = event.detail.assignmentId;
+                            showingAssignment = true;
+                            setActiveComponent('assignment');
+                        }}
+                    />
+                </div>
+            {:else if activeComponent === 'enrollment'}
+                <div class="p-3">
+                <StudentEnrollmentList
+                    on:viewAssignment={(event) => {
+                        selectedAssignmentId = event.detail.assignmentId;
+                        showingAssignment = true;
+                        setActiveComponent('assignment');
+                    }}
+                />
+                </div>
             {/if}
         </div>
         

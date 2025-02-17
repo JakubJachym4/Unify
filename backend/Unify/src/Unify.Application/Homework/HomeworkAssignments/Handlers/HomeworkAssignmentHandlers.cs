@@ -205,9 +205,8 @@ public sealed class GradeHomeworkSubmissionCommandHandler : ICommandHandler<Grad
             return Result.Failure(GradeErrors.NotFound);
         }
 
-        var mark = Mark.CreateForSubmission(grade, homeworkSubmission, request.Score, request.MaxScore,
-            _dateTimeProvider.UtcNow,
-            homeworkAssignment.Criteria);
+        var mark = Mark.CreateForSubmission(new Title(request.Title), grade, homeworkSubmission, request.Score, request.MaxScore,
+            _dateTimeProvider.UtcNow);
 
         if (request.Feedback != null)
         {

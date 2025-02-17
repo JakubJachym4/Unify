@@ -1,4 +1,7 @@
 <script lang="ts">
+	import AcademicStructureView from '$lib/components/common/AcademicStructureView.svelte';
+	import LocationListView from '$lib/components/common/LocationListView.svelte';
+	import UserDirectoryView from '$lib/components/common/UserDirectoryView.svelte';
 	import HomeworkAssignmentManagement from '$lib/components/lecturer/assignments/HomeworkAssignmentManagement.svelte';
 	import HomeworkSubmissionManagement from '$lib/components/lecturer/assignments/HomeworkSubmissionManagement.svelte';
 	import ClassSessionManagement from '$lib/components/lecturer/ClassSessionManagement.svelte';
@@ -7,10 +10,11 @@
 	import LecturerDashboard from '$lib/components/lecturer/LecturerDashboard.svelte';
     import MyClassesManagement from '$lib/components/lecturer/MyClassesManagement.svelte';
     import MessagesContainer from '$lib/components/messages/MessagesContainer.svelte';
+
     
     
     let showMessages = true;
-    let activeComponent = 'dashboard';
+    let activeComponent: 'dashboard' | 'courses' | 'classes' | 'locations' | 'structure' | 'directory' = 'dashboard';
 
     const toggleMessages = () => {
         showMessages = !showMessages;
@@ -66,6 +70,24 @@
                         on:click={() => setActiveComponent('classes')}
                     >
                         My Classes
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'locations' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('locations')}
+                    >
+                        Locations
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'structure' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('structure')}
+                    >
+                        Academic Structure
+                    </button>
+                    <button 
+                        class="btn {activeComponent === 'directory' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('directory')}
+                    >
+                    Academic Members
                     </button>
                 </div>
                 <button 
@@ -123,6 +145,18 @@
             {:else if activeComponent === 'classes'}
                 <div class="p-3">
                     <MyClassesManagement />
+                </div>
+            {:else if activeComponent === 'locations'}
+                <div class="p-3">
+                    <LocationListView />
+                </div>
+            {:else if activeComponent === 'structure'}
+                <div class="p-3">
+                    <AcademicStructureView />
+                </div>
+            {:else if activeComponent === 'directory'}
+                <div class="p-3">
+                    <UserDirectoryView />
                 </div>
             {/if}
         </div>

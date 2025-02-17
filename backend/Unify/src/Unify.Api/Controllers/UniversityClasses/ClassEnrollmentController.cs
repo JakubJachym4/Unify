@@ -45,6 +45,18 @@ public class ClassEnrollmentController : ControllerBase
         return Ok();
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetEnrollment(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetEnrollmentQuery(id), cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpGet("class-offering/{classOfferingId:guid}")]
     public async Task<IActionResult> GetEnrollmentsForClassOffering(Guid classOfferingId, CancellationToken cancellationToken)
     {
@@ -69,6 +81,8 @@ public class ClassEnrollmentController : ControllerBase
         return Ok(result.Value);
     }
 }
+
+
 
 
 

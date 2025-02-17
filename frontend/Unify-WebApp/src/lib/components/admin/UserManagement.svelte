@@ -124,6 +124,20 @@
                                         Remove Lecturer Role
                                     </button>
                                 {/if}
+
+                                {#if !user.roles.includes('Administrator')}
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary"
+                                        on:click={() => handleRoleChange(user.id, 'Administrator', true)}>
+                                        Add Admin Role
+                                    </button>
+                                {:else}
+                                    <button 
+                                        class="btn btn-sm btn-outline-danger"
+                                        on:click={() => handleRoleChange(user.id, 'Administrator', false)}>
+                                        Remove Admin Role
+                                    </button>
+                                {/if}
                             </td>
                         </tr>
                     {/each}

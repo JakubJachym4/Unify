@@ -12,7 +12,7 @@ public record DeleteHomeworkAssignmentCommand(Guid Id) : ICommand;
 
 public record LockHomeworkAssignmentCommand(Guid Id, bool Locked) : ICommand;
 
-public record GradeHomeworkSubmissionCommand(Guid AssignmentId, Guid SubmissionId, Decimal Score, Decimal MaxScore, string? Feedback) : ICommand;
+public record GradeHomeworkSubmissionCommand(string Title, Guid AssignmentId, Guid SubmissionId, Decimal Score, Decimal MaxScore, string? Feedback) : ICommand;
 
 public record GetHomeworkAssignmentQuery(Guid Id) : IQuery<HomeworkAssigmentResponse>;
 public record GetHomeworkAssignmentsByClassOfferingQuery(Guid ClassOfferingId) : IQuery<List<HomeworkAssigmentResponse>>;

@@ -10,3 +10,5 @@ public record CancelEnrollmentStudentCommand(Guid ClassOfferingId, Guid StudentI
 public record GetEnrollmentsForClassOfferingQuery(Guid ClassOfferingId) : IQuery<List<ClassEnrollmentResponseWithGrade>>;
 
 public record GetEnrollmentsForStudentQuery(Guid StudentId) : IQuery<List<ClassEnrollmentResponseWithGrade>>;
+
+public record GetEnrollmentQuery(Guid Id) : IQuery<ClassEnrollmentResponseWithGrade>;

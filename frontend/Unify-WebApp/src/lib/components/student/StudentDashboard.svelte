@@ -14,6 +14,8 @@
     import { getUserData } from '$lib/api/User/UserRequests';
     import { get } from 'svelte/store';
 	import { GetHomeworkSubmissionsByStudent } from '$lib/api/Admin/Assignments/HomeworkSubmissionsRequests';
+    import { GetAllLocations } from '$lib/api/Common/LocationRequests';
+    import type { AcademicLocation } from '$lib/types/university';
 
     let loading = true;
     let error = '';
@@ -21,6 +23,7 @@
     let upcomingAssignments: (HomeworkAssignment & { courseName?: string, className?: string })[] = [];
     let upcomingLectures: (ClassSession & { courseName?: string } & {courseId: string})[] = [];
     let submissions: HomeworkSubmission[] | null = null;
+    let locations: AcademicLocation[] = [];
 
     const DAYS_TO_SHOW = 7; // Show items for next 7 days
 
@@ -38,6 +41,9 @@
                 const userData = await getUserData(token);
                 user.set(userData);
             }
+
+            // Load locations
+            locations = await GetAllLocations(token);
 
             // Get class offerings for student's group
             const offerings = await GetClassOfferingsByStudent($user!.id, token);
@@ -141,6 +147,25 @@
         return date.split('.')[0];
     };
 
+    interface LocationInfo {
+        displayText: string;
+        url?: string;
+    }
+
+    const formatLocation = (locationId: string): LocationInfo => {
+        const location = locations.find(l => l.id === locationId);
+        if (!location) return { displayText: 'Location not available' };
+        
+        return location.online 
+            ? { 
+                displayText: 'Online Meeting', 
+                url: location.meetingUrl 
+              }
+            : { 
+                displayText: `Building: ${location.building}, Room: ${location.doorNumber}`
+              };
+    };
+
     onMount(loadDashboardData);
 </script>
 
@@ -172,6 +197,7 @@
                             {:else}
                                 <div class="list-group">
                                     {#each upcomingSessions as session}
+                                    {@const locationInfo = formatLocation(session.locationId)}
                                         <a
                                             href="#"
                                             class="list-group-item list-group-item-action dashboard-item"
@@ -185,7 +211,24 @@
                                             </div>
                                             <h6 class="mb-2">{session.courseName}</h6>
                                             <p class="mb-1">Class: {session.className}</p>
-                                            <small class="text-muted">Duration: {cutMinutes(session.duration)} minutes</small>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">Duration: {cutMinutes(session.duration)} minutes</small>
+                                                <small class="text-primary">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                    {#if locationInfo.url}
+                                                        <a 
+                                                            href={locationInfo.url} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            on:click|stopPropagation
+                                                        >
+                                                            {locationInfo.displayText}
+                                                        </a>
+                                                    {:else}
+                                                        {locationInfo.displayText}
+                                                    {/if}
+                                                </small>
+                                            </div>
                                         </a>
                                     {/each}
                                 </div>
@@ -251,6 +294,7 @@
                             {:else}
                                 <div class="list-group">
                                     {#each upcomingLectures as lecture}
+                                        {@const locationInfo = formatLocation(lecture.locationId)}
                                         <a
                                             href="#"
                                             class="list-group-item list-group-item-action dashboard-item"
@@ -263,7 +307,24 @@
                                                 </span>
                                             </div>
                                             <h6 class="mb-2">{lecture.courseName}</h6>
-                                            <small class="text-muted">Duration: {cutMinutes(lecture.duration)} minutes</small>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">Duration: {cutMinutes(lecture.duration)} minutes</small>
+                                                <small class="text-info">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                    {#if locationInfo.url}
+                                                        <a 
+                                                            href={locationInfo.url} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            on:click|stopPropagation
+                                                        >
+                                                            {locationInfo.displayText}
+                                                        </a>
+                                                    {:else}
+                                                        {locationInfo.displayText}
+                                                    {/if}
+                                                </small>
+                                            </div>
                                         </a>
                                     {/each}
                                 </div>
@@ -319,5 +380,29 @@
     :global(.main-content) {
         display: flex;
         flex-direction: column;
+    }
+
+    .text-primary small {
+        font-size: 0.875rem;
+    }
+
+    .text-info small {
+        font-size: 0.875rem;
+    }
+
+    .bi-geo-alt {
+        margin-right: 0.25rem;
+    }
+
+    /* Make online links clickable */
+    .text-primary a,
+    .text-info a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .text-primary a:hover,
+    .text-info a:hover {
+        text-decoration: underline;
     }
 </style>

@@ -20,9 +20,10 @@ internal sealed class MarkConfiguration : IEntityTypeConfiguration<Mark>
             .IsRequired()
             .HasConversion(s => s.Value, value => value);
 
-        builder.Property(m => m.Criteria)
-            .HasMaxLength(400)
-            .HasConversion(d => d == null ? "" : d.Value, value => new Description(value));;
+        builder.Property(m => m.Title)
+            .IsRequired()
+            .HasMaxLength(60)
+            .HasConversion(t => t.Value, value => new Title(value));;
 
         builder.Property(m => m.DateAwarded)
             .IsRequired();

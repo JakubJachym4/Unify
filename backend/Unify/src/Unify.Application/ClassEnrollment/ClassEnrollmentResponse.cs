@@ -10,12 +10,12 @@ public record ClassEnrollmentResponse(Guid ClassOfferingId, Guid StudentId, Date
     }
 }
 
-public record ClassEnrollmentResponseWithGrade(Guid ClassOfferingId, Guid StudentId, DateTime EnrolledOn, GradeResponse? Grade)
+public record ClassEnrollmentResponseWithGrade(Guid Id, Guid ClassOfferingId, Guid StudentId, DateTime EnrolledOn, GradeResponse? Grade)
 {
     public static ClassEnrollmentResponseWithGrade CreateFrom(Domain.UniversityClasses.ClassEnrollment enrollment, Grade? grade)
     {
         var gradeResponse = grade == null ? null : GradeResponse.Create(grade);
-        return new ClassEnrollmentResponseWithGrade(enrollment.ClassOfferingId, enrollment.StudentId, enrollment.EnrolledOn,
+        return new ClassEnrollmentResponseWithGrade(enrollment.Id, enrollment.ClassOfferingId, enrollment.StudentId, enrollment.EnrolledOn,
             gradeResponse);
     }
 }
@@ -32,11 +32,11 @@ public record GradeResponse(Guid Id, string Description, decimal? Score, DateTim
     }
 }
 
-public record MarkResponse(Guid Id, Guid GradeId, Guid? SubmissionId, decimal Score, decimal MaxScore, DateTime DateAwarded)
+public record MarkResponse(Guid Id, string Title, Guid GradeId, Guid? SubmissionId, decimal Score, decimal MaxScore, DateTime DateAwarded)
 {
-    public static MarkResponse Create(Guid id, Guid gradeId, Guid? submissionId, string criteria, decimal score, decimal maxScore, DateTime dateAwarded)
+    public static MarkResponse Create(Guid id, string title, Guid gradeId, Guid? submissionId, string criteria, decimal score, decimal maxScore, DateTime dateAwarded)
     {
-        return new MarkResponse(id, gradeId, submissionId, score, maxScore, dateAwarded);
+        return new MarkResponse(id, title, gradeId, submissionId, score, maxScore, dateAwarded);
     }
 
     public static MarkResponse? Create(Domain.UniversityCore.Mark? mark)
@@ -45,6 +45,6 @@ public record MarkResponse(Guid Id, Guid GradeId, Guid? SubmissionId, decimal Sc
         {
             return null;
         }
-        return new MarkResponse(mark.Id, mark.GradeId, mark.SubmissionId, mark.Score.Value, mark.MaxScore.Value, mark.DateAwarded);
+        return new MarkResponse(mark.Id, mark.Title.Value, mark.GradeId, mark.SubmissionId, mark.Score.Value, mark.MaxScore.Value, mark.DateAwarded);
     }
 }

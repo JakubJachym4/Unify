@@ -24,6 +24,7 @@ export interface DeleteHomeworkAssignmentRequest{
 }
 
 export interface GradeHomeworkSubmissionRequest{
+    title: string,
     assignmentId: string,
     submissionId: string,
     score: number,

@@ -56,12 +56,13 @@ export interface Grade{
     id: string,
     description: string,
     score: number,
-    dateAwarded: string,
+    dateAwarded: string | null,
     marks: Mark[] | null,
 }
 
 export interface Mark{
     id: string,
+    title: string,
     gradeId: string,
     submissionId: string | null,
     score: number,

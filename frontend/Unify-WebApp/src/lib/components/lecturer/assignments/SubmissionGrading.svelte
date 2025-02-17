@@ -20,6 +20,7 @@
             if (!token) throw new Error('No token found');
 
             await GradeHomeworkSubmission({
+                title: formData.get('title') as string,
                 assignmentId: submission.assignmentId,
                 submissionId: submission.id,
                 score: Number(formData.get('score')),
@@ -134,6 +135,15 @@
                 {:else}
                     <form on:submit|preventDefault={handleGradeSubmission}>
                         <div class="row">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input 
+                                    class="form-control"
+                                    type="text"
+                                    name="title"
+                                    placeholder="Mark for ... submission"
+                                />
+                            </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Score</label>
                                 <input 

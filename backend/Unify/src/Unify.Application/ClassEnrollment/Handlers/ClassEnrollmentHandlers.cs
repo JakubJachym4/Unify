@@ -93,8 +93,8 @@ public sealed class CancelEnrollmentStudentCommandHandler : ICommandHandler<Canc
         {
             return Result.Failure(result.Error);
         }
-        //TODO: Check if needed for delete of if it's handled by ef
-        //_classEnrollmentRepository.Delete(result.Value);
+
+        _classEnrollmentRepository.Delete(result.Value);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
@@ -148,5 +148,28 @@ public sealed class GetEnrollmentsForStudentQueryHandler : IQueryHandler<GetEnro
         }
 
         return results;
+    }
+}
+
+public sealed class GetEnrollmentQueryHandler : IQueryHandler<GetEnrollmentQuery, ClassEnrollmentResponseWithGrade>
+{
+    private readonly IClassEnrollmentRepository _classEnrollmentRepository;
+    private readonly IGradeRepository _gradeRepository;
+
+    public GetEnrollmentQueryHandler(IClassEnrollmentRepository classEnrollmentRepository, IGradeRepository gradeRepository)
+    {
+        _classEnrollmentRepository = classEnrollmentRepository;
+        _gradeRepository = gradeRepository;
+    }
+
+    public async Task<Result<ClassEnrollmentResponseWithGrade>> Handle(GetEnrollmentQuery request, CancellationToken cancellationToken)
+    {
+        var enrollment = await _classEnrollmentRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (enrollment == null)
+        {
+            return new Error("ClassEnrollments.NotFound", "Enrollment not found.");
+        }
+        var grade = await _gradeRepository.GetByIdAsync(enrollment.GradeId, cancellationToken);
+        return ClassEnrollmentResponseWithGrade.CreateFrom(enrollment, grade);
     }
 }
