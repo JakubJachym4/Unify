@@ -59,6 +59,20 @@ public class HomeworkAssignmentController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPut("{id:guid}/lock={locked:bool}")]
+    [Authorize(Roles="Lecturer")]
+    public async Task<IActionResult> LockHomeworkAssignment(Guid id, bool locked, CancellationToken cancellationToken)
+    {
+        var command = new LockHomeworkAssignmentCommand(id, locked);
+        var result = await _sender.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok();
+    }
+
     [HttpPost("class-offering/{classOfferingId:guid}")]
     [Authorize(Roles = "Administrator,Lecturer")]
     public async Task<IActionResult> CreateHomeworkAssignment(Guid classOfferingId, [FromForm] CreateHomeworkAssignmentCommand command, CancellationToken cancellationToken)
@@ -109,7 +123,7 @@ public class HomeworkAssignmentController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("{assignmentId:guid}/submission/{submissionId:guid}/grade")]
+    [HttpPost("{assignmentId:guid}/submissions/{submissionId:guid}/grade")]
     [Authorize(Roles = "Lecturer")]
     public async Task<IActionResult> GradeHomeworkSubmission(Guid assignmentId, Guid submissionId, [FromBody] GradeHomeworkSubmissionCommand command, CancellationToken cancellationToken)
     {
@@ -127,6 +141,8 @@ public class HomeworkAssignmentController : ControllerBase
         return Ok();
     }
 }
+
+
 
 
 

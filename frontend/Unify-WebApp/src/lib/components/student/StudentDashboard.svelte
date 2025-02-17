@@ -5,7 +5,7 @@
     import { GetHomeworkAssignmentsByClassOfferingId } from '$lib/api/Admin/Assignments/HomeworkAssignmentRequests';
     import { GetLecturesByCourse } from '$lib/api/Admin/Classes/LectureRequests';
     import type { ClassOffering, Course } from '$lib/types/universityClasses';
-    import type { ClassSession } from '$lib/types/resources';
+    import type { ClassSession, HomeworkSubmission } from '$lib/types/resources';
     import type { HomeworkAssignment } from '$lib/types/resources';
     import type { ApiRequestError } from '$lib/api/apiError';
     import { user } from '$lib/stores/user';
@@ -13,12 +13,14 @@
     import { createEventDispatcher } from 'svelte';
     import { getUserData } from '$lib/api/User/UserRequests';
     import { get } from 'svelte/store';
+	import { GetHomeworkSubmissionsByStudent } from '$lib/api/Admin/Assignments/HomeworkSubmissionsRequests';
 
     let loading = true;
     let error = '';
     let upcomingSessions: (ClassSession & { courseName?: string, className?: string })[] = [];
     let upcomingAssignments: (HomeworkAssignment & { courseName?: string, className?: string })[] = [];
     let upcomingLectures: (ClassSession & { courseName?: string } & {courseId: string})[] = [];
+    let submissions: HomeworkSubmission[] | null = null;
 
     const DAYS_TO_SHOW = 7; // Show items for next 7 days
 
@@ -115,6 +117,21 @@
             loading = false;
         }
     };
+    const checkIfSubmitted = async (assignment: HomeworkAssignment) => {
+        if(!submissions){
+            submissions = await GetHomeworkSubmissionsByStudent($user!.id, localStorage.getItem('token')!);
+        }
+        let found = submissions.find(submission => submission.assignmentId === assignment.id);
+        if(found === undefined){
+            return 0;
+        }
+        if(found.mark === null){
+            return 1;
+        }
+        else{
+            return 2;
+        }
+    };
 
     const formatDateTime = (date: string): string => {
         return new Date(date).toLocaleString();
@@ -127,130 +144,136 @@
     onMount(loadDashboardData);
 </script>
 
-<div class="container mt-4">
-    <h2 class="mb-4">My Dashboard</h2>
+<div class="dashboard-container">
+    <div class="container mt-4">
+        <h2 class="mb-4">My Dashboard</h2>
 
-    {#if error}
-        <div class="alert alert-danger" role="alert">{error}</div>
-    {/if}
+        {#if error}
+            <div class="alert alert-danger" role="alert">{error}</div>
+        {/if}
 
-    {#if loading}
-        <div class="d-flex justify-content-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
+        {#if loading}
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </div>
-        </div>
-    {:else}
-        <div class="row">
-            <!-- Upcoming Sessions -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Upcoming Classes</h5>
+        {:else}
+            <div class="row">
+                <!-- Upcoming Sessions -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Upcoming Classes</h5>
+                        </div>
+                        <div class="card-body">
+                            {#if upcomingSessions.length === 0}
+                                <p class="text-muted">No upcoming classes in the next {DAYS_TO_SHOW} days</p>
+                            {:else}
+                                <div class="list-group">
+                                    {#each upcomingSessions as session}
+                                        <a
+                                            href="#"
+                                            class="list-group-item list-group-item-action dashboard-item"
+                                            on:click|preventDefault={() => dispatch('viewSession', { classOfferingId: session.classOfferingId })}
+                                        >
+                                            <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                                                <h5 class="mb-1">{session.title}</h5>
+                                                <span class="badge bg-primary rounded-pill">
+                                                    {formatDateTime(session.scheduledDate)}
+                                                </span>
+                                            </div>
+                                            <h6 class="mb-2">{session.courseName}</h6>
+                                            <p class="mb-1">Class: {session.className}</p>
+                                            <small class="text-muted">Duration: {cutMinutes(session.duration)} minutes</small>
+                                        </a>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
                     </div>
-                    <div class="card-body">
-                        {#if upcomingSessions.length === 0}
-                            <p class="text-muted">No upcoming classes in the next {DAYS_TO_SHOW} days</p>
-                        {:else}
-                            <div class="list-group">
-                                {#each upcomingSessions as session}
-                                    <a
-                                        href="#"
-                                        class="list-group-item list-group-item-action dashboard-item"
-                                        on:click|preventDefault={() => dispatch('viewSession', { classOfferingId: session.classOfferingId })}
-                                    >
-                                        <div class="d-flex w-100 justify-content-between align-items-start mb-2">
-                                            <h5 class="mb-1">{session.title}</h5>
-                                            <span class="badge bg-primary rounded-pill">
-                                                {formatDateTime(session.scheduledDate)}
-                                            </span>
-                                        </div>
-                                        <h6 class="mb-2">{session.courseName}</h6>
-                                        <p class="mb-1">Class: {session.className}</p>
-                                        <small class="text-muted">Duration: {cutMinutes(session.duration)} minutes</small>
-                                    </a>
-                                {/each}
-                            </div>
-                        {/if}
+                </div>
+
+                <!-- Assignments -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Upcoming Deadlines</h5>
+                        </div>
+                        <div class="card-body">
+                            {#if upcomingAssignments.length === 0}
+                                <p class="text-muted">No upcoming deadlines in the next {DAYS_TO_SHOW} days</p>
+                            {:else}
+                                <div class="list-group">
+                                    {#each upcomingAssignments as assignment}
+                                        <a
+                                            href="#"
+                                            class="list-group-item list-group-item-action dashboard-item"
+                                            on:click|preventDefault={() => dispatch('viewAssignment', { 
+                                                classOfferingId: assignment.classOfferingId,
+                                                assignmentId: assignment.id
+                                            })}
+                                        >
+                                            <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                                                <h5 class="mb-1">{assignment.title}</h5>
+                                                <span class="badge bg-danger rounded-pill">
+                                                    Due: {formatDateTime(assignment.dueDate)}
+                                                </span>
+                                            </div>
+                                            <h6 class="mb-2">{assignment.courseName}</h6>
+                                            <p class="mb-1">Class: {assignment.className}</p>
+                                            {#await checkIfSubmitted(assignment) then status}
+                                                {#if status === 1}
+                                                    <span class="badge bg-success">Submitted</span>
+                                                {:else if status === 2}
+                                                    <span class="badge bg-secondary">Graded</span>
+                                                {:else}
+                                                    <span class="badge bg-warning text-dark">Not Submitted</span>
+                                                {/if}
+                                            {/await}
+                                        </a>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lectures -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Upcoming Lectures</h5>
+                        </div>
+                        <div class="card-body">
+                            {#if upcomingLectures.length === 0}
+                                <p class="text-muted">No upcoming lectures in the next {DAYS_TO_SHOW} days</p>
+                            {:else}
+                                <div class="list-group">
+                                    {#each upcomingLectures as lecture}
+                                        <a
+                                            href="#"
+                                            class="list-group-item list-group-item-action dashboard-item"
+                                            on:click|preventDefault={() => dispatch('viewLecture', { courseId: lecture.courseId })}
+                                        >
+                                            <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                                                <h5 class="mb-1">{lecture.title}</h5>
+                                                <span class="badge bg-info rounded-pill">
+                                                    {formatDateTime(lecture.scheduledDate)}
+                                                </span>
+                                            </div>
+                                            <h6 class="mb-2">{lecture.courseName}</h6>
+                                            <small class="text-muted">Duration: {cutMinutes(lecture.duration)} minutes</small>
+                                        </a>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Assignments -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Upcoming Deadlines</h5>
-                    </div>
-                    <div class="card-body">
-                        {#if upcomingAssignments.length === 0}
-                            <p class="text-muted">No upcoming deadlines in the next {DAYS_TO_SHOW} days</p>
-                        {:else}
-                            <div class="list-group">
-                                {#each upcomingAssignments as assignment}
-                                    <a
-                                        href="#"
-                                        class="list-group-item list-group-item-action dashboard-item"
-                                        on:click|preventDefault={() => dispatch('viewAssignment', { 
-                                            classOfferingId: assignment.classOfferingId,
-                                            assignmentId: assignment.id
-                                        })}
-                                    >
-                                        <div class="d-flex w-100 justify-content-between align-items-start mb-2">
-                                            <h5 class="mb-1">{assignment.title}</h5>
-                                            <span class="badge bg-danger rounded-pill">
-                                                Due: {formatDateTime(assignment.dueDate)}
-                                            </span>
-                                        </div>
-                                        <h6 class="mb-2">{assignment.courseName}</h6>
-                                        <p class="mb-1">Class: {assignment.className}</p>
-                                        {#if assignment.submitted}
-                                            <span class="badge bg-success">Submitted</span>
-                                        {:else}
-                                            <span class="badge bg-warning text-dark">Not Submitted</span>
-                                        {/if}
-                                    </a>
-                                {/each}
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lectures -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Upcoming Lectures</h5>
-                    </div>
-                    <div class="card-body">
-                        {#if upcomingLectures.length === 0}
-                            <p class="text-muted">No upcoming lectures in the next {DAYS_TO_SHOW} days</p>
-                        {:else}
-                            <div class="list-group">
-                                {#each upcomingLectures as lecture}
-                                    <a
-                                        href="#"
-                                        class="list-group-item list-group-item-action dashboard-item"
-                                        on:click|preventDefault={() => dispatch('viewLecture', { courseId: lecture.courseId })}
-                                    >
-                                        <div class="d-flex w-100 justify-content-between align-items-start mb-2">
-                                            <h5 class="mb-1">{lecture.title}</h5>
-                                            <span class="badge bg-info rounded-pill">
-                                                {formatDateTime(lecture.scheduledDate)}
-                                            </span>
-                                        </div>
-                                        <h6 class="mb-2">{lecture.courseName}</h6>
-                                        <small class="text-muted">Duration: {cutMinutes(lecture.duration)} minutes</small>
-                                    </a>
-                                {/each}
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {/if}
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -286,5 +309,15 @@
 
     .list-group-item.dashboard-item:has(.bg-info) {
         border-left: 4px solid var(--bs-info);
+    }
+
+    .dashboard-container {
+        min-height: 100%;
+        padding: 1rem;
+    }
+
+    :global(.main-content) {
+        display: flex;
+        flex-direction: column;
     }
 </style>

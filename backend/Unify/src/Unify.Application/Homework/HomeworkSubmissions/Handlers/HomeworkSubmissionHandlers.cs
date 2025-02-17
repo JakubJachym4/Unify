@@ -7,6 +7,8 @@ using Unify.Domain.Abstractions;
 using Unify.Domain.OnlineResources;
 using Unify.Domain.OnlineResources.Abstraction;
 using Unify.Domain.OnlineResources.Errors;
+using Unify.Domain.UniversityCore;
+using Unify.Domain.UniversityCore.Abstractions;
 using Unify.Domain.Users;
 
 namespace Unify.Application.Homework.HomeworkSubmissions.Handlers;
@@ -38,6 +40,11 @@ public sealed class CreateHomeworkSubmissionCommandHandler : ICommandHandler<Cre
         if (homeworkAssignment is null)
         {
             return Result.Failure<Guid>(HomeworkSubmissionErrors.NotFound);
+        }
+
+        if (homeworkAssignment.Locked)
+        {
+            return HomeworkAssigmentErrors.Locked;
         }
 
         var user = await _userRepository.GetByIdAsync(_userContext.UserId, cancellationToken);
@@ -82,13 +89,15 @@ public sealed class UpdateHomeworkSubmissionCommandHandler : ICommandHandler<Upd
     private readonly IFileConversionService _fileConversionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
 
-    public UpdateHomeworkSubmissionCommandHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IFileConversionService fileConversionService, IUnitOfWork unitOfWork, IDateTimeProvider dateTimeProvider)
+    public UpdateHomeworkSubmissionCommandHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IFileConversionService fileConversionService, IUnitOfWork unitOfWork, IDateTimeProvider dateTimeProvider, IHomeworkAssignmentRepository homeworkAssignmentRepository)
     {
         _homeworkSubmissionRepository = homeworkSubmissionRepository;
         _fileConversionService = fileConversionService;
         _unitOfWork = unitOfWork;
         _dateTimeProvider = dateTimeProvider;
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
     }
 
     public async Task<Result> Handle(UpdateHomeworkSubmissionCommand request, CancellationToken cancellationToken)
@@ -98,6 +107,23 @@ public sealed class UpdateHomeworkSubmissionCommandHandler : ICommandHandler<Upd
         {
             return Result.Failure(HomeworkSubmissionErrors.NotFound);
         }
+
+        if (homeworkSubmission.MarkId != null)
+        {
+            return Result.Failure(HomeworkSubmissionErrors.AlreadyGraded);
+        }
+
+        var homeworkAssignment = await _homeworkAssignmentRepository.GetByIdAsync(homeworkSubmission.HomeworkAssigmentId, cancellationToken);
+        if (homeworkAssignment is null)
+        {
+            return Result.Failure<Guid>(HomeworkSubmissionErrors.NotFound);
+        }
+
+        if (homeworkAssignment.Locked)
+        {
+            return Result.Failure(HomeworkAssigmentErrors.Locked);
+        }
+
 
         homeworkSubmission.Update(_dateTimeProvider.UtcNow);
 
@@ -125,11 +151,13 @@ public sealed class DeleteHomeworkSubmissionCommandHandler : ICommandHandler<Del
 {
     private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
 
-    public DeleteHomeworkSubmissionCommandHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IUnitOfWork unitOfWork)
+    public DeleteHomeworkSubmissionCommandHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IUnitOfWork unitOfWork, IHomeworkAssignmentRepository homeworkAssignmentRepository)
     {
         _homeworkSubmissionRepository = homeworkSubmissionRepository;
         _unitOfWork = unitOfWork;
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
     }
 
     public async Task<Result> Handle(DeleteHomeworkSubmissionCommand request, CancellationToken cancellationToken)
@@ -138,6 +166,17 @@ public sealed class DeleteHomeworkSubmissionCommandHandler : ICommandHandler<Del
         if (homeworkSubmission is null)
         {
             return Result.Failure(HomeworkSubmissionErrors.NotFound);
+        }
+
+        var homeworkAssignment = await _homeworkAssignmentRepository.GetByIdAsync(homeworkSubmission.HomeworkAssigmentId, cancellationToken);
+        if (homeworkAssignment is null)
+        {
+            return Result.Failure<Guid>(HomeworkSubmissionErrors.NotFound);
+        }
+
+        if (homeworkAssignment.Locked)
+        {
+            return Result.Failure(HomeworkAssigmentErrors.Locked);
         }
 
         _homeworkSubmissionRepository.Delete(homeworkSubmission);
@@ -149,10 +188,12 @@ public sealed class DeleteHomeworkSubmissionCommandHandler : ICommandHandler<Del
 public sealed class GetHomeworkSubmissionQueryHandler : IQueryHandler<GetHomeworkSubmissionQuery, HomeworkSubmissionResponse>
 {
     private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
+    private readonly IMarkRepository _markRepository;
 
-    public GetHomeworkSubmissionQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository)
+    public GetHomeworkSubmissionQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IMarkRepository markRepository)
     {
         _homeworkSubmissionRepository = homeworkSubmissionRepository;
+        _markRepository = markRepository;
     }
 
     public async Task<Result<HomeworkSubmissionResponse>> Handle(GetHomeworkSubmissionQuery request, CancellationToken cancellationToken)
@@ -163,7 +204,13 @@ public sealed class GetHomeworkSubmissionQueryHandler : IQueryHandler<GetHomewor
             return Result.Failure<HomeworkSubmissionResponse>(HomeworkSubmissionErrors.NotFound);
         }
 
-        return Result.Success(new HomeworkSubmissionResponse(homeworkSubmission));
+        Mark? mark = null;
+        if (homeworkSubmission.MarkId != null)
+        {
+            mark = await _markRepository.GetByIdAsync(homeworkSubmission.MarkId.Value, cancellationToken);
+        }
+
+        return Result.Success(new HomeworkSubmissionResponse(homeworkSubmission, mark));
     }
 }
 
@@ -171,11 +218,13 @@ public sealed class GetHomeworkSubmissionsByAssignmentQueryHandler : IQueryHandl
 {
     private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
     private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
+    private readonly IMarkRepository _markRepository;
 
-    public GetHomeworkSubmissionsByAssignmentQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IHomeworkAssignmentRepository homeworkAssignmentRepository)
+    public GetHomeworkSubmissionsByAssignmentQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IHomeworkAssignmentRepository homeworkAssignmentRepository, IMarkRepository markRepository)
     {
         _homeworkSubmissionRepository = homeworkSubmissionRepository;
         _homeworkAssignmentRepository = homeworkAssignmentRepository;
+        _markRepository = markRepository;
     }
 
     public async Task<Result<List<HomeworkSubmissionResponse>>> Handle(GetHomeworkSubmissionsByAssignmentQuery request, CancellationToken cancellationToken)
@@ -188,7 +237,19 @@ public sealed class GetHomeworkSubmissionsByAssignmentQueryHandler : IQueryHandl
         }
 
         var homeworkSubmissions = await _homeworkSubmissionRepository.GetByAssignmentAsync(homeworkAssignment, cancellationToken);
-        return Result.Success(homeworkSubmissions.Select(x => new HomeworkSubmissionResponse(x)).ToList());
+        var results = new List<HomeworkSubmissionResponse>();
+
+        foreach (var submission in homeworkSubmissions)
+        {
+            Mark? mark = null;
+            if (submission.MarkId != null)
+            {
+                mark = await _markRepository.GetByIdAsync(submission.MarkId.Value, cancellationToken);
+            }
+            results.Add(new HomeworkSubmissionResponse(submission, mark));
+        }
+
+        return results;
     }
 }
 
@@ -196,11 +257,13 @@ public sealed class GetHomeworkByStudentQueryHandler : IQueryHandler<GetHomework
 {
     private readonly IHomeworkSubmissionRepository _homeworkSubmissionRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IMarkRepository _markRepository;
 
-    public GetHomeworkByStudentQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IUserRepository userRepository)
+    public GetHomeworkByStudentQueryHandler(IHomeworkSubmissionRepository homeworkSubmissionRepository, IUserRepository userRepository, IMarkRepository markRepository)
     {
         _homeworkSubmissionRepository = homeworkSubmissionRepository;
         _userRepository = userRepository;
+        _markRepository = markRepository;
     }
 
     public async Task<Result<List<HomeworkSubmissionResponse>>> Handle(GetHomeworkSubmissionsByStudentQuery request, CancellationToken cancellationToken)
@@ -212,7 +275,20 @@ public sealed class GetHomeworkByStudentQueryHandler : IQueryHandler<GetHomework
         }
 
         var homeworkSubmissions = await _homeworkSubmissionRepository.GetByStudentAsync(student, cancellationToken);
-        return Result.Success(homeworkSubmissions.Select(x => new HomeworkSubmissionResponse(x)).ToList());
+
+        var results = new List<HomeworkSubmissionResponse>();
+
+        foreach (var submission in homeworkSubmissions)
+        {
+            Mark? mark = null;
+            if (submission.MarkId != null)
+            {
+              mark = await _markRepository.GetByIdAsync(submission.MarkId.Value, cancellationToken);
+            }
+            results.Add(new HomeworkSubmissionResponse(submission, mark));
+        }
+
+        return results;
     }
 }
 

@@ -24,7 +24,7 @@ public record GradeResponse(Guid Id, string Description, decimal? Score, DateTim
 {
     public static GradeResponse Create(Grade grade)
     {
-        return new GradeResponse(grade.Id, grade.Description.Value, grade.Score?.Value, grade.DateAwarded, grade.Marks.Select(MarkResponse.Create).ToList());
+        return new GradeResponse(grade.Id, grade.Description.Value, grade.Score?.Value, grade.DateAwarded, grade.Marks.Select(MarkResponse.Create).ToList()!);
     }
     public static GradeResponse Create(Guid id, string description, decimal score, DateTime dateAwarded, List<MarkResponse> marks)
     {
@@ -32,15 +32,19 @@ public record GradeResponse(Guid Id, string Description, decimal? Score, DateTim
     }
 }
 
-public record MarkResponse(Guid Id, Guid GradeId, Guid? SubmissionId, string? Criteria, decimal Score, decimal MaxScore)
+public record MarkResponse(Guid Id, Guid GradeId, Guid? SubmissionId, decimal Score, decimal MaxScore, DateTime DateAwarded)
 {
-    public static MarkResponse Create(Guid id, Guid gradeId, Guid? submissionId, string criteria, decimal score, decimal maxScore)
+    public static MarkResponse Create(Guid id, Guid gradeId, Guid? submissionId, string criteria, decimal score, decimal maxScore, DateTime dateAwarded)
     {
-        return new MarkResponse(id, gradeId, submissionId, criteria, score, maxScore);
+        return new MarkResponse(id, gradeId, submissionId, score, maxScore, dateAwarded);
     }
 
-    public static MarkResponse Create(Domain.UniversityCore.Mark mark)
+    public static MarkResponse? Create(Domain.UniversityCore.Mark? mark)
     {
-        return new MarkResponse(mark.Id, mark.GradeId, mark.SubmissionId, mark.Criteria?.Value, mark.Score.Value, mark.MaxScore.Value);
+        if (mark == null)
+        {
+            return null;
+        }
+        return new MarkResponse(mark.Id, mark.GradeId, mark.SubmissionId, mark.Score.Value, mark.MaxScore.Value, mark.DateAwarded);
     }
 }

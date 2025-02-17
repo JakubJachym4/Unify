@@ -32,7 +32,6 @@
     };
 
     const handleViewSession = (event) => {
-        // Handle viewing session details
     };
     
     const handleViewAssignment = (event) => {
@@ -41,7 +40,6 @@
     };
     
     const handleViewLecture = (event) => {
-        // Handle viewing lecture details
     };
 
     const handleBackFromAssignment = () => {
@@ -56,8 +54,8 @@
     </div>
 {/if}
 
-<div class="student-container">
-    <nav class="student-nav bg-light border-bottom mb-4">
+<div class="page-container">
+    <nav class="student-nav bg-light border-bottom py-2">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center py-3">
                 <div class="nav-buttons">
@@ -79,12 +77,10 @@
         </div>
     </nav>
 
-    <div class="content-container">
-        <div class="main-content {showMessages ? 'with-messages' : ''}">
+    <div class="content-wrapper">
+        <div class="main-area {showMessages ? 'with-messages' : ''}">
             {#if activeComponent === 'dashboard'}
                 <div class="p-3">
-                    <h2>Student Dashboard</h2>
-                    <!-- Add student dashboard content here -->
                     <StudentDashboard 
                         on:viewSession={handleViewSession}
                         on:viewAssignment={handleViewAssignment}
@@ -115,9 +111,10 @@
 />
 
 <style>
-    .student-container {
-        height: calc(100vh - 56px);
-        overflow: hidden;
+    .page-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .student-nav {
@@ -126,20 +123,19 @@
         z-index: 1020;
     }
 
-    .content-container {
+    .content-wrapper {
+        flex: 1;
         display: flex;
-        height: 100%;
+        overflow: hidden;
     }
 
-    .main-content {
+    .main-area {
         flex: 1;
-        padding: 1rem;
         overflow-y: auto;
         transition: width 0.3s ease;
     }
 
-    .main-content.with-messages {
-        width: calc(100% - 400px);
+    .main-area.with-messages {
     }
 
     .messages-sidebar {

@@ -26,10 +26,26 @@
     let selectedClassOfferingId: string | null = null;
     let selectedAssignmentId: string | null = null;
     let selectedCourseId: string | null = null;
+
+    const handleBackFromSession = () => {
+        showingSession = false;
+        selectedClassOfferingId = null;
+    };
+
+    const handleBackFromAssignments = () => {
+        showingAssignments = false;
+        selectedClassOfferingId = null;
+        selectedAssignmentId = null;
+    };
+
+    const handleBackFromLecture = () => {
+        showingLecture = false;
+        selectedCourseId = null;
+    };
 </script>
 
-<div class="lecturer-container">
-    <nav class="lecturer-nav bg-light border-bottom mb-4">
+<div class="page-container">
+    <nav class="lecturer-nav bg-light border-bottom py-2">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center py-3">
                 <div class="nav-buttons">
@@ -47,7 +63,7 @@
                     </button>
                     <button 
                         class="btn {activeComponent === 'classes' ? 'btn-primary' : 'btn-outline-primary'} me-2"
-                        on:click={() => activeComponent = 'classes'}
+                        on:click={() => setActiveComponent('classes')}
                     >
                         My Classes
                     </button>
@@ -62,57 +78,53 @@
         </div>
     </nav>
 
-    <div class="content-container">
-        <div class="main-content {showMessages ? 'with-messages' : ''}">
+    <div class="content-wrapper">
+        <div class="main-area {showMessages ? 'with-messages' : ''}">
             {#if activeComponent === 'dashboard'}
                 {#if showingSession && selectedClassOfferingId}
                     <ClassSessionManagement 
                         classOfferingId={selectedClassOfferingId}
-                        onBack={() => {
-                            showingSession = false;
-                            selectedClassOfferingId = null;
-                        }}
+                        onBack={handleBackFromSession}
                     />
                 {:else if showingAssignments && selectedClassOfferingId && selectedAssignmentId}
                     <HomeworkSubmissionManagement
                         classOfferingId={selectedClassOfferingId}
                         assignmentId={selectedAssignmentId}
-                        onBack={() => {
-                            showingAssignments = false;
-                            selectedClassOfferingId = null;
-                        }}
+                        onBack={handleBackFromAssignments}
                     />
                 {:else if showingLecture && selectedCourseId}
                     <LectureManagement 
                         courseId={selectedCourseId}
-                        onBack={() => {
-                            showingLecture = false;
-                            selectedCourseId = null;
-                        }}
+                        onBack={handleBackFromLecture}
                     />
                 {:else}
-                    <LecturerDashboard
-                        on:openSession={(event) => {
-                            selectedClassOfferingId = event.detail.classOfferingId;
-                            showingSession = true;
-                        }}
-                        on:openAssignmentSubmissions={(event) => {
-                            selectedClassOfferingId = event.detail.classOfferingId;
-                            selectedAssignmentId = event.detail.selectedAssignmentId;
-                            showingAssignments = true;
-                        }}
-                        on:openLecture={(event) => {
-                            selectedCourseId = event.detail.courseId;
-                            showingLecture = true;
-                        }}
-                    />
+                    <div class="p-3">
+                        <LecturerDashboard
+                            on:openSession={(event) => {
+                                selectedClassOfferingId = event.detail.classOfferingId;
+                                showingSession = true;
+                            }}
+                            on:openAssignmentSubmissions={(event) => {
+                                selectedClassOfferingId = event.detail.classOfferingId;
+                                selectedAssignmentId = event.detail.selectedAssignmentId;
+                                showingAssignments = true;
+                            }}
+                            on:openLecture={(event) => {
+                                selectedCourseId = event.detail.courseId;
+                                showingLecture = true;
+                            }}
+                        />
+                    </div>
                 {/if}
             {:else if activeComponent === 'courses'}
-                <LecturerCourseManagement />
+                <div class="p-3">
+                    <LecturerCourseManagement />
+                </div>
             {:else if activeComponent === 'classes'}
-                <MyClassesManagement />
+                <div class="p-3">
+                    <MyClassesManagement />
+                </div>
             {/if}
-            
         </div>
         
         {#if showMessages}
@@ -124,9 +136,10 @@
 </div>
 
 <style>
-    .lecturer-container {
-        height: calc(100vh - 56px);
-        overflow: hidden;
+    .page-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .lecturer-nav {
@@ -135,31 +148,30 @@
         z-index: 1020;
     }
 
-    .content-container {
+    .content-wrapper {
+        flex: 1;
         display: flex;
-        height: 100%;
+        overflow: hidden;
     }
 
-    .main-content {
+    .main-area {
         flex: 1;
-        padding: 1rem;
         overflow-y: auto;
         transition: width 0.3s ease;
     }
 
-    .main-content.with-messages {
+    .main-area.with-messages {
         width: calc(100% - 400px);
     }
 
     .messages-sidebar {
         width: 400px;
         border-left: 1px solid #dee2e6;
-        height: 100%;
         overflow-y: auto;
     }
 
     @media (max-width: 768px) {
-        .main-content.with-messages {
+        .main-area.with-messages {
             width: 100%;
         }
 

@@ -1,4 +1,5 @@
 ﻿using Unify.Application.Abstractions.Authentication;
+using Unify.Application.Abstractions.Clock;
 using Unify.Application.Abstractions.Files;
 using Unify.Application.Abstractions.Messaging;
 using Unify.Application.Files;
@@ -40,7 +41,8 @@ public sealed class CreateHomeworkAssignmentCommandHandler : ICommandHandler<Cre
             return Result.Failure<Guid>(ClassOfferingErrors.NotFound);
         }
 
-        var homeworkAssignment = new HomeworkAssignment(classOffering, new Title(request.Title), new Description(request.Description), request.DueDate);
+        var criteria = request.Criteria != null ? new Description(request.Criteria) : null;
+        var homeworkAssignment = new HomeworkAssignment(classOffering, new Title(request.Title), new Description(request.Description), criteria, request.DueDate);
 
         if (request.Attachments != null)
         {
@@ -83,7 +85,8 @@ public sealed class UpdateHomeworkAssignmentCommandHandler : ICommandHandler<Upd
             return Result.Failure(HomeworkAssigmentErrors.NotFound);
         }
 
-        homeworkAssignment.Update(new Title(request.Title), new Description(request.Description), request.DueDate);
+        var criteria = request.Criteria != null ? new Description(request.Criteria) : null;
+        homeworkAssignment.Update(new Title(request.Title), new Description(request.Description), criteria, request.DueDate);
 
         if (request.Attachments != null)
         {
@@ -141,9 +144,10 @@ public sealed class GradeHomeworkSubmissionCommandHandler : ICommandHandler<Grad
     private readonly IMarkRepository _markRepository;
     private readonly IClassOfferingRepository _classOfferingRepository;
     private readonly IClassEnrollmentRepository _classEnrollmentRepository;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
 
-    public GradeHomeworkSubmissionCommandHandler(IUserRepository userRepository, IHomeworkSubmissionRepository homeworkSubmissionRepository, IUnitOfWork unitOfWork, IHomeworkAssignmentRepository homeworkAssignmentRepository, IUserContext userContext, IGradeRepository gradeRepository, IMarkRepository markRepository, IClassOfferingRepository classOfferingRepository, IClassEnrollmentRepository classEnrollmentRepository)
+    public GradeHomeworkSubmissionCommandHandler(IUserRepository userRepository, IHomeworkSubmissionRepository homeworkSubmissionRepository, IUnitOfWork unitOfWork, IHomeworkAssignmentRepository homeworkAssignmentRepository, IUserContext userContext, IGradeRepository gradeRepository, IMarkRepository markRepository, IClassOfferingRepository classOfferingRepository, IClassEnrollmentRepository classEnrollmentRepository, IDateTimeProvider dateTimeProvider)
     {
         _userRepository = userRepository;
         _homeworkSubmissionRepository = homeworkSubmissionRepository;
@@ -154,6 +158,7 @@ public sealed class GradeHomeworkSubmissionCommandHandler : ICommandHandler<Grad
         _markRepository = markRepository;
         _classOfferingRepository = classOfferingRepository;
         _classEnrollmentRepository = classEnrollmentRepository;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<Result> Handle(GradeHomeworkSubmissionCommand request, CancellationToken cancellationToken)
@@ -201,7 +206,8 @@ public sealed class GradeHomeworkSubmissionCommandHandler : ICommandHandler<Grad
         }
 
         var mark = Mark.CreateForSubmission(grade, homeworkSubmission, request.Score, request.MaxScore,
-            new Description(request.Criteria ?? ""));
+            _dateTimeProvider.UtcNow,
+            homeworkAssignment.Criteria);
 
         if (request.Feedback != null)
         {
@@ -232,7 +238,7 @@ public sealed class GetHomeworkAssignmentQueryHandler : IQueryHandler<GetHomewor
         }
 
         return Result.Success(new HomeworkAssigmentResponse(homeworkAssignment.Id, homeworkAssignment.ClassOfferingId, homeworkAssignment.Title.Value,
-            homeworkAssignment.Description.Value, homeworkAssignment.DueDate, homeworkAssignment.Locked,
+            homeworkAssignment.Description.Value, homeworkAssignment.Criteria?.Value, homeworkAssignment.DueDate, homeworkAssignment.Locked,
             FileResponse.FromManyAttachments(homeworkAssignment?.Attachments.ToList() ?? new List<Attachment>())));
     }
 }
@@ -265,7 +271,7 @@ public sealed class GetHomeworkAssignmentByClassOfferingQueryHandler : IQueryHan
         }
 
         var response = homeworkAssignments.Select(ha => new HomeworkAssigmentResponse(
-            ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.DueDate, ha.Locked,
+            ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.Criteria?.Value, ha.DueDate, ha.Locked,
             FileResponse.FromManyAttachments(ha.Attachments.ToList())
         )).ToList();
 
@@ -316,9 +322,42 @@ public sealed class GetHomeworkAssignmentsByStudentQueryHandler : IQueryHandler<
         var assignments = await Task.WhenAll(assignmentsTasks!);
 
         return assignments.SelectMany(x => x).Select(ha => new HomeworkAssigmentResponse(
-            ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.DueDate, ha.Locked,
+            ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.Criteria?.Value, ha.DueDate, ha.Locked,
             FileResponse.FromManyAttachments(ha.Attachments.ToList())
         )).ToList();
+    }
+}
+
+public sealed class LockHomeworkAssignmentCommandHandler : ICommandHandler<LockHomeworkAssignmentCommand>
+{
+    private readonly IHomeworkAssignmentRepository _homeworkAssignmentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public LockHomeworkAssignmentCommandHandler(IHomeworkAssignmentRepository homeworkAssignmentRepository, IUnitOfWork unitOfWork)
+    {
+        _homeworkAssignmentRepository = homeworkAssignmentRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result> Handle(LockHomeworkAssignmentCommand request, CancellationToken cancellationToken)
+    {
+        var assignment = await _homeworkAssignmentRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (assignment == null)
+        {
+            return Result.Failure(HomeworkAssigmentErrors.NotFound);
+        }
+
+        if (request.Locked)
+        {
+            assignment.LockSubmission();
+        }
+        else
+        {
+            assignment.UnlockSubmission();
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

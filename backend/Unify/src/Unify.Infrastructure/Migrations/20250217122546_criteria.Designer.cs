@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Unify.Infrastructure;
@@ -11,9 +12,11 @@ using Unify.Infrastructure;
 namespace Unify.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250217122546_criteria")]
+    partial class criteria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -797,10 +800,6 @@ namespace Unify.Infrastructure.Migrations
                         .HasMaxLength(400)
                         .HasColumnType("character varying(400)")
                         .HasColumnName("criteria");
-
-                    b.Property<DateTime>("DateAwarded")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_awarded");
 
                     b.Property<Guid>("GradeId")
                         .HasColumnType("uuid")

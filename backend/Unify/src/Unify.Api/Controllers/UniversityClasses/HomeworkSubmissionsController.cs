@@ -20,7 +20,7 @@ public class HomeworkSubmissionsController : ControllerBase
 
 
     [HttpPost("{homeworkAssignmentId:guid}/submit")]
-    [Authorize(Roles = "Student")]
+    [Authorize(Roles = "Student,Lecturer")]
     public async Task<IActionResult> CreateHomeworkSubmission(Guid homeworkAssignmentId, [FromForm] CreateHomeworkSubmissionCommand command, CancellationToken cancellationToken)
     {
         if (homeworkAssignmentId != command.HomeworkAssignmentId)

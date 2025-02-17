@@ -53,4 +53,9 @@ public sealed class HomeworkSubmission : HomeworkBaseEntity
     {
         Feedback = textContent;
     }
+
+    public void SetMark(Mark mark)
+    {
+        MarkId = mark.Id;
+    }
 }

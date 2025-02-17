@@ -1,3 +1,5 @@
+import type { Mark } from "./universityClasses";
+
 export interface ClassResource{
     id: string,
     title: string,
@@ -11,7 +13,9 @@ export interface HomeworkAssignment{
     classOfferingId: string,
     title: string,
     description: string,
+    criteria: string | null,
     dueDate: string,
+    locked: boolean,
     attachments: Attachment[],
 }
 
@@ -19,9 +23,9 @@ export interface HomeworkSubmission{
     id: string,
     assignmentId: string,
     studentId: string,
-    markId: string,
+    mark: Mark | null,
     feedback: string,
-    submissionDate: string,
+    submittedOn: string,
     attachments: Attachment[],
 }
 

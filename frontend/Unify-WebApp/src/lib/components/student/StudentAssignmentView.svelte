@@ -15,20 +15,16 @@
     import { user } from '$lib/stores/user';
     import type { Grade, Mark } from '$lib/types/universityClasses';
 
-    // Add type for submission with grade
-    interface SubmissionWithGrade extends HomeworkSubmission {
-        grade?: Grade;
-    }
-
     export let assignmentId: string;
     export let onBack: () => void;
 
     let assignment: HomeworkAssignment | null = null;
-    let submission: SubmissionWithGrade | null = null;
+    let submission: HomeworkSubmission | null = null;
     let error = '';
     let loading = true;
     let submitting = false;
     let editingSubmission = false;
+    let editingFiles: File[] | null = null;
 
     let newSubmission = {
         assignmentId: assignmentId,
@@ -47,8 +43,6 @@
             ]);
 
             assignment = assignmentData;
-            console.log(assignmentId)
-            console.log(submissions)
             submission = submissions.find(s => s.assignmentId === assignmentId) || null;
             loading = false;
         } catch (err) {
@@ -81,9 +75,11 @@
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
 
+            console.log(submission.attachments);
+
             await UpdateHomeworkSubmission({
                 id: submission.id,
-                attachments: submission.attachments ? convertAttachmentsToFiles(submission.attachments) : null
+                attachments: editingFiles
             }, token);
 
             editingSubmission = false;
@@ -110,6 +106,10 @@
     const handleFileSelect = (event: Event) => {
         const target = event.target as HTMLInputElement;
         const files = Array.from(target.files || []);
+        if(editingSubmission && submission){
+            editingFiles = files;
+            return;
+        }
         newSubmission.attachments = files;
     };
 
@@ -128,6 +128,18 @@
             default: return 'file';
         }
     };
+
+    const formatDateTime = (dateString: string): string => {
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            throw new Error('Invalid date');
+        }
+        return date.toLocaleString();
+    } catch (error) {
+        return 'Date not available';
+    }
+};
 
     onMount(loadData);
 </script>
@@ -151,9 +163,17 @@
     {:else if assignment}
         <!-- Assignment Details -->
         <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">{assignment.title}</h3>
+                {#if assignment.locked}
+                    <span class="badge bg-warning">
+                        <i class="bi bi-lock-fill"></i> Locked
+                    </span>
+                {/if}
+            </div>
             <div class="card-body">
-                <h3 class="card-title">{assignment.title}</h3>
                 <p class="card-text">{assignment.description}</p>
+                <p class="card-text">Grading Criteria: {assignment.description ?? "Not Defined"}</p>
                 <p class="card-text">
                     <strong>Due Date:</strong> 
                     <span class={new Date(assignment.dueDate) < new Date() ? 'text-danger' : ''}>
@@ -200,60 +220,43 @@
             <div class="card-body">
                 {#if submission}
                     <!-- Replace the existing grade section with this updated version -->
-                    {#if submission?.grade}
+                    {#if submission?.mark}
                         <div class="alert alert-info mb-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="mb-0">Final Grade: {submission.grade.score}%</h5>
+                                <h5 class="mb-0">Mark: {submission.mark.score}%</h5>
                                 <small class="text-muted">
-                                    Awarded on: {new Date(submission.grade.dateAwarded).toLocaleString()}
+                                    Awarded on: {formatDateTime(submission.mark.dateAwarded)}
                                 </small>
                             </div>
-                            {#if submission.grade.description}
-                                <p class="mb-2"><strong>Overall Comment:</strong> {submission.grade.description}</p>
-                            {/if}
                             
-                            {#if submission.grade.marks?.length}
+                            {#if submission.mark}
                                 <div class="mt-3">
                                     <h6>Detailed Assessment:</h6>
                                     <div class="table-responsive">
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Criteria</th>
                                                     <th class="text-end">Score</th>
                                                     <th class="text-end">Max Score</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {#each submission.grade.marks as mark}
-                                                    <tr>
-                                                        <td>{mark.criteria}</td>
-                                                        <td class="text-end">{mark.score}</td>
-                                                        <td class="text-end">{mark.maxScore}</td>
-                                                    </tr>
-                                                {/each}
-                                                <tr class="table-info">
-                                                    <td><strong>Total</strong></td>
-                                                    <td class="text-end">
-                                                        <strong>
-                                                            {submission.grade.marks.reduce((sum, mark) => sum + mark.score, 0)}
-                                                        </strong>
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <strong>
-                                                            {submission.grade.marks.reduce((sum, mark) => sum + mark.maxScore, 0)}
-                                                        </strong>
-                                                    </td>
+                                                
+                                                <tr>
+                                                    <td class="text-end">{submission.mark.score}</td>
+                                                    <td class="text-end">{submission.mark.maxScore}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
+                                    <h5>Feedback:</h5>
+                                    <h5>{submission.feedback}</h5>
                                     </div>
                                 </div>
                             {/if}
                         </div>
                     {/if}
 
-                    <p>Submitted on: {new Date(submission.submissionDate).toLocaleString()}</p>
+                    <p>Submitted on: {formatDateTime(submission.submittedOn)}</p>
                     
                     {#if submission.attachments?.length}
                         <div class="mt-3">
@@ -286,7 +289,7 @@
 
                     <!-- Update the submission modification check -->
                     <div class="mt-3">
-                        {#if !submission?.grade}
+                        {#if !submission?.mark}
                             <button 
                                 class="btn btn-outline-primary me-2"
                                 on:click={() => editingSubmission = true}

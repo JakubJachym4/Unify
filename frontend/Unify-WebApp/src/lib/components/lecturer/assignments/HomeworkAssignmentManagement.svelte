@@ -29,6 +29,7 @@
                             id: '',
                             title: '',
                             description: '',
+                            criteria: null as string | null,
                             dueDate: '',
                             attachments: null as File[] | null
                         }
@@ -40,6 +41,7 @@
         classOfferingId: classOfferingId,
         title: '',
         description: '',
+        criteria: null as string | null,
         dueDate: '',
         attachments: null
     };
@@ -66,6 +68,7 @@
                 classOfferingId,
                 title: '',
                 description: '',
+                criteria: '',
                 dueDate: '',
                 attachments: null
             };
@@ -80,18 +83,22 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
+
+
             const updateRequest: UpdateHomeworkAssignmentRequest = {
                 id: editingAssignment.id,
                 title: editingAssignment.title,
                 description: editingAssignment.description,
+                criteria: editingAssignment.criteria,
                 dueDate: editingAssignment.dueDate,
-                attachments: editingAssignment.attachments || []
+                attachments: editingAssignment.attachments
             };
             await UpdateHomeworkAssignment(updateRequest, token);
             editingAssignment = {
                             id: '',
                             title: '',
                             description: '',
+                            criteria: '',
                             dueDate: '',
                             attachments: null as File[] | null
                         }
@@ -198,6 +205,7 @@
                     <tr>
                         <th>Title</th>
                         <th>Description</th>
+                        <th>Criteria</th>
                         <th>Due Date</th>
                         <th>Attachments</th>
                         <th>Submissions</th>
@@ -209,6 +217,7 @@
                         <tr>
                             <td>{assignment.title}</td>
                             <td>{assignment.description}</td>
+                            <td>{assignment.criteria}</td>
                             <td>{new Date(assignment.dueDate).toLocaleString()}</td>
                             <td>
                                 {#if assignment.attachments?.length}
@@ -303,6 +312,15 @@
                             ></textarea>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Criteria</label>
+                            <textarea 
+                                class="form-control"
+                                bind:value={newAssignment.criteria}
+                                required
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Due Date</label>
                             <input 
                                 type="date"
@@ -346,6 +364,7 @@
                             id: '',
                             title: '',
                             description: '',
+                            criteria: null as string | null,
                             dueDate: '',
                             attachments: null as File[] | null
                         }
@@ -365,6 +384,15 @@
                             <textarea 
                                 class="form-control"
                                 bind:value={editingAssignment.description}
+                                required
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Criteria</label>
+                            <textarea 
+                                class="form-control"
+                                bind:value={editingAssignment.criteria}
                                 required
                                 rows="3"
                             ></textarea>
@@ -393,6 +421,7 @@
                             id: '',
                             title: '',
                             description: '',
+                            criteria: null as string | null,
                             dueDate: '',
                             attachments: null as File[] | null
                         }

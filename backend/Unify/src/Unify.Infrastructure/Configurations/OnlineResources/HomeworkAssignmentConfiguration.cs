@@ -6,9 +6,9 @@ using Unify.Domain.UniversityClasses;
 
 namespace Unify.Infrastructure.Configurations.OnlineResources;
 
-internal sealed class HomeworkAssignmentConfiguration : HomeworkBaseEntityConfiguration<HomeworkAssignment>
+internal sealed class HomeworkAssignmentConfiguration : IEntityTypeConfiguration<HomeworkAssignment>
 {
-    public override void Configure(EntityTypeBuilder<HomeworkAssignment> builder)
+    public void Configure(EntityTypeBuilder<HomeworkAssignment> builder)
     {
         builder.ToTable("homework_assignments");
 
@@ -21,6 +21,11 @@ internal sealed class HomeworkAssignmentConfiguration : HomeworkBaseEntityConfig
             .IsRequired()
             .HasMaxLength(200)
             .HasConversion(description => description.Value, value => new Description(value));
+
+        builder.Property(ha => ha.Criteria)
+            .HasMaxLength(200)
+            .HasConversion(description => description == null ? null : description.Value,
+                value => value == null ? null : new Description(value));
 
         builder.Property(ha => ha.DueDate)
             .IsRequired();

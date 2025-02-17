@@ -5,6 +5,7 @@ export interface CreateHomeworkAssignmentRequest{
     classOfferingId: string,
     title: string,
     description: string,
+    criteria: string | null,
     dueDate: string,
     attachments: File[] | null,
 }
@@ -13,6 +14,7 @@ export interface UpdateHomeworkAssignmentRequest{
     id: string,
     title: string,
     description: string,
+    criteria: string | null,
     dueDate: string,
     attachments: File[] | null,
 }
@@ -26,7 +28,6 @@ export interface GradeHomeworkSubmissionRequest{
     submissionId: string,
     score: number,
     maxScore: number,
-    criteria: string,
     feedback: string,
 }
 
@@ -35,6 +36,9 @@ export const CreateHomeworkAssignment = async (data: CreateHomeworkAssignmentReq
     fromData.append('classOfferingId', data.classOfferingId);
     fromData.append('title', data.title);
     fromData.append('description', data.description);
+    if(data.criteria){
+        fromData.append('criteria', data.criteria);
+    }
     fromData.append('dueDate', data.dueDate);
     if(data.attachments){
         data.attachments.forEach(file => {
@@ -49,6 +53,9 @@ export const UpdateHomeworkAssignment = async (data: UpdateHomeworkAssignmentReq
     fromData.append('id', data.id);
     fromData.append('title', data.title);
     fromData.append('description', data.description);
+    if(data.criteria){
+        fromData.append('criteria', data.criteria);
+    }
     fromData.append('dueDate', data.dueDate);
     if(data.attachments){
         data.attachments.forEach(file => {
@@ -76,4 +83,8 @@ export const GetHomeworkAssignmentsByClassOfferingId = async (classOfferingId: s
 
 export const GetHomeworkAssignmentsByStudentId = async (studentId: string, token: string) => {
     return await api<HomeworkAssignment[]>('GET', `/assignments/student/${studentId}`, null, token);
+}
+
+export const SetAssignmentLock = async (id: string, locked: boolean, token: string) => {
+    return await api('PUT', `/assignments/${id}/lock=${locked}`, null, token);
 }

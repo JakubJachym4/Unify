@@ -148,15 +148,15 @@
         </div>
     {:else}
         <div class="row">
-            <!-- Upcoming Sessions -->
+            <!-- Upcoming Classes -->
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Upcoming Sessions</h5>
+                        <h5 class="card-title mb-0">Upcoming Classes</h5>
                     </div>
                     <div class="card-body">
                         {#if upcomingSessions.length === 0}
-                            <p class="text-muted">No upcoming sessions in the next {DAYS_TO_SHOW} days</p>
+                            <p class="text-muted">No upcoming classes in the next {DAYS_TO_SHOW} days</p>
                         {:else}
                             <div class="list-group">
                                 {#each upcomingSessions as session}
@@ -208,15 +208,7 @@
                                         </div>
                                         <h6 class="mb-2">{assignment.courseName}</h6>
                                         <p class="mb-1">Class: {assignment.className}</p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">
-                                                {#if assignment.submissions?.length}
-                                                    Submissions: {assignment.submissions.length}
-                                                {:else}
-                                                    No submissions yet
-                                                {/if}
-                                            </small>
-                                        </div>
+                                    
                                     </div>
                                 {/each}
                             </div>

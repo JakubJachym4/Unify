@@ -7,9 +7,9 @@ using Unify.Domain.Users;
 
 namespace Unify.Infrastructure.Configurations.OnlineResources;
 
-internal sealed class HomeworkSubmissionConfiguration : HomeworkBaseEntityConfiguration<HomeworkSubmission>
+internal sealed class HomeworkSubmissionConfiguration : IEntityTypeConfiguration<HomeworkSubmission>
 {
-    public override void Configure(EntityTypeBuilder<HomeworkSubmission> builder)
+    public void Configure(EntityTypeBuilder<HomeworkSubmission> builder)
     {
         builder.ToTable("homework_submissions");
 

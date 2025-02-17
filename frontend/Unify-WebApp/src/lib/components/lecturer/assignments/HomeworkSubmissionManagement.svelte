@@ -5,7 +5,8 @@
     import { 
         GetHomeworkAssignmentById,
         UpdateHomeworkAssignment,
-        GradeHomeworkSubmission
+        GradeHomeworkSubmission,
+        SetAssignmentLock
     } from '$lib/api/Admin/Assignments/HomeworkAssignmentRequests';
     import { 
         GetHomeworkSubmissionsByAssignment 
@@ -18,6 +19,7 @@
     import type { HomeworkAssignment, HomeworkSubmission, Attachment } from '$lib/types/resources';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import { convertFilesToAttachments, convertAttachmentsToFiles } from '$lib/types/resources';
+    import SubmissionGrading from './SubmissionGrading.svelte';
 
     export let assignmentId: string;
     export let classOfferingId: string;
@@ -32,6 +34,7 @@
                             id: '',
                             title: '',
                             description: '',
+                            criteria: null as string | null,
                             dueDate: '',
                             attachments: null as File[] | null
 
@@ -65,26 +68,32 @@
         }
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate = async (id: string) => {
         if (!assignment) return;
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
             if(!editingAssignment) return;
 
+            // Handle attachments properly
             const updateRequest: UpdateHomeworkAssignmentRequest = {
                 ...editingAssignment,
-                attachments: editingAssignment.attachments || []
+                // If new attachments were uploaded, use them; otherwise keep existing ones
+                attachments: editingAssignment.attachments 
+                    ? editingAssignment.attachments 
+                    : convertAttachmentsToFiles(assignment.attachments) || []
             };
-            await UpdateHomeworkAssignment(updateRequest, token);
-            editingAssignment = {
-                            id: '',
-                            title: '',
-                            description: '',
-                            dueDate: '',
-                            attachments: null as File[] | null
 
-                        };
+            await UpdateHomeworkAssignment(updateRequest, token);
+            editingAssignmentState = false;
+            editingAssignment = {
+                id: '',
+                title: '',
+                description: '',
+                criteria: null as string | null,
+                dueDate: '',
+                attachments: null as File[] | null
+            };
             await loadData();
         } catch (err) {
             error = (err as ApiRequestError).details;
@@ -97,6 +106,19 @@
             if (!token) throw new Error('No token found');
             await GradeHomeworkSubmission(formData, token);
             gradingSubmission = null;
+            await loadData();
+        } catch (err) {
+            error = (err as ApiRequestError).details;
+        }
+    };
+
+    const handleLockToggle = async () => {
+        if (!assignment) return;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+            
+            await SetAssignmentLock(assignment.id, !assignment.locked, token);
             await loadData();
         } catch (err) {
             error = (err as ApiRequestError).details;
@@ -123,12 +145,12 @@
     const handleFileSelect = (event: Event, isEdit = false) => {
         const target = event.target as HTMLInputElement;
         const files = Array.from(target.files || []);
-        if (editingAssignment) {
+        if (editingAssignment && files.length > 0) {
             editingAssignment = {
                 ...editingAssignment,
                 attachments: files
-            };}
-        
+            };
+        }
     };
 
     onMount(loadData);
@@ -155,16 +177,41 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Assignment Details</h5>
-                <button 
-                    class="btn btn-sm btn-outline-primary"
-                    on:click={() => {editingAssignment = {...assignment!, attachments: convertAttachmentsToFiles(assignment!.attachments) || []}; editingAssignmentState = true}}
-                >
-                    Edit Assignment
-                </button>
+                <div class="btn-group">
+                    <button 
+                        class="btn btn-sm {assignment.locked ? 'btn-warning' : 'btn-outline-warning'}"
+                        on:click={handleLockToggle}
+                        title={assignment.locked ? 'Unlock Assignment' : 'Lock Assignment'}
+                    >
+                        <i class="bi bi-{assignment.locked ? 'lock-fill' : 'unlock-fill'}"></i>
+                        {assignment.locked ? 'Locked' : 'Unlocked'}
+                    </button>
+                    <button 
+                        class="btn btn-sm btn-outline-primary ms-2"
+                        on:click={() => {
+                            editingAssignment = {
+                                ...assignment!, 
+                                attachments: convertAttachmentsToFiles(assignment!.attachments) || []
+                            }; 
+                            editingAssignmentState = true
+                        }}
+                        disabled={assignment.locked}
+                    >
+                        Edit Assignment
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <h5 class="card-title">{assignment.title}</h5>
+                <div class="d-flex align-items-center mb-2">
+                    {#if assignment.locked}
+                        <span class="badge bg-warning me-2">
+                            <i class="bi bi-lock-fill"></i> Locked
+                        </span>
+                    {/if}
+                </div>
                 <p class="card-text">{assignment.description}</p>
+                <p class="card-text">Grading Criteria: {assignment.criteria ?? "Not Defined"}</p>
                 <p class="card-text">
                     <small class="text-muted">Due: {new Date(assignment.dueDate).toLocaleString()}</small>
                 </p>
@@ -218,15 +265,24 @@
                                                 {submission.student?.firstName} {submission.student?.lastName}
                                             </h6>
                                             <small class="text-muted">
-                                                Submitted: {new Date(submission.submissionDate).toLocaleString()}
+                                                Submitted: {new Date(submission.submittedOn).toLocaleString()}
                                             </small>
                                         </div>
-                                        <button 
-                                            class="btn btn-sm btn-outline-primary"
-                                            on:click={() => gradingSubmission = submission}
-                                        >
-                                            Grade
-                                        </button>
+                                        {#if !submission.mark}
+                                                <button 
+                                                class="btn btn-sm btn-outline-primary"
+                                                on:click={() => gradingSubmission = submission}
+                                            >
+                                                Grade
+                                            </button>
+                                        {:else}
+                                            <div>
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check2"></i> Graded
+                                                </span>
+                                            </div>
+                                        {/if}
+                                        
                                     </div>
                                 </div>
                             {/each}
@@ -264,13 +320,14 @@
     <div class="modal fade show" style="display: block;">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form on:submit|preventDefault={handleUpdate}>
+                <form on:submit|preventDefault={() => handleUpdate(assignmentId)}>
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Assignment</h5>
                         <button type="button" class="btn-close" on:click={() => {editingAssignment = {
                             id: '',
                             title: '',
                             description: '',
+                            criteria: null as string | null,
                             dueDate: '',
                             attachments: null as File[] | null
 
@@ -281,7 +338,7 @@
                             <label class="form-label">Title</label>
                             <input 
                                 class="form-control"
-                                bind:value={assignment.title}
+                                bind:value={editingAssignment.title}
                                 required
                             />
                         </div>
@@ -289,7 +346,16 @@
                             <label class="form-label">Description</label>
                             <textarea 
                                 class="form-control"
-                                bind:value={assignment.description}
+                                bind:value={editingAssignment.description}
+                                required
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Criteria</label>
+                            <textarea 
+                                class="form-control"
+                                bind:value={editingAssignment.criteria}
                                 required
                                 rows="3"
                             ></textarea>
@@ -299,18 +365,40 @@
                             <input 
                                 type="date"
                                 class="form-control"
-                                bind:value={assignment.dueDate}
+                                bind:value={editingAssignment.dueDate}
                                 required
                             />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Attachments</label>
+                            <label class="form-label">Current Attachments</label>
+                            {#if assignment.attachments?.length}
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    {#each assignment.attachments as attachment}
+                                        <div class="attachment-item">
+                                            {#if isImage(attachment)}
+                                                <img 
+                                                    src={`data:${attachment.contentType};base64,${attachment.data}`}
+                                                    alt={attachment.fileName}
+                                                    class="attachment-preview"
+                                                />
+                                            {:else}
+                                                <i class="bi bi-{getFileIcon(attachment.fileName)} fs-2"></i>
+                                            {/if}
+                                            <small class="d-block text-truncate">{attachment.fileName}</small>
+                                        </div>
+                                    {/each}
+                                </div>
+                            {/if}
+                            <label class="form-label">Upload New Attachments</label>
                             <input 
                                 type="file"
                                 class="form-control"
                                 on:change={(e) => handleFileSelect(e, true)}
                                 multiple
                             />
+                            <small class="form-text text-muted">
+                                Leave empty to keep current attachments. Uploading new files will replace all existing attachments.
+                            </small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -318,6 +406,7 @@
                             id: '',
                             title: '',
                             description: '',
+                            criteria: null as string | null,
                             dueDate: '',
                             attachments: null as File[] | null
 
@@ -335,79 +424,14 @@
 
 <!-- Grade Submission Modal -->
 {#if gradingSubmission}
-    <div class="modal fade show" style="display: block;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form 
-                    on:submit|preventDefault={(e) => {
-                        const formData = new FormData(e.target);
-                        handleGradeSubmission({
-                            assignmentId: gradingSubmission.assignmentId,
-                            submissionId: gradingSubmission.id,
-                            score: Number(formData.get('score')),
-                            maxScore: Number(formData.get('maxScore')),
-                            criteria: formData.get('criteria') as string,
-                            feedback: formData.get('feedback') as string
-                        });
-                    }}
-                >
-                    <div class="modal-header">
-                        <h5 class="modal-title">Grade Submission</h5>
-                        <button type="button" class="btn-close" on:click={() => gradingSubmission = null}></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Score</label>
-                            <input 
-                                type="number"
-                                class="form-control"
-                                name="score"
-                                required
-                                min="0"
-                                max="100"
-                            />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Maximum Score</label>
-                            <input 
-                                type="number"
-                                class="form-control"
-                                name="maxScore"
-                                required
-                                min="0"
-                                max="100"
-                            />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Grading Criteria</label>
-                            <textarea 
-                                class="form-control"
-                                name="criteria"
-                                required
-                                rows="3"
-                            ></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Feedback</label>
-                            <textarea 
-                                class="form-control"
-                                name="feedback"
-                                required
-                                rows="3"
-                            ></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" on:click={() => gradingSubmission = null}>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">Submit Grade</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
+    <SubmissionGrading
+        submission={gradingSubmission}
+        onClose={() => gradingSubmission = null}
+        onGraded={async () => {
+            gradingSubmission = null;
+            await loadData();
+        }}
+    />
 {/if}
 
 <style>

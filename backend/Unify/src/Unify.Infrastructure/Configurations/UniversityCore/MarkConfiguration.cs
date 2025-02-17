@@ -24,5 +24,8 @@ internal sealed class MarkConfiguration : IEntityTypeConfiguration<Mark>
             .HasMaxLength(400)
             .HasConversion(d => d == null ? "" : d.Value, value => new Description(value));;
 
+        builder.Property(m => m.DateAwarded)
+            .IsRequired();
+
     }
 }

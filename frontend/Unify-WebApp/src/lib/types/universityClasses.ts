@@ -64,7 +64,7 @@ export interface Mark{
     id: string,
     gradeId: string,
     submissionId: string | null,
-    criteria: string,
     score: number,
     maxScore: number,
+    dateAwarded: number,
 }

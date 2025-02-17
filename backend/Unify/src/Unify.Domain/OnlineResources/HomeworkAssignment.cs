@@ -10,17 +10,19 @@ namespace Unify.Domain.OnlineResources;
 public sealed class HomeworkAssignment : HomeworkBaseEntity
 {
     private HomeworkAssignment() { }
-    public HomeworkAssignment(ClassOffering classOffering, Title title, Description description, DateTime dueDate) : base(Guid.NewGuid())
+    public HomeworkAssignment(ClassOffering classOffering, Title title, Description description, Description? criteria, DateTime dueDate) : base(Guid.NewGuid())
     {
         ClassOfferingId = classOffering.Id;
         Title = title;
         Description = description;
+        Criteria = criteria;
         DueDate = dueDate;
     }
 
     public Guid ClassOfferingId { get; private set; }
     public Title Title { get; private set; }
     public Description Description { get; private set; }
+    public Description? Criteria { get; private set; }
     public DateTime DueDate { get; private set; }
     public bool Locked { get; private set; } = false;
 
@@ -37,10 +39,11 @@ public sealed class HomeworkAssignment : HomeworkBaseEntity
     public void UnlockSubmission() => Locked = false;
     public void ClearFiles() => _attachments.Clear();
 
-    public void Update(Title title, Description description, DateTime requestDueDate)
+    public void Update(Title title, Description description, Description? criteria, DateTime requestDueDate)
     {
         Title = title;
         Description = description;
+        Criteria = criteria;
         DueDate = requestDueDate;
     }
 }
