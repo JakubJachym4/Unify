@@ -1,11 +1,16 @@
 <script lang="ts">
+	import { GetHomeworkAssignmentById } from './../../../api/Admin/Assignments/HomeworkAssignmentRequests';
     import { GradeHomeworkSubmission } from '$lib/api/Admin/Assignments/HomeworkAssignmentRequests';
     import type { GradeHomeworkSubmissionRequest } from '$lib/api/Admin/Assignments/HomeworkAssignmentRequests';
-    import type { HomeworkSubmission, Attachment } from '$lib/types/resources';
+    import type { HomeworkSubmission, Attachment, HomeworkAssignment } from '$lib/types/resources';
     import type { UserResponse } from '$lib/api/User/UserRequests';
     import type { ApiRequestError } from '$lib/api/apiError';
+	import { CreateMark } from '$lib/api/Admin/Classes/GradeRequests';
+	import { getStudentEnrollments } from '$lib/api/Admin/Classes/ClassEnrollmentsRequests';
+	import { user } from '$lib/stores/user';
 
     export let submission: HomeworkSubmission & { student?: UserResponse };
+    export let assignment: HomeworkAssignment;
     export let onClose: () => void;
     export let onGraded: () => void;
 
@@ -19,14 +24,31 @@
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
 
-            await GradeHomeworkSubmission({
+            if(submission.id === '') {
+                let enrollments = await getStudentEnrollments(submission.studentId, token);
+                let enrollment = enrollments.find(enrollment => enrollment.classOfferingId === assignment.classOfferingId 
+                    && enrollment.studentId === submission.studentId
+                );
+
+                if(!enrollment) throw new Error('Student not enrolled in class');
+
+                await CreateMark({
+                    title: formData.get('title') as string,
+                    gradeId: enrollment.grade!.id,
+                    score: Number(formData.get('score')),
+                    maxScore: Number(formData.get('maxScore'))
+                }, token);
+            }else{
+                await GradeHomeworkSubmission({
                 title: formData.get('title') as string,
                 assignmentId: submission.assignmentId,
                 submissionId: submission.id,
                 score: Number(formData.get('score')),
                 maxScore: Number(formData.get('maxScore')),
                 feedback: formData.get('feedback') as string
-            }, token);
+                }, token);
+            }
+            
 
             onGraded();
         } catch (err) {
@@ -97,7 +119,12 @@
 
                 {#if activeTab === 'files'}
                     <div class="submitted-files">
-                        {#if submission.attachments?.length}
+                        {#if submission.id === ''}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                This student has not submitted any files. You are creating a grade without a submission.
+                            </div>
+                        {:else if submission.attachments?.length}
                             <div class="row">
                                 {#each submission.attachments as attachment}
                                     <div class="col-md-4 mb-3">
@@ -169,14 +196,16 @@
                                 />
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Feedback</label>
-                            <textarea 
-                                class="form-control"
-                                name="feedback"
-                                rows="3"
-                            ></textarea>
-                        </div>
+                        {#if submission.id !== ''}
+                            <div class="mb-3">
+                                <label class="form-label">Feedback</label>
+                                <textarea 
+                                    class="form-control"
+                                    name="feedback"
+                                    rows="3"
+                                ></textarea>
+                            </div>
+                        {/if}
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-secondary" on:click={onClose}>
                                 Cancel

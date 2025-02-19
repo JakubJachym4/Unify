@@ -51,7 +51,10 @@
 </script>
 
 <div class="container mt-4">
-        <h2>My Enrollments</h2>
+    {#if !selectedGrade}
+    <h2>My Enrollments</h2>
+    {/if}
+        
 
         {#if error}
             <div class="alert alert-danger">{error}</div>

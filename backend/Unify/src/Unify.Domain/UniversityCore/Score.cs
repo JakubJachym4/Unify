@@ -3,9 +3,7 @@
 namespace Unify.Domain.UniversityCore;
 
 [NotMapped]
-public sealed record Score
+public sealed record Score(decimal Value)
 {
-    public decimal Value { get; init; }
-
-    public static implicit operator Score(decimal value) => new Score { Value = value };
+    public static implicit operator Score(decimal value) => new(value);
 };

@@ -181,7 +181,6 @@ let selectedOffering: ClassOffering | null = null;
 let enrollments: ClassEnrollment[] = [];
 let loadingEnrollments = false;
 
-console.log(course);
 
 // Add new functions
 const loadEnrollments = async (classOfferingId: string) => {

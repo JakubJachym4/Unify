@@ -16,6 +16,7 @@
 	import { GetHomeworkSubmissionsByStudent } from '$lib/api/Admin/Assignments/HomeworkSubmissionsRequests';
     import { GetAllLocations } from '$lib/api/Common/LocationRequests';
     import type { AcademicLocation } from '$lib/types/university';
+	import ScheduleView from '../common/ScheduleView.svelte';
 
     let loading = true;
     let error = '';
@@ -24,6 +25,11 @@
     let upcomingLectures: (ClassSession & { courseName?: string } & {courseId: string})[] = [];
     let submissions: HomeworkSubmission[] | null = null;
     let locations: AcademicLocation[] = [];
+
+    // First, add new state variables for the 7-day views
+    let weekSessions: typeof upcomingSessions = [];
+    let weekAssignments: typeof upcomingAssignments = [];
+    let weekLectures: typeof upcomingLectures = [];
 
     const DAYS_TO_SHOW = 7; // Show items for next 7 days
 
@@ -90,8 +96,11 @@
             ]);
 
             const now = new Date();
+            const weekDate = new Date();
             const futureDate = new Date();
-            futureDate.setDate(now.getDate() + DAYS_TO_SHOW);
+            
+            weekDate.setDate(now.getDate() + 7); // 7 days
+            futureDate.setMonth(now.getMonth() + 6); // 6 months
 
             // Filter and sort upcoming sessions
             upcomingSessions = allSessions
@@ -101,6 +110,9 @@
                 })
                 .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
 
+            weekSessions = upcomingSessions
+                .filter(session => new Date(session.scheduledDate) <= weekDate);
+
             // Filter and sort upcoming assignments
             upcomingAssignments = allAssignments
                 .filter(assignment => {
@@ -109,6 +121,9 @@
                 })
                 .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
+            weekAssignments = upcomingAssignments
+                .filter(assignment => new Date(assignment.dueDate) <= weekDate);
+
             // Filter and sort upcoming lectures
             upcomingLectures = allLectures
                 .filter(lecture => {
@@ -116,6 +131,9 @@
                     return lectureDate >= now && lectureDate <= futureDate;
                 })
                 .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+
+            weekLectures = upcomingLectures
+                .filter(lecture => new Date(lecture.scheduledDate) <= weekDate);
 
             loading = false;
         } catch (err) {
@@ -176,7 +194,6 @@
         {#if error}
             <div class="alert alert-danger" role="alert">{error}</div>
         {/if}
-
         {#if loading}
             <div class="d-flex justify-content-center">
                 <div class="spinner-border" role="status">
@@ -192,16 +209,16 @@
                             <h5 class="card-title mb-0">Upcoming Classes</h5>
                         </div>
                         <div class="card-body">
-                            {#if upcomingSessions.length === 0}
+                             {#if weekSessions.length === 0}
                                 <p class="text-muted">No upcoming classes in the next {DAYS_TO_SHOW} days</p>
                             {:else}
                                 <div class="list-group">
-                                    {#each upcomingSessions as session}
+                                    {#each weekSessions as session}
                                     {@const locationInfo = formatLocation(session.locationId)}
                                         <a
                                             href="#"
                                             class="list-group-item list-group-item-action dashboard-item"
-                                            on:click|preventDefault={() => dispatch('viewSession', { classOfferingId: session.classOfferingId })}
+                                            on:click|preventDefault={() => null}
                                         >
                                             <div class="d-flex w-100 justify-content-between align-items-start mb-2">
                                                 <h5 class="mb-1">{session.title}</h5>
@@ -244,11 +261,11 @@
                             <h5 class="card-title mb-0">Upcoming Deadlines</h5>
                         </div>
                         <div class="card-body">
-                            {#if upcomingAssignments.length === 0}
+                            {#if weekAssignments.length === 0}
                                 <p class="text-muted">No upcoming deadlines in the next {DAYS_TO_SHOW} days</p>
                             {:else}
                                 <div class="list-group">
-                                    {#each upcomingAssignments as assignment}
+                                    {#each weekAssignments as assignment}
                                         <a
                                             href="#"
                                             class="list-group-item list-group-item-action dashboard-item"
@@ -289,11 +306,11 @@
                             <h5 class="card-title mb-0">Upcoming Lectures</h5>
                         </div>
                         <div class="card-body">
-                            {#if upcomingLectures.length === 0}
+                            {#if weekLectures.length === 0}
                                 <p class="text-muted">No upcoming lectures in the next {DAYS_TO_SHOW} days</p>
                             {:else}
                                 <div class="list-group">
-                                    {#each upcomingLectures as lecture}
+                                    {#each weekLectures as lecture}
                                         {@const locationInfo = formatLocation(lecture.locationId)}
                                         <a
                                             href="#"
@@ -333,6 +350,16 @@
                     </div>
                 </div>
             </div>
+
+            <ScheduleView 
+            {upcomingSessions}
+            {upcomingLectures}
+            {upcomingAssignments}
+            on:viewSession
+            on:viewAssignment
+            on:viewLecture
+        />
+
         {/if}
     </div>
 </div>

@@ -98,6 +98,7 @@
                                 {#each grade.marks as mark}
                                     <tr>
                                         <td class="text-center">{mark.title}</td>
+                                        <td class="text-center"></td>
                                         {#if mark.submissionId}
                                             <td class="text-center">
                                                 <button class="btn btn-secondary"
@@ -116,6 +117,7 @@
                                 {/each}
                                 <tr class="table-info">
                                     <td><strong>Total</strong></td>
+                                    <td></td>
                                     <td></td>
                                     <td class="text-end">
                                         <strong>

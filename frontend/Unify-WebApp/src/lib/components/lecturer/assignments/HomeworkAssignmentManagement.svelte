@@ -16,6 +16,7 @@
     import type { HomeworkAssignment, HomeworkSubmission, Attachment } from '$lib/types/resources';
     import { convertFilesToAttachments, convertAttachmentsToFiles } from '$lib/types/resources';
 	import HomeworkSubmissionManagement from './HomeworkSubmissionManagement.svelte';
+    import { type Grade } from '$lib/types/universityClasses';
     
     export let classOfferingId: string;
     export let onBack: () => void;

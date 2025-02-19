@@ -205,8 +205,15 @@ public sealed class GradeHomeworkSubmissionCommandHandler : ICommandHandler<Grad
             return Result.Failure(GradeErrors.NotFound);
         }
 
+        if (grade.DateAwarded != null)
+        {
+            return Result.Failure(GradeErrors.AlreadyAwarded);
+        }
+
         var mark = Mark.CreateForSubmission(new Title(request.Title), grade, homeworkSubmission, request.Score, request.MaxScore,
             _dateTimeProvider.UtcNow);
+
+        grade.AddMark(mark);
 
         if (request.Feedback != null)
         {
@@ -363,4 +370,5 @@ public sealed class LockHomeworkAssignmentCommandHandler : ICommandHandler<LockH
 public static class GradeErrors
 {
     public static Error NotFound => Error.Create("Grade.NotFound", "The grade with the specified identifier was not found");
+    public static Error AlreadyAwarded => Error.Create("Grade.AlreadyAwarded", "Cannot add mark to an already awarded grade");
 }

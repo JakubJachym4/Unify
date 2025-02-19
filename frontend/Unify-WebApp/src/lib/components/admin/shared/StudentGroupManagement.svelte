@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { get } from 'svelte/store';
     import { onMount } from 'svelte';
     import type { StudentGroup } from '$lib/types/universityClasses';
     import type { ApiRequestError } from '$lib/api/apiError';
@@ -35,10 +36,12 @@
     let addForm: HTMLFormElement;
     let editForm: HTMLFormElement;
 
+    let thisYear = new Date().getFullYear();
+
     let newGroup: CreateStudentGroupRequest = {
         name: '',
         specializationId: specialization.id,
-        studyYear: 1,
+        studyYear: thisYear,
         semester: 1,
         term: 'Winter',
         maxGroupSize: 30
@@ -77,7 +80,7 @@
             newGroup = {
                 name: '',
                 specializationId: specialization.id,
-                studyYear: 1,
+                studyYear: thisYear,
                 semester: 1,
                 term: 'Winter',
                 maxGroupSize: 30

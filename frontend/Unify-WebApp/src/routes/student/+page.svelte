@@ -1,4 +1,5 @@
 <script lang="ts">
+	import StudentInformationView from './../../lib/components/student/StudentInformationView.svelte';
     import { onMount } from 'svelte';
     import { getLastMessagesByDate, type MessageResponse } from '$lib/api/Messages/MessagesRequests';
     import MessagesList from '$lib/components/messages/MessagesList.svelte';
@@ -21,7 +22,7 @@
     let showingAssignment = false;
     let showSuccessAlert = false;
     let showMessages = true;
-    let activeComponent: 'dashboard' | 'assignments' | 'locations' | 'structure' | 'directory' | 'assignment' | 'enrollment' | 'grade' = 'dashboard';
+    let activeComponent: 'dashboard' | 'assignments' | 'locations' | 'structure' | 'directory' | 'assignment' | 'enrollment' | 'grade' | 'information' = 'dashboard';
     let selectedAssignmentId = '';
     let selectedClassOfferingId = '';
     let selectedEnrollmentId: string | null = null;
@@ -107,6 +108,12 @@
                     >
                         My Enrollments
                     </button>
+                    <button 
+                        class="btn {activeComponent === 'information' ? 'btn-primary' : 'btn-outline-primary'} me-2"
+                        on:click={() => setActiveComponent('information')}
+                    >
+                        About Me
+                    </button>
                 </div>
                 <button 
                     class="btn {showMessages ? 'btn-primary' : 'btn-outline-primary'}"
@@ -165,6 +172,8 @@
                     }}
                 />
                 </div>
+            {:else if activeComponent === 'information'}
+                <StudentInformationView />
             {/if}
         </div>
         

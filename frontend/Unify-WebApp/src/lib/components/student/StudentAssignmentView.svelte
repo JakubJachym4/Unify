@@ -310,18 +310,33 @@
                         {/if}
                     </div>
                 {:else}
-                    <button 
-                        class="btn btn-primary"
-                        on:click={() => submitting = true}
-                        disabled={new Date(assignment.dueDate) < new Date()}
-                    >
-                        Submit Assignment
-                    </button>
-                    {#if new Date(assignment.dueDate) < new Date()}
-                        <div class="text-danger mt-2">
-                            Assignment deadline has passed
+                    <div class="text-danger">
+                        <h5 class="bi bi-lock">
+                            Submission not send!
+                        </h5> 
+                        
+                    </div>
+                    {#if !assignment.locked}
+                        <button 
+                            class="btn btn-primary"
+                            on:click={() => submitting = true}
+                            disabled={new Date(assignment.dueDate) < new Date()}
+                        >
+                            Submit Assignment
+                        </button>
+                    {:else}
+                        <div class="text-muted">
+                            <i class="bi bi-lock"></i> 
+                            Assignment has been locked and cannot be modified.
                         </div>
+                    
+                        {#if new Date(assignment.dueDate) < new Date()}
+                            <div class="text-danger mt-2">
+                                Assignment deadline has passed
+                            </div>
+                        {/if}
                     {/if}
+                    
                 {/if}
             </div>
         </div>

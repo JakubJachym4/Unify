@@ -18,6 +18,9 @@ internal sealed class GradeConfiguration : IEntityTypeConfiguration<Grade>
             .HasMaxLength(400)
             .HasConversion(d => d.Value, value => new Description(value));;
 
+        builder.Property(g => g.Score)
+            .HasConversion(s => s == null ? (decimal?)null : s.Value, value => value == null ? null : new Score(value.Value));
+
         builder.Property(g => g.DateAwarded);
 
         builder.HasMany(g => g.Marks)

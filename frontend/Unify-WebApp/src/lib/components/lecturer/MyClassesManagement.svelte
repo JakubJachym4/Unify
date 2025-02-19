@@ -15,6 +15,7 @@
 	import { getStudentGroups } from '$lib/api/Common/StudentGroupRequests';
 	import ClassOfferingResourceManagement from './resources/ClassOfferingResourceManagement.svelte';
     import HomeworkAssignmentManagement from './assignments/HomeworkAssignmentManagement.svelte';
+	import EnrollmentsManagement from './EnrollmentsManagement.svelte';
     
     let classOfferings: (ClassOffering & { 
         course?: CourseResponse;
@@ -28,6 +29,7 @@
     let resourceClass: ClassOffering | null = null;
     let managingAssignments = false;
     let selectedClassId: string | null = null;
+    let managingEnrollments = false;
 
     const loadClassOfferings = async () => {
         try {
@@ -82,7 +84,7 @@
 </script>
 
 <div class="container mt-4">
-    {#if !classOfferingId && !managingAssignments}
+    {#if !classOfferingId && !managingAssignments && !managingEnrollments}
         <h2 class="mb-4">My Classes</h2>
     {/if}
 
@@ -90,7 +92,7 @@
         <div class="alert alert-danger" role="alert">{error}</div>
     {/if}
 
-    {#if !classOfferingId  && !managingAssignments}
+    {#if !classOfferingId  && !managingAssignments && !managingEnrollments}
         <div class="row mb-3">
             <div class="col">
                 <input
@@ -124,6 +126,14 @@
             classOfferingId={selectedClassId}
             onBack={() => {
                 managingAssignments = false;
+                selectedClassId = null;
+            }}
+        />
+    {:else if managingEnrollments && selectedClassId}
+        <EnrollmentsManagement 
+            classOfferingId={selectedClassId}
+            onBack={() => {
+                managingEnrollments = false;
                 selectedClassId = null;
             }}
         />
@@ -171,16 +181,25 @@
                                     class="btn btn-sm btn-outline-primary"
                                     on:click={() => {resourceClass = offering}}
                                 >
-                                    Manage Resources
+                                    Resources
                                 </button>
                                 <button 
-                                    class="btn btn-sm btn-outline-primary me-2"
+                                    class="btn btn-sm btn-outline-primary"
                                     on:click={() => {
                                         managingAssignments = true;
                                         selectedClassId = offering.id;
                                     }}
                                 >
-                                    Manage Assignments
+                                    Assignments
+                                </button>
+                                <button 
+                                    class="btn btn-sm btn-outline-primary"
+                                    on:click={() => {
+                                        managingEnrollments = true;
+                                        selectedClassId = offering.id;
+                                    }}
+                                >
+                                    Enrollments
                                 </button>
                             </td>
                         </tr>

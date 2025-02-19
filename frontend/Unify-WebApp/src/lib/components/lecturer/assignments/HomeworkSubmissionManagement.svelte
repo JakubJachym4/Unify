@@ -303,8 +303,30 @@
                                 !submissions.find(s => s.studentId === student.id)
                             ) as student}
                                 <div class="list-group-item">
-                                    <h6 class="mb-1">{student.firstName} {student.lastName}</h6>
-                                    <small class="text-muted">{student.email}</small>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{student.firstName} {student.lastName}</h6>
+                                            <small class="text-muted">{student.email}</small>
+                                        </div>
+                                        <button 
+                                            class="btn btn-sm btn-outline-warning"
+                                            disabled={!assignment.locked}
+                                            title="Grading is disabled when assignment is not locked"
+                                            on:click={() => {
+                                                gradingSubmission = {
+                                                    id: '',
+                                                    assignmentId: assignmentId,
+                                                    studentId: student.id,
+                                                    mark: null,
+                                                    feedback: '',
+                                                    submittedOn: new Date().toISOString(),
+                                                    attachments: []
+                                                };
+                                            }}
+                                        >
+                                            <i class="bi bi-exclamation-triangle"></i> Grade Without Submission
+                                        </button>
+                                    </div>
                                 </div>
                             {/each}
                         </div>
@@ -426,6 +448,7 @@
 {#if gradingSubmission}
     <SubmissionGrading
         submission={gradingSubmission}
+        assignment={assignment!}
         onClose={() => gradingSubmission = null}
         onGraded={async () => {
             gradingSubmission = null;
