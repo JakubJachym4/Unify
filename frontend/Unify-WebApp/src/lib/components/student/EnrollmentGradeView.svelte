@@ -64,7 +64,7 @@
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h4 class="mb-3">Overall Grade: {grade.score}%</h4>
+                        <h4 class="mb-3">Overall Grade: {grade.score.toFixed(1)}%</h4>
                         {#if grade.dateAwarded}
                             <p class="text-muted">
                             <i class="bi bi-calendar"></i> 
@@ -130,7 +130,7 @@
                                         </strong>
                                     </td>
                                     <td class="text-end">
-                                        <strong>{grade.score}%</strong>
+                                        <strong>{grade.score.toFixed(1)}%</strong>
                                     </td>
                                 </tr>
                             </tbody>

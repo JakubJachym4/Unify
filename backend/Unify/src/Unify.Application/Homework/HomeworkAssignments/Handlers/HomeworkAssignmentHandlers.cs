@@ -310,24 +310,30 @@ public sealed class GetHomeworkAssignmentsByStudentQueryHandler : IQueryHandler<
         }
 
         var enrollments = await _classEnrollmentRepository.GetByStudentIdAsync(student.Id, cancellationToken);
-        var offeringsTasks = enrollments.Select(e => _classOfferingRepository.GetByIdAsync(e.ClassOfferingId, cancellationToken));
+        var offerings = new List<ClassOffering>();
 
-        var offerings = await Task.WhenAll(offeringsTasks);
+        foreach (var enrollment in enrollments)
+        {
+            var classOffering = await _classOfferingRepository.GetByIdAsync(enrollment.ClassOfferingId, cancellationToken);
+            if (classOffering != null)
+            {
+                offerings.Add(classOffering);
+            }
+        }
 
-        if (offerings.Length == 0)
+        if (offerings.Count == 0)
         {
             return new List<HomeworkAssigmentResponse>();
         }
 
-        var assignmentsTasks = offerings.Select(o =>
+        var assignments = new List<HomeworkAssignment>();
+        foreach (var offering in offerings)
         {
-            if (o != null) return _homeworkAssignmentRepository.GetByClassOffering(o, cancellationToken);
-            return null;
-        }).Where(task => task != null);
+            var responses = await _homeworkAssignmentRepository.GetByClassOffering(offering, cancellationToken);
+            assignments.AddRange(responses);
+        }
 
-        var assignments = await Task.WhenAll(assignmentsTasks!);
-
-        return assignments.SelectMany(x => x).Select(ha => new HomeworkAssigmentResponse(
+        return assignments.Select(ha => new HomeworkAssigmentResponse(
             ha.Id, ha.ClassOfferingId, ha.Title.Value, ha.Description.Value, ha.Criteria?.Value, ha.DueDate, ha.Locked,
             FileResponse.FromManyAttachments(ha.Attachments.ToList())
         )).ToList();

@@ -36,7 +36,7 @@
     <!-- Logout Button -->
     {#if $user}
       <div class="me-3">
-        <button class="btn btn-outline-danger btn-md" on:click={logout}>Logout</button>
+        <button class="btn btn-danger btn-md" on:click={logout}>Logout</button>
       </div>
     {/if}
   </div>

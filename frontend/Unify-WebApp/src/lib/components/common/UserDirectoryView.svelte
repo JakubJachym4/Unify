@@ -41,7 +41,7 @@
         total: users.length,
         students: users.filter(u => u.roles.includes('Student')).length,
         lecturers: users.filter(u => u.roles.includes('Lecturer')).length,
-        admins: users.filter(u => u.roles.includes('Admin')).length
+        admins: users.filter(u => u.roles.includes('Administrator')).length
     };
 
     onMount(() => {

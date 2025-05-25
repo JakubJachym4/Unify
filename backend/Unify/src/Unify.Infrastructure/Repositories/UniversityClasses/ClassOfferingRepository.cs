@@ -12,6 +12,15 @@ public class ClassOfferingRepository : Repository<ClassOffering>, IClassOffering
     {
     }
 
+    public override Task<ClassOffering?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return DbContext
+            .Set<ClassOffering>()
+            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+    }
+
     public Task<ClassOffering?> GetByIdAsyncIncludeEnrollments(Guid id, CancellationToken cancellationToken)
     {
         return DbContext.Set<ClassOffering>().Include(c => c.Enrollments)

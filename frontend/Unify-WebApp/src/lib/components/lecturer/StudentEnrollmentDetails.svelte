@@ -78,7 +78,7 @@
 
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h5>Overall Grade: {enrollment.grade.score}%</h5>
+                        <h5>Overall Grade: {enrollment.grade.score.toFixed(1)}%</h5>
                         {#if enrollment.grade.dateAwarded}
                         <p class="text-muted">
                             Awarded on: {formatDateTime(enrollment.grade.dateAwarded)}
@@ -127,7 +127,7 @@
                                         <strong>{enrollment.grade.marks.reduce((sum, m) => sum + m.maxScore, 0)}</strong>
                                     </td>
                                     <td class="text-end">
-                                        <strong>{enrollment.grade.score}%</strong>
+                                        <strong>{enrollment.grade.score.toFixed(1)}%</strong>
                                     </td>
                                 </tr>
                             </tbody>

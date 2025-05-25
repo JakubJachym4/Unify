@@ -108,7 +108,7 @@
         try {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
-            await CreateIntervalLectures({...intervalLecture, lecturerId: selectedLecturerId}, token);
+            await CreateIntervalLectures({...intervalLecture, lecturerId: selectedLecturerId, duration: intervalLecture.duration.toString()}, token);
             addingInterval = false;
             dispatch('refresh');
             await loadLectures();

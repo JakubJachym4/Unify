@@ -266,15 +266,19 @@ public sealed class GetClassOfferingsByStudentQueryHandler : IQueryHandler<GetCl
             return Result.Failure<List<ClassOfferingResponse>>(UserErrors.NotFound(request.StudentId));
         }
 
+        var responses = new List<ClassOffering>();
+
         var classEnrollments = await _classEnrollmentRepository.GetByStudentIdAsync(student.Id, cancellationToken);
 
-        var classOfferings = classEnrollments.Select(e => _classOfferingRepository.GetByIdAsync(e.ClassOfferingId, cancellationToken)).ToList();
-
-        var responses = await Task.WhenAll(classOfferings);
-        if(responses == null || responses.Length == 0)
+        foreach (var enrollment in classEnrollments)
         {
-            return new List<ClassOfferingResponse>();
+            var classOffering = await _classOfferingRepository.GetByIdAsync(enrollment.ClassOfferingId, cancellationToken);
+            if (classOffering != null)
+            {
+                responses.Add(classOffering);
+            }
         }
-        return ClassOfferingResponse.FromClassOfferingList(responses.Where(r => r != null).ToList()!);
+
+        return ClassOfferingResponse.FromClassOfferingList(responses.ToList());
     }
 }
