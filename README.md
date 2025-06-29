@@ -21,7 +21,7 @@ System desinged to represent real-life university structure and it's members.
 
 # Technical design.
 
-System is separated into two parts, backend application and frontend web-applicaiton.
+System is separated into two parts, backend application and frontend web-application.
 
 ## Backend.
 
@@ -35,7 +35,7 @@ System uses REST API to communicate with web-app.
 ## Frontend
 
 Svelte-Kit with TypeScript was chosen as framework for this web-app, mostly for learing purposes and as test of a new technology.
-Bootstrap was used as styling.
+Uses Bootstrap.
 
 Thanks to Svelte-Kit other frameworks/tools weren't needed for this simple project.
 Most Views/Forms etc were done with copliot for quicker development.
